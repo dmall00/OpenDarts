@@ -1,5 +1,7 @@
-package io.github.dmall.multidart.config
+package io.github.dmall.multidart.auth.config
 
+import io.github.dmall.multidart.auth.service.CustomUserDetailsService
+import io.github.dmall.multidart.auth.util.JwtUtil
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -13,8 +15,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
-import io.github.dmall.multidart.service.CustomUserDetailsService
-import io.github.dmall.multidart.util.JwtUtil
 
 @Configuration
 @EnableWebSecurity
@@ -29,7 +29,7 @@ class SecurityConfig @Autowired constructor(
             .csrf { it.disable() }
             .authorizeHttpRequests { authorize ->
                 authorize
-                    .requestMatchers("/auth/**", "/swagger-ui.html", "/swagger-ui/**",  "/v3/api-docs/**").permitAll()
+                    .requestMatchers("/auth/**", "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
                     .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                     .anyRequest().authenticated()
             }

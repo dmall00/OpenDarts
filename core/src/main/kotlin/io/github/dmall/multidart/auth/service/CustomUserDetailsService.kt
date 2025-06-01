@@ -1,13 +1,13 @@
-package io.github.dmall.multidart.service
+package io.github.dmall.multidart.auth.service
 
+import io.github.dmall.multidart.user.repository.UserRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.core.GrantedAuthority
+import org.springframework.security.core.userdetails.User
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.stereotype.Service
-import io.github.dmall.multidart.repository.UserRepository
-import org.springframework.security.core.userdetails.User
 
 @Service
 class CustomUserDetailsService @Autowired constructor(

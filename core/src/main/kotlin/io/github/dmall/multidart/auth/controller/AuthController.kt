@@ -1,18 +1,17 @@
-package io.github.dmall.multidart.controller
+package io.github.dmall.multidart.auth.controller
 
-import io.github.dmall.multidart.model.AuthenticationRequest
-import io.github.dmall.multidart.model.AuthenticationResponse
-import io.github.dmall.multidart.entity.User
-import io.github.dmall.multidart.model.UserDto
+import io.github.dmall.multidart.auth.model.AuthenticationRequest
+import io.github.dmall.multidart.auth.model.AuthenticationResponse
+import io.github.dmall.multidart.auth.service.JwtService
+import io.github.dmall.multidart.user.model.UserDto
+import io.github.dmall.multidart.user.service.UserService
+import jakarta.validation.Valid
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
-import io.github.dmall.multidart.service.JwtService
-import io.github.dmall.multidart.service.UserService
-import jakarta.validation.Valid
 
 @RestController
 @RequestMapping("/auth")

@@ -1,6 +1,6 @@
-package io.github.dmall.multidart.repository
+package io.github.dmall.multidart.user.repository
 
-import io.github.dmall.multidart.entity.User
+import io.github.dmall.multidart.user.entity.User
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 

@@ -1,11 +1,11 @@
-package io.github.dmall.multidart.service
+package io.github.dmall.multidart.auth.service
 
-import io.github.dmall.multidart.model.AuthenticationRequest
+import io.github.dmall.multidart.auth.model.AuthenticationRequest
+import io.github.dmall.multidart.auth.util.JwtUtil
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.stereotype.Service
-import io.github.dmall.multidart.util.JwtUtil
 
 
 @Service

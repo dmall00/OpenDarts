@@ -1,15 +1,19 @@
-package io.github.dmall.multidart.service
+package io.github.dmall.multidart.user.service
 
-import io.github.dmall.multidart.entity.User
-import io.github.dmall.multidart.model.UserDto
-import io.github.dmall.multidart.model.mapper.UserMapper
+import io.github.dmall.multidart.user.entity.User
+import io.github.dmall.multidart.user.model.UserDto
+import io.github.dmall.multidart.user.model.mapper.UserMapper
+import io.github.dmall.multidart.user.repository.UserRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
-import io.github.dmall.multidart.repository.UserRepository
 
 @Service
-class UserService @Autowired constructor(val userRepository: UserRepository, val passwordEncoder: PasswordEncoder, val userMapper: UserMapper) {
+class UserService @Autowired constructor(
+    val userRepository: UserRepository,
+    val passwordEncoder: PasswordEncoder,
+    val userMapper: UserMapper
+) {
 
     fun save(user: UserDto): User {
         user.password = passwordEncoder.encode(user.password)

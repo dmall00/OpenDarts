@@ -1,4 +1,4 @@
-package io.github.dmall.multidart.model
+package io.github.dmall.multidart.user.model
 
 import jakarta.validation.constraints.NotBlank
 
