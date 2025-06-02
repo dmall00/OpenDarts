@@ -1,34 +1,36 @@
+from typing import Tuple, Optional
+
 import cv2
 import numpy as np
-import os
 
-def ensure_directory_exists(directory):
-    """
-    Ensure that a directory exists, creating it if necessary.
-    
-    Args:
-        directory: Path to the directory
-    """
-    if not os.path.exists(directory):
-        os.makedirs(directory)
 
-def crop_image(image, resolution, crop_size=None):
+def crop_image(image: np.ndarray, resolution: np.ndarray,
+               crop_size: Optional[float] = None) -> Tuple[np.ndarray, np.ndarray, float]:
     """
     Crop an image to a square centered in the image.
     
+    This function creates a square crop from the center of the image,
+    which is useful for dart board detection as it ensures the board
+    remains centered and maintains aspect ratio.
+    
     Args:
-        image: Image to crop
-        resolution: Image resolution
-        crop_size: Size of the crop (default: min dimension of the image)
+        image: Input image to crop
+        resolution: Image resolution as [width, height]
+        crop_size: Size of the square crop. If None, uses minimum dimension
         
     Returns:
-        tuple: (cropped_image, crop_start, crop_size)
+        Tuple containing:
+        - cropped_image: The cropped square image
+        - crop_start: Starting coordinates [x, y] of the crop
+        - crop_size: Size of the square crop
     """
     if crop_size is None:
         crop_size = min(resolution)
     
+    # Calculate crop starting position (centered)
     crop_start = resolution / 2 - crop_size / 2
     
+    # Extract the square crop from the image
     cropped_image = image[
         int(crop_start[1]):int(crop_start[1] + crop_size),
         int(crop_start[0]):int(crop_start[0] + crop_size)
@@ -36,48 +38,16 @@ def crop_image(image, resolution, crop_size=None):
     
     return cropped_image, crop_start, crop_size
 
-def resize_image(image, size):
-    """
-    Resize an image to the specified size.
-    
-    Args:
-        image: Image to resize
-        size: Target size (width, height)
-        
-    Returns:
-        numpy.ndarray: Resized image
-    """
-    return cv2.resize(image, size)
 
-def draw_board_outline(image, center, radii, segment_angles, color=(255, 0, 0), thickness=1):
+def resize_image(image, target_size=(800, 800)):
     """
-    Draw a dart board outline on an image.
-    
+    Skaliert das übergebene Bild auf die gewünschte Größe (standardmäßig 800x800).
+
     Args:
-        image: Image to draw on
-        center: Center point of the board (x, y)
-        radii: Radii of the board rings
-        segment_angles: Angles of the board segments
-        color: Color of the outline
-        thickness: Thickness of the lines
-        
+        image: Das Eingabebild (numpy-Array)
+        target_size: Zielegewünschte Größe als Tupel (Breite, Höhe)
+
     Returns:
-        numpy.ndarray: Image with board outline
+        Das skalierte Bild
     """
-    # Draw circles for the rings
-    for radius in radii:
-        cv2.circle(image, center, int(radius), color, thickness)
-    
-    # Draw lines for the segments
-    angles = np.append(segment_angles, 81)
-    
-    for angle in angles:
-        # Calculate the start and end points of the line
-        radian = np.deg2rad(angle)
-        x = int(center[0] + radii[-1] * np.cos(radian))
-        y = int(center[1] + radii[-1] * np.sin(radian))
-        
-        # Draw the line from the center to the edge
-        cv2.line(image, center, (x, y), color, thickness)
-    
-    return image
+    return cv2.resize(image, target_size, interpolation=cv2.INTER_AREA)

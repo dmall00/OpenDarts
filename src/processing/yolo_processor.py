@@ -1,0 +1,67 @@
+import logging
+
+import numpy as np
+from ultralytics import YOLO
+
+logger = logging.getLogger(__name__)
+
+
+class YoloProcessor:
+    def __init__(self, model_path):
+        logger.info(f"Loading YOLO model from: {model_path}")
+        self.model = YOLO(model_path)
+        self.class_names = {0: '20', 1: '3', 2: '11', 3: '6', 4: 'dart', 6: '15', 5: '11'}
+
+    def extract_detections(self, yolo_result):
+        logger.debug("Processing YOLO detection output")
+        calibration_coords = -np.ones((6, 2))
+        dart_coords = []
+
+        classes = yolo_result.boxes.cls
+        boxes = yolo_result.boxes.xywhn
+        confidences = yolo_result.boxes.conf
+
+        logger.debug(f"Processing {len(classes)} detected objects")
+
+        for i in range(len(classes)):
+            class_id = int(classes[i].item())
+            confidence = float(confidences[i].item())
+            box_center = [boxes[i][0], boxes[i][1]]
+            logger.info(f"Processing  {self.class_names.get(class_id)} point: {confidence:.4f}")
+
+            if class_id == 4:
+                if len(dart_coords) < 3:
+                    dart_coords.append(box_center)
+                    logger.debug(f"Added dart at position {box_center}")
+            else:
+                if confidence < 0.7:
+                    logger.info(
+                        f"Skipping low-confidence calibration  {self.class_names.get(class_id)} point: {confidence:.4f}")
+                    continue
+
+                calib_index = class_id if class_id < 4 else class_id - 1
+                if np.all(calibration_coords[calib_index] == -1):
+                    calibration_coords[calib_index] = box_center
+                    logger.info(
+                        f"Added calibration point {self.class_names.get(class_id)} with confidence {confidence:.2f}")
+
+        dart_coords = np.array(dart_coords)
+        valid_calibration_points = np.count_nonzero(calibration_coords != -1) // 2
+        logger.info(f"Extracted {valid_calibration_points} calibration points and {len(dart_coords)} darts")
+
+        return calibration_coords, dart_coords
+
+    def run_inference(self, image):
+        logger.info("Running YOLO inference...")
+        try:
+            results = list(self.model(image, verbose=False))
+            if not results:
+                raise RuntimeError("No results from YOLO model")
+
+            result = results[0]
+            logger.info(f"YOLO inference complete. Detected {len(result.boxes)} objects")
+            return result
+        except Exception as e:
+            error_msg = f"YOLO inference failed: {str(e)}"
+            logger.error(error_msg)
+            raise RuntimeError(error_msg)
