@@ -36,7 +36,7 @@ class YoloProcessor:
                     dart_coords.append(box_center)
                     logger.debug(f"Added dart at position {box_center}")
             else:  # Calibration point
-                if confidence < 0.7:
+                if confidence < 0.6:
                     logger.info(
                         f"Skipping low-confidence calibration {self.class_names.get(class_id)} point: {confidence:.4f}")
                     continue
@@ -70,13 +70,17 @@ class YoloProcessor:
 
     def run_inference(self, image):
         logger.info("Running YOLO inference...")
+        import time
+        start_time = time.time()
         try:
             results = list(self.model(image, verbose=False))
             if not results:
                 raise RuntimeError("No results from YOLO model")
 
             result = results[0]
-            logger.info(f"YOLO inference complete. Detected {len(result.boxes)} objects")
+            inference_time = time.time() - start_time
+            logger.info(
+                f"YOLO inference complete. Detected {len(result.boxes)} objects and took {inference_time:.2f} seconds")
             return result
         except Exception as e:
             error_msg = f"YOLO inference failed: {str(e)}"

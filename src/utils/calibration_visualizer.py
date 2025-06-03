@@ -65,7 +65,6 @@ class CalibrationVisualizer:
 
         # Display the result
         cv2.imshow(self.window_name, comparison)
-        print("Press any key to close the visualization...")
         cv2.waitKey(0)
         cv2.destroyAllWindows()
 
