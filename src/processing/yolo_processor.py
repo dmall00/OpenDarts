@@ -16,6 +16,8 @@ class YoloProcessor:
         logger.debug("Processing YOLO detection output")
         calibration_coords = -np.ones((6, 2))
         dart_coords = []
+        # Track which calibration points have duplicates
+        duplicate_calib_points = set()
 
         classes = yolo_result.boxes.cls
         boxes = yolo_result.boxes.xywhn
@@ -27,23 +29,38 @@ class YoloProcessor:
             class_id = int(classes[i].item())
             confidence = float(confidences[i].item())
             box_center = [boxes[i][0], boxes[i][1]]
-            logger.info(f"Processing  {self.class_names.get(class_id)} point: {confidence:.4f}")
+            logger.debug(f"Processing {self.class_names.get(class_id)} point: {confidence:.4f}")
 
-            if class_id == 4:
+            if class_id == 4:  # Dart
                 if len(dart_coords) < 3:
                     dart_coords.append(box_center)
                     logger.debug(f"Added dart at position {box_center}")
-            else:
+            else:  # Calibration point
                 if confidence < 0.7:
                     logger.info(
-                        f"Skipping low-confidence calibration  {self.class_names.get(class_id)} point: {confidence:.4f}")
+                        f"Skipping low-confidence calibration {self.class_names.get(class_id)} point: {confidence:.4f}")
                     continue
 
                 calib_index = class_id if class_id < 4 else class_id - 1
-                if np.all(calibration_coords[calib_index] == -1):
-                    calibration_coords[calib_index] = box_center
+
+                # Skip if we've already identified this as a duplicate
+                if calib_index in duplicate_calib_points:
                     logger.info(
-                        f"Added calibration point {self.class_names.get(class_id)} with confidence {confidence:.2f}")
+                        f"Ignoring duplicate calibration point {self.class_names.get(class_id)}")
+                    continue
+
+                # If we've already added this calibration point, mark it as duplicate and remove it
+                if not np.all(calibration_coords[calib_index] == -1):
+                    logger.info(
+                        f"Found duplicate of calibration point {self.class_names.get(class_id)}. Ignoring this class.")
+                    calibration_coords[calib_index] = -np.ones(2)  # Reset to invalid
+                    duplicate_calib_points.add(calib_index)  # Mark as duplicate
+                    continue
+
+                # This is the first instance of this calibration point
+                calibration_coords[calib_index] = box_center
+                logger.info(
+                    f"Added calibration point {self.class_names.get(class_id)} with confidence {confidence:.2f}")
 
         dart_coords = np.array(dart_coords)
         valid_calibration_points = np.count_nonzero(calibration_coords != -1) // 2
