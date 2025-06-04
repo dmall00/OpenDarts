@@ -1,33 +1,36 @@
+"""Visualization for calibration transformation results."""
+
 import logging
-from typing import Tuple, List
+from typing import List, Tuple
 
 import cv2
 import numpy as np
 from numpy import ndarray
 
 from src.geometry.board import DartBoard
-from src.models.detection_models import DetectionResult, DartScore
+from src.models.detection_models import DartScore, DetectionResult
 from src.models.geometry_models import HomoGraphyMatrix
 from src.services.detection_service import DartDetectionService
-from src.utils.file_utils import resize_image, load_image
+from src.utils.file_utils import load_image, resize_image
 
 logger = logging.getLogger(__name__)
 
 
 class CalibrationVisualizer:
+    """Class for visualizing the calibration transformation results."""
 
     def __init__(self) -> None:
         self.window_name: str = "Calibration Visualization"
         self.dart_board: DartBoard = DartBoard()
         self.detection_service: DartDetectionService = DartDetectionService()
 
-    def show_transformation_result(
+    def __show_transformation_result(
             self,
             original_image: np.ndarray,
             calibration_coords: np.ndarray,
             homography_matrix: HomoGraphyMatrix,
             dart_coords: np.ndarray,
-            dart_scores: List[DartScore]
+            dart_scores: List[DartScore],
     ) -> None:
         if not self.__is_valid_homography_matrix(homography_matrix):
             logger.warning("Invalid homography matrix - cannot show transformation")
@@ -41,13 +44,14 @@ class CalibrationVisualizer:
             return
 
         transformed_viz = self.__create_transformed_visualization(
-            transformed_image, dart_coords, dart_scores, h_matrix, original_image.shape
+            transformed_image, dart_coords, dart_scores, h_matrix, original_image.shape,
         )
 
         comparison = self.__create_side_by_side_view(original_viz, transformed_viz)
         self.__display_result(comparison)
 
     def show_simple_transformation(self, image_path: str) -> None:
+        """Visualize the transformation result for a given image path."""
         try:
             image = self.__load_and_prepare_image(image_path)
             if image is None:
@@ -59,19 +63,20 @@ class CalibrationVisualizer:
                 print("Could not find sufficient calibration points for visualization")
                 return
 
-            self.show_transformation_result(
+            self.__show_transformation_result(
                 image,
                 result.calibration_points.to_ndarray(),
                 result.homography_matrix,
                 result.dart_result.original_dart_positions.to_ndarray(),
-                result.dart_result.dart_scores
+                result.dart_result.dart_scores,
             )
 
-            self.__print_results(result)
+            print(f"Detected darts: {result.dart_result.dart_scores}")
+            print(f"Total score: {result.dart_result.get_total_score()}")
 
         except Exception as e:
-            logger.error(f"Error in visualization: {str(e)}", exc_info=True)
-            print(f"Visualization error: {str(e)}")
+            logger.exception("Error in visualization")
+            print(f"Visualization error: {e!s}")
 
     def __is_valid_homography_matrix(self, homography_matrix: HomoGraphyMatrix) -> bool:
         return (homography_matrix is not None and
@@ -85,22 +90,22 @@ class CalibrationVisualizer:
         return h_matrix
 
     def __create_original_visualization(
-            self, original_image: np.ndarray, calibration_coords: np.ndarray, dart_coords: np.ndarray
+            self, original_image: np.ndarray, calibration_coords: np.ndarray, dart_coords: np.ndarray,
     ) -> np.ndarray:
         viz = self.__draw_calibration_points(original_image.copy(), calibration_coords)
         if dart_coords is not None and len(dart_coords) > 0:
             viz = self.__draw_dart_points(viz, dart_coords)
         return viz
 
-    def __apply_transformation(self, original_image: np.ndarray, h_matrix: np.ndarray) -> np.ndarray:
+    def __apply_transformation(self, original_image: np.ndarray, h_matrix: np.ndarray) -> ndarray | None:
         try:
             return cv2.warpPerspective(
                 original_image,
                 h_matrix,
-                (original_image.shape[1], original_image.shape[0])
+                (original_image.shape[1], original_image.shape[0]),
             )
-        except cv2.error as e:
-            logger.error(f"Error applying homography transformation: {e}")
+        except cv2.error as e:  # noqa: F841
+            logger.exception("Error applying homography transformation")
             return None
 
     def __create_transformed_visualization(
@@ -109,7 +114,7 @@ class CalibrationVisualizer:
             dart_coords: np.ndarray,
             dart_scores: List[DartScore],
             h_matrix: np.ndarray,
-            original_shape: Tuple[int, ...]
+            original_shape: Tuple[int, ...],
     ) -> np.ndarray:
         viz = self.__draw_accurate_dart_board(transformed_image.copy())
 
@@ -131,7 +136,7 @@ class CalibrationVisualizer:
                 cv2.circle(image, (int(x), int(y)), 8, (0, 255, 0), 2)
                 cv2.putText(
                     image, str(i + 1), (int(x + 10), int(y - 10)),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2,
                 )
         return image
 
@@ -146,12 +151,12 @@ class CalibrationVisualizer:
             cv2.circle(image, (int(x), int(y)), 6, (0, 0, 255), 2)
             cv2.putText(
                 image, f"D{i + 1}", (int(x + 10), int(y + 10)),
-                cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2
+                cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2,
             )
         return image
 
     def __draw_dart_points_with_scores(
-            self, image: np.ndarray, dart_coords: np.ndarray, dart_scores: List[DartScore]
+            self, image: np.ndarray, dart_coords: np.ndarray, dart_scores: List[DartScore],
     ) -> np.ndarray:
         if len(dart_coords) == 0 or len(dart_scores) == 0:
             return image
@@ -159,17 +164,17 @@ class CalibrationVisualizer:
         height, width = image.shape[:2]
         pixel_coords = dart_coords * np.array([width, height])
 
-        for i, ((x, y), score) in enumerate(zip(pixel_coords, dart_scores)):
+        for _i, ((x, y), score) in enumerate(zip(pixel_coords, dart_scores, strict=False)):
             cv2.circle(image, (int(x), int(y)), 6, (0, 0, 255), 2)
-            score_text = score.score_string if hasattr(score, 'score_string') else str(score)
+            score_text = score.score_string if hasattr(score, "score_string") else str(score)
             cv2.putText(
                 image, score_text, (int(x + 10), int(y - 10)),
-                cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 0, 255), 3
+                cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 0, 255), 3,
             )
         return image
 
     def __transform_dart_coords(
-            self, dart_coords: np.ndarray, homography_matrix: np.ndarray, image_shape: Tuple[int, ...]
+            self, dart_coords: np.ndarray, homography_matrix: np.ndarray, image_shape: Tuple[int, ...],
     ) -> np.ndarray:
         if len(dart_coords) == 0:
             return dart_coords
@@ -194,10 +199,10 @@ class CalibrationVisualizer:
         return image
 
     def __draw_scoring_rings(self, image: np.ndarray, center: Tuple[int, int], max_radius: int) -> None:
-        scoring_radii_pixels = self.dart_board._scoring_radii * max_radius * 2
+        scoring_radii_pixels = self.dart_board.scoring_radii * max_radius * 2
         ring_colors = [
             (128, 128, 128), (255, 0, 0), (0, 255, 0),
-            (255, 255, 0), (0, 255, 0), (0, 255, 255), (255, 255, 0)
+            (255, 255, 0), (0, 255, 0), (0, 255, 255), (255, 255, 0),
         ]
 
         for i in range(len(scoring_radii_pixels) - 1, 0, -1):
@@ -222,29 +227,30 @@ class CalibrationVisualizer:
 
             cv2.putText(
                 image, str(segment_number), (text_x - 8, text_y + 5),
-                cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2
+                cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2,
             )
 
     def __calculate_sample_position(self, angle_rad: float) -> np.ndarray:
         return np.array([
             0.5 + 0.4 * np.cos(angle_rad),
-            0.5 + 0.4 * np.sin(angle_rad)
+            0.5 + 0.4 * np.sin(angle_rad),
         ])
 
-    def __get_segment_number_for_angle(self, sample_position: np.ndarray, angle_rad: float) -> int:
+    def __get_segment_number_for_angle(self, sample_position: np.ndarray) -> int:
         adjusted_position = sample_position.copy()
         if adjusted_position[0] == 0.5:
             adjusted_position[0] += 0.00001
 
         angle_for_scoring = np.arctan((adjusted_position[1] - 0.5) / (adjusted_position[0] - 0.5))
         angle_deg_for_scoring = np.rad2deg(angle_for_scoring)
-
-        if angle_deg_for_scoring > 0:
-            angle_deg_for_scoring = np.floor(angle_deg_for_scoring)
-        else:
-            angle_deg_for_scoring = np.ceil(angle_deg_for_scoring)
-
+        angle_deg_for_scoring = self.__normalize_angle_for_segment_boundary(angle_deg_for_scoring)
         return self.dart_board.get_segment_number(float(angle_deg_for_scoring), sample_position)
+
+    @staticmethod
+    def __normalize_angle_for_segment_boundary(angle_deg_for_scoring: np.ndarray) -> np.ndarray:
+        return np.floor(angle_deg_for_scoring) if angle_deg_for_scoring > 0 else np.ceil(
+            angle_deg_for_scoring)
+
 
     def __create_side_by_side_view(self, original: np.ndarray, transformed: np.ndarray) -> np.ndarray:
         target_height = min(original.shape[0], transformed.shape[0], 600)
@@ -261,13 +267,15 @@ class CalibrationVisualizer:
         self.__add_labels(comparison, original_resized.shape[1])
         return comparison
 
-    def __resize_to_height(self, image: np.ndarray, target_height: int) -> np.ndarray:
+    @staticmethod
+    def __resize_to_height(image: np.ndarray, target_height: int) -> np.ndarray:
         h, w = image.shape[:2]
         scale = target_height / h
         new_width = int(w * scale)
         return cv2.resize(image, (new_width, target_height))
 
-    def __add_labels(self, comparison: np.ndarray, split_point: int) -> None:
+    @staticmethod
+    def __add_labels(comparison: np.ndarray, split_point: int) -> None:
         cv2.putText(comparison, "Original", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2)
         cv2.putText(comparison, "Transformed", (split_point + 30, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255),
                     2)
@@ -277,17 +285,14 @@ class CalibrationVisualizer:
         cv2.waitKey(0)
         cv2.destroyAllWindows()
 
-    def __load_and_prepare_image(self, image_path: str) -> ndarray | None:
+    @staticmethod
+    def __load_and_prepare_image(image_path: str) -> ndarray | None:
         image = load_image(image_path)
         if image is None:
-            logger.error(f"Could not load image: {image_path}")
+            logger.error("Could not load image: %s", image_path)
             return None
         return resize_image(image=image)
 
     def __is_valid_detection_result(self, result: DetectionResult) -> bool:
         return (result.homography_matrix is not None and
                 result.homography_matrix.matrix is not None)
-
-    def __print_results(self, result: DetectionResult) -> None:
-        print(f"Detected darts: {result.dart_result.dart_scores}")
-        print(f"Total score: {result.dart_result.get_total_score()}")

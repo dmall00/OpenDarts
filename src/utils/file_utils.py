@@ -1,6 +1,8 @@
+"""Utility functions for file and image handling in the application."""
+
 import logging
 from pathlib import Path
-from typing import Union, Optional, Tuple
+from typing import Union
 
 import cv2
 import numpy as np
@@ -9,28 +11,7 @@ from src.models.detection_models import ProcessingConfig
 
 logger = logging.getLogger(__name__)
 
-
-def validate_model_path(model_path: Union[str, Path]) -> None:
-    path = Path(model_path)
-
-    if not path.exists():
-        error_msg = f"Model file not found: {model_path}"
-        logger.error(error_msg)
-        raise FileNotFoundError(error_msg)
-
-    if not path.is_file():
-        error_msg = f"Model path is not a file: {model_path}"
-        logger.error(error_msg)
-        raise ValueError(error_msg)
-
-    # Check file extension (optional validation)
-    if not str(path).endswith(('.pt', '.pth', '.onnx')):
-        logger.warning(f"Unexpected model file extension: {path.suffix}")
-
-    logger.debug(f"Model file validated: {model_path}")
-
-
-def validate_image_path(image_path: Union[str, Path]) -> None:
+def __validate_image_path(image_path: Union[str, Path]) -> None:
     path = Path(image_path)
 
     if not path.exists():
@@ -43,68 +24,33 @@ def validate_image_path(image_path: Union[str, Path]) -> None:
         logger.error(error_msg)
         raise ValueError(error_msg)
 
-    valid_extensions = {'.jpg', '.jpeg', '.png', '.bmp', '.tiff', '.tif', '.webp'}
+    valid_extensions = {".jpg", ".jpeg", ".png", ".bmp", ".tiff", ".tif", ".webp"}
     if path.suffix.lower() not in valid_extensions:
         error_msg = f"Unsupported image format: {path.suffix}. Supported: {valid_extensions}"
         logger.error(error_msg)
         raise ValueError(error_msg)
 
-    logger.debug(f"Image file validated: {image_path}")
-
-
-def validate_directory_path(directory_path: Union[str, Path]) -> None:
-    path = Path(directory_path)
-
-    if not path.exists():
-        error_msg = f"Directory not found: {directory_path}"
-        logger.error(error_msg)
-        raise FileNotFoundError(error_msg)
-
-    if not path.is_dir():
-        error_msg = f"Path is not a directory: {directory_path}"
-        logger.error(error_msg)
-        raise ValueError(error_msg)
-
-    logger.debug(f"Directory validated: {directory_path}")
-
+    logger.debug("Image file validated: %s", image_path)
 
 def load_and_preprocess_image(image_path: Union[str, Path]) -> np.ndarray:
-    """
-    Load image from path and apply preprocessing.
-
-    Args:
-        image_path: Path to the image file
-
-    Returns:
-        Tuple of (processed_image, crop_parameters)
-    """
+    """Load image from path and apply preprocessing."""
     image = load_image(image_path)
-    resized_image = resize_image(image)
-    return resized_image
+    return resize_image(image)
 
 
 def load_image(image_path: Union[str, Path]) -> np.ndarray:
-    validate_image_path(str(image_path))
+    """Load an image from the specified path and return it as a NumPy array."""
+    __validate_image_path(str(image_path))
 
     image = cv2.imread(str(image_path))
     if image is None:
-        raise ValueError(f"Could not load image: {image_path}")
+        msg = f"Could not load image: {image_path}"
+        raise ValueError(msg)
 
-    logger.debug(f"Image loaded successfully. Shape: {image.shape}")
+    logger.debug("Image loaded successfully. Shape: %s", image.shape)
     return image
 
 
 def resize_image(image: np.ndarray) -> np.ndarray:
+    """Resize the image to the target size defined in ProcessingConfig."""
     return cv2.resize(image, ProcessingConfig.target_image_size, interpolation=cv2.INTER_AREA)
-
-
-def crop_image(image: np.ndarray, resolution: np.ndarray,
-               crop_size: Optional[float] = None) -> Tuple[np.ndarray, np.ndarray, float]:
-    if crop_size is None:
-        crop_size = min(resolution)
-    crop_start = resolution / 2 - crop_size / 2
-    cropped_image = image[
-                    int(crop_start[1]):int(crop_start[1] + crop_size),
-                    int(crop_start[0]):int(crop_start[0] + crop_size)
-                    ]
-    return cropped_image, crop_start, crop_size

@@ -1,8 +1,10 @@
+"""Service to transform dart coordinates to real board dimensions."""
+
 import logging
 
 import numpy as np
 
-from src.models.detection_models import DartPosition, ProcessingConfig, DartPositions
+from src.models.detection_models import DartPosition, DartPositions, ProcessingConfig
 
 logger = logging.getLogger(__name__)
 
@@ -10,23 +12,25 @@ logger = logging.getLogger(__name__)
 class TransformationService:
     """Service for coordinate transformations and adjustments."""
 
-    def transform_to_board_dimensions(self, homography_matrix: np.ndarray, dart_coords: np.ndarray,
-                                      image_shape: float = ProcessingConfig.target_image_size[0]) -> DartPositions:
-        """
-        Transform dart coordinates to board coordinate system.
-        """
+    def transform_to_board_dimensions(
+        self,
+        homography_matrix: np.ndarray,
+        dart_coords: np.ndarray,
+        image_shape: float = ProcessingConfig.target_image_size[0],
+    ) -> DartPositions:
+        """Transform dart coordinates to board coordinate system."""
         if len(dart_coords) == 0:
             logger.debug("No dart coordinates to transform")
             return []
 
-        logger.debug(f"Transforming {len(dart_coords)} dart coordinates to board space")
+        logger.debug("Transforming %s dart coordinates to board space", len(dart_coords))
 
         # Convert to pixel coordinates
         pixel_coords = dart_coords * image_shape
 
         # Create homogeneous coordinates
         homogeneous_coords = np.concatenate(
-            (pixel_coords, np.ones((dart_coords.shape[0], 1))), axis=1
+            (pixel_coords, np.ones((dart_coords.shape[0], 1))), axis=1,
         ).T
 
         # Apply homography transformation
@@ -43,5 +47,5 @@ class TransformationService:
             for coord in result_coords
         ]
 
-        logger.debug(f"Transformation complete: {len(dart_positions)} positions")
+        logger.debug("Transformation complete: %s positions", len(dart_positions))
         return DartPositions(dart_positions)

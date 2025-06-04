@@ -1,3 +1,4 @@
+"""Contains a  class for YOLO-based dart detection."""
 import logging
 from typing import List
 
@@ -7,18 +8,24 @@ from ultralytics.engine.results import Results
 
 from src.models.detection_models import (
     CalibrationPoint,
+    CalibrationPoints,
+    ClassMapping,
     DartPosition,
-    ClassMapping, Detection, ProcessingConfig, YoloDartParseResult, CalibrationPoints, DartPositions,
+    DartPositions,
+    Detection,
+    ProcessingConfig,
+    YoloDartParseResult,
 )
-from src.models.exception import DartDetectionFailed, Code
+from src.models.exception import Code, DartDetectionError
 
 logger = logging.getLogger(__name__)
 
 
 class YoloDartImageProcessor:
+    """Processor for running YOLO inference and extracting dart positions and calibration points."""
 
-    def __init__(self):
-        logger.info(f"Loading YOLO model from: {ProcessingConfig.model_path}")
+    def __init__(self) -> None:
+        logger.info("Loading YOLO model from: %s", ProcessingConfig.model_path)
         self._model = YOLO(ProcessingConfig.model_path)
 
     def detect(self, image: np.ndarray) -> Results:
@@ -27,17 +34,14 @@ class YoloDartImageProcessor:
         try:
             results = list(self._model(image, verbose=False))
             result = results[0]
-            logger.info(f"YOLO inference complete. Detected {len(result.boxes)} objects")
-            return result
-
+            logger.info("YOLO inference complete. Detected %s objects", len(result.boxes))
+            return result  # noqa: TRY300
         except Exception as e:
-            error_msg = f"YOLO inference failed: {str(e)}"
-            raise DartDetectionFailed(Code.YOLO_ERROR, e, error_msg)
+            error_msg = f"YOLO inference failed: {e!s}"
+            raise DartDetectionError(Code.YOLO_ERROR, e, error_msg) from e
 
     def extract_detections(self, yolo_result: Results) -> YoloDartParseResult:
-        """
-        Extract calibration points and dart coordinates from YOLO results.
-        """
+        """Extract calibration points and dart coordinates from YOLO results."""
         logger.debug("Processing YOLO detection output")
 
         detections = self.__parse_yolo_results(yolo_result)
@@ -48,7 +52,7 @@ class YoloDartImageProcessor:
         dart_positions = self.__create_dart_positions(dart_detections)
         calibration_points = self.__create_calibration_points(calibration_detections)
 
-        logger.info(f"Extracted {len(calibration_points)} calibration points and {len(dart_positions)} darts")
+        logger.info("Extracted %s calibration points and {len(dart_positions)} darts", len(calibration_points))
         return YoloDartParseResult(calibration_points=CalibrationPoints(calibration_points),
                                    dart_positions=DartPositions(dart_positions))
 
@@ -65,7 +69,7 @@ class YoloDartImageProcessor:
                 class_id=int(classes[i].item()),
                 confidence=float(confidences[i].item()),
                 center_x=float(boxes[i][0].item()),
-                center_y=float(boxes[i][1].item())
+                center_y=float(boxes[i][1].item()),
             )
             detections.append(detection)
 
@@ -75,18 +79,19 @@ class YoloDartImageProcessor:
         """Create dart positions from dart detections (max 3 darts)."""
         dart_positions = []
 
-        if len(dart_detections) > 3:
-            logger.warning(f"Found {len(dart_detections)} darts, but only using the first 3")
+        if len(dart_detections) > ProcessingConfig.max_allowed_darts:
+            logger.warning("Found %s darts, but only using the first %s", len(dart_detections), ProcessingConfig.max_allowed_darts)
 
-        for detection in dart_detections[:3]:
+        for detection in dart_detections[:ProcessingConfig.max_allowed_darts]:
             dart_position = DartPosition(
                 x=detection.center_x,
                 y=detection.center_y,
-                confidence=detection.confidence
+                confidence=detection.confidence,
             )
             dart_positions.append(dart_position)
             logger.debug(
-                f"Added dart at position ({detection.center_x:.3f}, {detection.center_y:.3f}) with confidence {detection.confidence:.3f}")
+                "Added dart at position (%s, %s) with confidence %s",
+                f"{detection.center_x:.3f}", f"{detection.center_y:.3f}", f"{detection.confidence:.3f}")
 
         return dart_positions
 
@@ -105,7 +110,8 @@ class YoloDartImageProcessor:
 
             if len(detections) > 1:
                 logger.info(
-                    f"Found {len(detections)} duplicate calibration points for index {calib_index}, marking as invalid")
+                    "Found %s duplicate calibration points for index %s, marking as invalid",
+                    len(detections), calib_index)
                 calibration_points.append(self.__create_invalid_calibration_point(calib_index, "duplicate"))
                 continue
 
@@ -117,10 +123,10 @@ class YoloDartImageProcessor:
                 x=detection.center_x,
                 y=detection.center_y,
                 confidence=detection.confidence,
-                point_type=point_type
+                point_type=point_type,
             )
             calibration_points.append(calibration_point)
-            logger.info(f"Added calibration point {point_type} with confidence {detection.confidence:.2f}")
+            logger.info("Added calibration point %s with confidence %s", point_type, f"{detection.confidence:.2f}")
 
         return calibration_points
 
@@ -130,7 +136,7 @@ class YoloDartImageProcessor:
             x=-1.0,
             y=-1.0,
             confidence=0.0,
-            point_type=f"{reason}_{calib_index}"
+            point_type=f"{reason}_{calib_index}",
         )
 
     def __group_calibration_detections(self, calibration_detections: List[Detection]) -> dict[int, List[Detection]]:
@@ -138,7 +144,7 @@ class YoloDartImageProcessor:
         detections_by_index = {}
 
         for detection in calibration_detections:
-            calib_index = detection.class_id if detection.class_id < 4 else detection.class_id - 1
+            calib_index = detection.class_id if detection.class_id < ClassMapping.dart_class else detection.class_id - 1
 
             if calib_index not in detections_by_index:
                 detections_by_index[calib_index] = []

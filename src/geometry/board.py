@@ -1,3 +1,5 @@
+"""Geometry and scoring model for a dartboard."""
+
 from typing import Tuple
 
 import numpy as np
@@ -8,7 +10,7 @@ from src.models.geometry_models import BoardGeometry
 class DartBoard:
     """Domain model representing a dartboard with its geometry and scoring rules."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._geometry = BoardGeometry()
         self._setup_scoring_regions()
         self._setup_segments()
@@ -16,23 +18,23 @@ class DartBoard:
 
     def _setup_scoring_regions(self) -> None:
         """Initialize scoring regions and their radii."""
-        self._scoring_names = np.array(['DB', 'SB', 'S', 'T', 'S', 'D', 'miss'])
-        self._scoring_radii = np.array([
+        self._scoring_names = np.array(["DB", "SB", "S", "T", "S", "D", "miss"])
+        self.scoring_radii = np.array([
             0, 6.35, 15.9,
             107.4 - self._geometry.ring_width, 107.4,
-            170.0 - self._geometry.ring_width, 170.0
+            170.0 - self._geometry.ring_width, 170.0,
         ])
 
         # Adjust for wire width
-        self._scoring_radii[1:3] += (self._geometry.bullseye_wire_width / 2)
-        self._scoring_radii /= self._geometry.board_diameter
+        self.scoring_radii[1:3] += (self._geometry.bullseye_wire_width / 2)
+        self.scoring_radii /= self._geometry.board_diameter
 
     def _setup_segments(self) -> None:
         """Initialize dartboard segments and their number mappings."""
         self.segment_angles = np.array([-9, 9, 27, 45, 63, -81, -63, -45, -27])
         self._segment_numbers = np.array([
             [6, 11], [10, 14], [15, 9], [2, 12], [17, 5],
-            [19, 1], [7, 18], [16, 4], [8, 13]
+            [19, 1], [7, 18], [16, 4], [8, 13],
         ])
 
     def _setup_calibration_points(self) -> None:
@@ -47,7 +49,7 @@ class DartBoard:
         calibration_angles = self._get_calibration_angles()
 
         coord_index = 0
-        for segment_pair, angle_deg in calibration_angles.items():
+        for angle_deg in calibration_angles.values():
             coords_pair = self._calculate_coordinate_pair(angle_deg, outer_radius)
             calibration_coords[coord_index:coord_index + 2] = coords_pair
             coord_index += 2
@@ -57,9 +59,9 @@ class DartBoard:
     def _get_calibration_angles(self) -> dict:
         """Get the calibration angles for specific dartboard segments."""
         return {
-            '20_3': 81,  # Between segments 20 and 3
-            '11_6': -9,  # Between segments 11 and 6
-            '9_15': 27  # Between segments 9 and 15
+            "20_3": 81,  # Between segments 20 and 3
+            "11_6": -9,  # Between segments 11 and 6
+            "9_15": 27,  # Between segments 9 and 15
         }
 
     def _calculate_coordinate_pair(self, angle_deg: float, outer_radius: float) -> np.ndarray:
@@ -70,7 +72,7 @@ class DartBoard:
 
         return np.array([
             [0.5 - x_offset, 0.5 - y_offset],
-            [0.5 + x_offset, 0.5 + y_offset]
+            [0.5 + x_offset, 0.5 + y_offset],
         ])
 
     def get_calibration_reference_coordinates(self) -> np.ndarray:
@@ -91,18 +93,18 @@ class DartBoard:
     def get_scoring_region(self, position: np.ndarray) -> str:
         """Determine the scoring region (single, double, triple, etc.) for a position."""
         distance_from_center = self._calculate_distance_from_center(position)
-        region_index = np.argmax(self._scoring_radii[distance_from_center > self._scoring_radii])
+        region_index = np.argmax(self.scoring_radii[distance_from_center > self.scoring_radii])
         return str(self._scoring_names[region_index])
 
     def calculate_score(self, segment_number: int, scoring_region: str) -> Tuple[str, int]:
         """Calculate the final score for a dart."""
         scoring_rules = {
-            'DB': ('DB', 50),
-            'SB': ('SB', 25),
-            'S': (f'S{segment_number}', segment_number),
-            'T': (f'T{segment_number}', segment_number * 3),
-            'D': (f'D{segment_number}', segment_number * 2),
-            'miss': ('miss', 0)
+            "DB": ("DB", 50),
+            "SB": ("SB", 25),
+            "S": (f"S{segment_number}", segment_number),
+            "T": (f"T{segment_number}", segment_number * 3),
+            "D": (f"D{segment_number}", segment_number * 2),
+            "miss": ("miss", 0),
         }
         return scoring_rules[scoring_region]
 

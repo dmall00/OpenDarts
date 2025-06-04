@@ -1,21 +1,22 @@
 """
 Demo script to visualize calibration and homography transformations.
+
 This script shows how the dart board image looks after calibration points are detected
 and homography matrix transformations are applied.
 """
-
 import logging
-import os
+from pathlib import Path
 
 from src.demo.visualizer.calibration_visualizer import CalibrationVisualizer
 from src.models.detection_models import IMAGES_PATH
 
 
-def main():
+def main() -> None:
+    """Run the calibration visualization demo."""
     default_image = "img_3.png"
     logging.basicConfig(
         level=logging.INFO,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     )
 
     print("=== Dart Board Calibration Visualization Demo ===")
@@ -39,7 +40,7 @@ def main():
             img_num = int(choice)
             selected_image = IMAGES_PATH / f"img_{img_num}.png"
 
-        if not os.path.exists(selected_image):
+        if not Path.exists(selected_image):
             print(f"Error: Image file '{selected_image}' not found!")
             continue
 

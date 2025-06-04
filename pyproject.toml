@@ -8,3 +8,37 @@ dependencies = [
     "opencv-python>=4.11.0.86",
     "ultralytics>=8.3.147",
 ]
+
+
+[tool.ruff]
+line-length = 140
+target-version = "py312"
+select = [
+    "ALL"
+]
+ignore = [
+    "T201",
+    "D105",
+    "D107",
+    "D203",
+    "D212",
+    "UP006",
+    "UP007",
+    "D400",
+    "D406",
+    "D407",
+    "PLC1901",
+    "UP035",
+]
+unfixable = ["F401", "F841"]
+
+[tool.ruff.per-file-ignores]
+"test_*.py" = ["ANN001", "ANN002", "ANN003", "D103"]
+
+[tool.ruff.pyupgrade]
+keep-runtime-typing = true
+
+[dependency-groups]
+dev = [
+    "mypy>=1.16.0",
+]

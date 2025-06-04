@@ -1,5 +1,7 @@
+"""Service for scoring darts based on their positions."""
+
 import logging
-from typing import List, Any
+from typing import Any, List
 
 import numpy as np
 
@@ -12,18 +14,16 @@ logger = logging.getLogger(__name__)
 class ScoringService:
     """Domain service for calculating dart scores."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._board = DartBoard()
 
     def calculate_scores(self, dart_positions: List[DartPosition]) -> tuple[list[Any], int] | list[Any]:
-        """
-        Calculate scores for all darts.
-        """
+        """Calculate scores for all darts."""
         if not dart_positions:
             logger.debug("No dart positions to score")
             return [], 0
 
-        logger.debug(f"Calculating scores for {len(dart_positions)} darts")
+        logger.debug("Calculating scores for %s darts", len(dart_positions))
 
         dart_scores = []
         total_score = 0
@@ -33,9 +33,9 @@ class ScoringService:
             dart_scores.append(score)
             total_score += score.score_value
 
-            logger.info(f"Dart {i}: Position {position} -> {score.score_string} ({score.score_value} points)")
+            logger.info("Dart %s: Position {position} -> {score.score_string} ({score.score_value} points)", i)
 
-        logger.info(f"Final scoring: Total {total_score} points")
+        logger.info("Final scoring: Total %s points", total_score)
         return dart_scores
 
     def __calculate_single_dart_score(self, position: DartPosition) -> DartScore:
@@ -50,14 +50,18 @@ class ScoringService:
 
         return DartScore(score_string=score_string, score_value=score_value)
 
-    def __adjust_center_position(self, position: np.ndarray) -> np.ndarray:
+    @staticmethod
+    def __adjust_center_position(position: np.ndarray) -> np.ndarray:
         """Adjust positions that are exactly at center to avoid division by zero."""
+        board_center_x = 0.5
+        epsilon = 0.00001
         adjusted = position.copy()
-        if adjusted[0] == 0.5:
-            adjusted[0] += 0.00001
+        if adjusted[0] == board_center_x:
+            adjusted[0] += epsilon
         return adjusted
 
-    def __calculate_angle(self, position: np.ndarray) -> float:
+    @staticmethod
+    def __calculate_angle(position: np.ndarray) -> float:
         """Calculate angle from center for dartboard segment determination."""
         angle_rad = np.arctan((position[1] - 0.5) / (position[0] - 0.5))
         angle_deg = np.rad2deg(angle_rad)
