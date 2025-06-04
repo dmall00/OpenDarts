@@ -19,7 +19,7 @@ class DartDetection:
         self._detection_service = DartDetectionService()
         self.preprocessor = ImagePreprocessor()
 
-        logger.info("DartDetectionInterface initialized with model: %s", ProcessingConfig.model_path)
+        logger.info("DartDetectionInterface initialized with model: %s", ProcessingConfig.dart_scorer_model_path)
 
     def detect_darts(self, image_path: Union[str, Path]) -> DetectionResult | None:
         """Detect darts in the image at the given path and return detection results."""

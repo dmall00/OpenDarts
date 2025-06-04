@@ -1,0 +1,105 @@
+"""Crops dartboard images using YOLO object detection."""
+
+import logging
+from typing import Tuple
+
+import numpy as np
+from ultralytics import YOLO
+from ultralytics.engine.results import Results
+
+from src.models.detection_models import ProcessingConfig
+from src.models.exception import Code, DartDetectionError
+
+logger = logging.getLogger(__name__)
+
+
+class YoloDartBoardImageCropper:
+    """Crops dartboard images using YOLO object detection."""
+
+    def __init__(self) -> None:
+        logger.info("Loading YOLO model from: %s", ProcessingConfig.dartboard_model_path)
+        self._model = YOLO(ProcessingConfig.dartboard_model_path)
+
+    def crop_image(self, image: np.ndarray) -> np.ndarray:
+        """Crop the image to focus on the detected dartboard."""
+        detection_result = self._detect_dartboard(image)
+        bounding_box = self._extract_bounding_box(detection_result, image.shape)
+        cropped_image = self._crop_with_bounding_box(image, bounding_box)
+
+        self._log_cropping_info(bounding_box, detection_result.boxes.conf[0], cropped_image.shape)
+
+        return cropped_image
+
+    def _detect_dartboard(self, image: np.ndarray) -> Results:
+        results = self._model(image, verbose=False)
+        result = results[0]
+        self._validate_dartboard_detection_output(result)
+        return result
+
+    def _extract_bounding_box(self, result: Results, image_shape: Tuple[int, ...]) -> Tuple[int, int, int, int]:
+        xywh_normalized = result.boxes.xywhn[0]
+        img_height, img_width = image_shape[:2]
+
+        x_center_norm, y_center_norm, width_norm, height_norm = xywh_normalized
+
+        pixel_coords = self.__normalize_to_pixel_coordinates(x_center_norm, y_center_norm, width_norm, height_norm, img_width, img_height)
+
+        return self._calculate_bounding_box_corners(pixel_coords, img_width, img_height)
+
+    @staticmethod
+    def __normalize_to_pixel_coordinates(  # noqa: PLR0913
+        x_center_norm: float,
+        y_center_norm: float,
+        width_norm: float,
+        height_norm: float,
+        img_width: int,
+        img_height: int,
+    ) -> Tuple[int, int, int, int]:
+        width_px = int(width_norm * img_width)
+        height_px = int(height_norm * img_height)
+        x_center_px = int(x_center_norm * img_width)
+        y_center_px = int(y_center_norm * img_height)
+
+        return x_center_px, y_center_px, width_px, height_px
+
+    @staticmethod
+    def _calculate_bounding_box_corners(
+        pixel_coords: Tuple[int, int, int, int],
+        img_width: int,
+        img_height: int,
+    ) -> Tuple[int, int, int, int]:
+        x_center_px, y_center_px, width_px, height_px = pixel_coords
+
+        # Calculate corners from center point
+        x_start = max(0, x_center_px - width_px // 2)
+        y_start = max(0, y_center_px - height_px // 2)
+        x_end = min(img_width, x_center_px + width_px // 2)
+        y_end = min(img_height, y_center_px + height_px // 2)
+
+        return x_start, y_start, x_end, y_end
+
+    @staticmethod
+    def _crop_with_bounding_box(image: np.ndarray, bounding_box: Tuple[int, int, int, int]) -> np.ndarray:
+        x_start, y_start, x_end, y_end = bounding_box
+        return image[y_start:y_end, x_start:x_end]
+
+    @staticmethod
+    def _log_cropping_info(bounding_box: Tuple[int, int, int, int], confidence: float, cropped_shape: Tuple[int, ...]) -> None:
+        x_start, y_start, x_end, y_end = bounding_box
+        logger.info(
+            "Cropped dartboard from (%d,%d) with confidence %s to (%d,%d), size: %dx%d",
+            x_start,
+            y_start,
+            f"{confidence:.3f}",
+            x_end,
+            y_end,
+            cropped_shape[1],  # width
+            cropped_shape[0],  # height
+        )
+
+    @staticmethod
+    def _validate_dartboard_detection_output(result: Results) -> None:
+        if not result:
+            raise DartDetectionError(Code.YOLO_ERROR, details="No result from YOLO dartboard model")
+        if not result.boxes:
+            raise DartDetectionError(Code.YOLO_ERROR, details="No boxes detected by YOLO dartboard model")

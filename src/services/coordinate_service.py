@@ -30,7 +30,8 @@ class TransformationService:
 
         # Create homogeneous coordinates
         homogeneous_coords = np.concatenate(
-            (pixel_coords, np.ones((dart_coords.shape[0], 1))), axis=1,
+            (pixel_coords, np.ones((dart_coords.shape[0], 1))),
+            axis=1,
         ).T
 
         # Apply homography transformation
@@ -42,10 +43,7 @@ class TransformationService:
         result_coords /= image_shape
 
         # Convert to DartPosition objects
-        dart_positions = [
-            DartPosition(x=float(coord[0]), y=float(coord[1]))
-            for coord in result_coords
-        ]
+        dart_positions = [DartPosition(x=float(coord[0]), y=float(coord[1])) for coord in result_coords]
 
         logger.debug("Transformation complete: %s positions", len(dart_positions))
         return DartPositions(dart_positions)

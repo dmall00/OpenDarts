@@ -1,4 +1,5 @@
 """Contains a  class for YOLO-based dart detection."""
+
 import logging
 from typing import Dict, List
 
@@ -10,9 +11,9 @@ from src.models.detection_models import (
     CalibrationPoint,
     CalibrationPoints,
     ClassMapping,
+    DartDetection,
     DartPosition,
     DartPositions,
-    Detection,
     ProcessingConfig,
     YoloDartParseResult,
 )
@@ -25,8 +26,8 @@ class YoloDartImageProcessor:
     """Processor for running YOLO inference and extracting dart positions and calibration points."""
 
     def __init__(self) -> None:
-        logger.info("Loading YOLO model from: %s", ProcessingConfig.model_path)
-        self._model = YOLO(ProcessingConfig.model_path)
+        logger.info("Loading YOLO model from: %s", ProcessingConfig.dart_scorer_model_path)
+        self._model = YOLO(ProcessingConfig.dart_scorer_model_path)
 
     def detect(self, image: np.ndarray) -> Results:
         """Run YOLO inference on image."""
@@ -53,10 +54,9 @@ class YoloDartImageProcessor:
         calibration_points = self.__create_calibration_points(calibration_detections)
 
         logger.info("Extracted %s calibration points and %s darts", len(calibration_points), len(dart_positions))
-        return YoloDartParseResult(calibration_points=CalibrationPoints(calibration_points),
-                                   dart_positions=DartPositions(dart_positions))
+        return YoloDartParseResult(calibration_points=CalibrationPoints(calibration_points), dart_positions=DartPositions(dart_positions))
 
-    def __parse_yolo_results(self, yolo_result: Results) -> List[Detection]:
+    def __parse_yolo_results(self, yolo_result: Results) -> List[DartDetection]:
         """Convert YOLO results into our internal Detection format."""
         detections = []
 
@@ -65,7 +65,7 @@ class YoloDartImageProcessor:
         confidences = yolo_result.boxes.conf
 
         for i in range(len(classes)):
-            detection = Detection(
+            detection = DartDetection(
                 class_id=int(classes[i].item()),
                 confidence=float(confidences[i].item()),
                 center_x=float(boxes[i][0].item()),
@@ -75,14 +75,14 @@ class YoloDartImageProcessor:
 
         return detections
 
-    def __create_dart_positions(self, dart_detections: List[Detection]) -> List[DartPosition]:
+    def __create_dart_positions(self, dart_detections: List[DartDetection]) -> List[DartPosition]:
         """Create dart positions from dart detections (max 3 darts)."""
         dart_positions = []
 
         if len(dart_detections) > ProcessingConfig.max_allowed_darts:
             logger.warning("Found %s darts, but only using the first %s", len(dart_detections), ProcessingConfig.max_allowed_darts)
 
-        for detection in dart_detections[:ProcessingConfig.max_allowed_darts]:
+        for detection in dart_detections[: ProcessingConfig.max_allowed_darts]:
             dart_position = DartPosition(
                 x=detection.center_x,
                 y=detection.center_y,
@@ -91,11 +91,14 @@ class YoloDartImageProcessor:
             dart_positions.append(dart_position)
             logger.debug(
                 "Added dart at position (%s, %s) with confidence %s",
-                f"{detection.center_x:.3f}", f"{detection.center_y:.3f}", f"{detection.confidence:.3f}")
+                f"{detection.center_x:.3f}",
+                f"{detection.center_y:.3f}",
+                f"{detection.confidence:.3f}",
+            )
 
         return dart_positions
 
-    def __create_calibration_points(self, calibration_detections: List[Detection]) -> List[CalibrationPoint]:
+    def __create_calibration_points(self, calibration_detections: List[DartDetection]) -> List[CalibrationPoint]:
         """Create calibration points from calibration detections, handling duplicates and missing points."""
         detections_by_index = self.__group_calibration_detections(calibration_detections)
 
@@ -109,9 +112,7 @@ class YoloDartImageProcessor:
             detections = detections_by_index[calib_index]
 
             if len(detections) > 1:
-                logger.info(
-                    "Found %s duplicate calibration points for index %s, marking as invalid",
-                    len(detections), calib_index)
+                logger.info("Found %s duplicate calibration points for index %s, marking as invalid", len(detections), calib_index)
                 calibration_points.append(self.__create_invalid_calibration_point(calib_index, "duplicate"))
                 continue
 
@@ -139,9 +140,9 @@ class YoloDartImageProcessor:
             point_type=f"{reason}_{calib_index}",
         )
 
-    def __group_calibration_detections(self, calibration_detections: List[Detection]) -> Dict[int, List[Detection]]:
+    def __group_calibration_detections(self, calibration_detections: List[DartDetection]) -> Dict[int, List[DartDetection]]:
         """Group calibration detections by their calibration index."""
-        detections_by_index: Dict[int, List[Detection]]= {}
+        detections_by_index: Dict[int, List[DartDetection]] = {}
 
         for detection in calibration_detections:
             calib_index = detection.class_id if detection.class_id < ClassMapping.dart_class else detection.class_id - 1

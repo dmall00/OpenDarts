@@ -30,12 +30,9 @@ class ScoringStabilizingService:
         )
 
         # Convert groups to stable positions (average of each group)
-        stable_darts = [
-            DartPosition(x=centroid[0], y=centroid[1])
-            for centroid in prediction_groups
-        ]
+        stable_darts = [DartPosition(x=centroid[0], y=centroid[1]) for centroid in prediction_groups]
 
-        return DartPositions(stable_darts[:ProcessingConfig.max_allowed_darts])
+        return DartPositions(stable_darts[: ProcessingConfig.max_allowed_darts])
 
     def __group_similar_darts(self, predictions: List[DartPosition]) -> Dict[Tuple[float, float], List[DartPosition]]:
         """Group dart predictions that are spatially close together."""

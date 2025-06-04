@@ -5,8 +5,7 @@ from typing import Union
 import numpy as np
 
 
-def calculate_distance(coord1: Union[np.ndarray, list, tuple],
-                       coord2: Union[np.ndarray, list, tuple]) -> float:
+def calculate_distance(coord1: Union[np.ndarray, list, tuple], coord2: Union[np.ndarray, list, tuple]) -> float:
     """Calculate Euclidean distance between two 2D coordinates."""
     coord1 = np.array(coord1)
     coord2 = np.array(coord2)

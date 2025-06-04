@@ -1,6 +1,5 @@
 """Utility geometry constants for dartboard calibration and scoring."""
 
-
 # Dartboard coordinate constants
 BOARD_CENTER_COORDINATE = 0.5  # Center position for both X and Y coordinates (normalized 0-1)
 ANGLE_CALCULATION_EPSILON = 0.00001  # Small value to avoid division by zero in angle calculations
@@ -29,8 +28,15 @@ DARTBOARD_SEGMENT_ANGLES = [-9, 9, 27, 45, 63, -81, -63, -45, -27]
 
 # Dartboard segment number mappings
 DARTBOARD_SEGMENT_NUMBERS = [
-    [6, 11], [10, 14], [15, 9], [2, 12], [17, 5],
-    [19, 1], [7, 18], [16, 4], [8, 13],
+    [6, 11],
+    [10, 14],
+    [15, 9],
+    [2, 12],
+    [17, 5],
+    [19, 1],
+    [7, 18],
+    [16, 4],
+    [8, 13],
 ]
 
 # Scoring region names

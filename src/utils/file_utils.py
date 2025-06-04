@@ -11,6 +11,7 @@ from src.models.detection_models import ProcessingConfig
 
 logger = logging.getLogger(__name__)
 
+
 def __validate_image_path(image_path: Union[str, Path]) -> None:
     path = Path(image_path)
 
@@ -31,6 +32,7 @@ def __validate_image_path(image_path: Union[str, Path]) -> None:
         raise ValueError(error_msg)
 
     logger.debug("Image file validated: %s", image_path)
+
 
 def load_image(image_path: Union[str, Path]) -> np.ndarray:
     """Load an image from the specified path and return it as a NumPy array."""

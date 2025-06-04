@@ -16,7 +16,7 @@ IMAGES_PATH = ROOT_PATH / "images"
 
 
 @dataclass
-class Detection:
+class DartDetection:
     """Represents a single detection from YOLO."""
 
     class_id: int
@@ -58,6 +58,7 @@ class ClassMapping:
     def is_dart(cls, class_id: int) -> bool:
         """Check if the class ID corresponds to a dart."""
         from src.models.geometry_models import DART_CLASS_ID
+
         return cls.mapping.get(class_id) == "dart" or class_id == DART_CLASS_ID
 
 
@@ -67,6 +68,7 @@ class HomoGraphyMatrix:
 
     matrix: np.ndarray
     calibration_point_count: int
+
 
 @dataclass
 class DartPosition:
@@ -115,7 +117,8 @@ class ProcessingConfig:
         MIN_CALIBRATION_POINTS_REQUIRED,
     )
 
-    model_path: str = str(MODEL_PATH / "dart_scorer.pt")
+    dart_scorer_model_path: str = str(MODEL_PATH / "dart_scorer.pt")
+    dartboard_model_path: str = str(MODEL_PATH / "dartboard_detection.pt")
     confidence_threshold: float = DEFAULT_CONFIDENCE_THRESHOLD
     target_image_size: Tuple[int, int] = DEFAULT_TARGET_IMAGE_SIZE
     min_calibration_points: int = MIN_CALIBRATION_POINTS_REQUIRED

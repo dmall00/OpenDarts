@@ -47,7 +47,8 @@ class DartDetectionService:
             yolo_dart_result: YoloDartParseResult = self.__yolo_image_processor.extract_detections(yolo_result)
 
             homography_matrix: HomoGraphyMatrix = self.__calibration_service.calculate_homography(
-                yolo_dart_result.calibration_points.to_ndarray())
+                yolo_dart_result.calibration_points.to_ndarray(),
+            )
 
             original_dart_positions = yolo_dart_result.dart_positions
 
@@ -66,7 +67,8 @@ class DartDetectionService:
                 dart_result=DartResult(dart_positions, dart_scores, original_dart_positions),
                 calibration_points=yolo_dart_result.calibration_points,
                 homography_matrix=homography_matrix,
-                processing_time=processing_time)
+                processing_time=processing_time,
+            )
         except DartDetectionError as e:
             logger.exception("Dart detection failed")
             return self.__create_error_result(e.error_code, e.message)
@@ -75,8 +77,9 @@ class DartDetectionService:
             return self.__create_error_result(Code.UNKNOWN, f"Unknown error occurred: {e}")
 
     @staticmethod
-    def __create_success_result(dart_result: DartResult, calibration_points: CalibrationPoints,
-                                homography_matrix: HomoGraphyMatrix, processing_time: float) -> DetectionResult:
+    def __create_success_result(
+        dart_result: DartResult, calibration_points: CalibrationPoints, homography_matrix: HomoGraphyMatrix, processing_time: float,
+    ) -> DetectionResult:
         return DetectionResult(
             dart_result=dart_result,
             processing_time=processing_time,

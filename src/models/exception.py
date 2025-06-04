@@ -1,4 +1,5 @@
 """Exceptions and error codes for dart detection."""
+
 from enum import Enum
 from typing import Optional
 

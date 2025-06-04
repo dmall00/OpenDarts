@@ -4,6 +4,7 @@ Demo script to visualize calibration and homography transformations.
 This script shows how the dart board image looks after calibration points are detected
 and homography matrix transformations are applied.
 """
+
 import logging
 from pathlib import Path
 

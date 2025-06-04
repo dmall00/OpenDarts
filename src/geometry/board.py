@@ -38,14 +38,20 @@ class DartBoard:
     def _setup_scoring_regions(self) -> None:
         """Initialize scoring regions and their radii."""
         self._scoring_names = np.array(SCORING_REGION_NAMES)
-        self.scoring_radii = np.array([
-            0, DOUBLE_BULL_RADIUS, SINGLE_BULL_RADIUS,
-            TRIPLE_RING_INNER_RADIUS, TRIPLE_RING_OUTER_RADIUS,
-            DOUBLE_RING_INNER_RADIUS, DOUBLE_RING_OUTER_RADIUS,
-        ])
+        self.scoring_radii = np.array(
+            [
+                0,
+                DOUBLE_BULL_RADIUS,
+                SINGLE_BULL_RADIUS,
+                TRIPLE_RING_INNER_RADIUS,
+                TRIPLE_RING_OUTER_RADIUS,
+                DOUBLE_RING_INNER_RADIUS,
+                DOUBLE_RING_OUTER_RADIUS,
+            ],
+        )
 
         # Adjust for wire width
-        self.scoring_radii[1:3] += (BULLSEYE_WIRE_WIDTH / 2)
+        self.scoring_radii[1:3] += BULLSEYE_WIRE_WIDTH / 2
         self.scoring_radii /= BOARD_DIAMETER
 
     def _setup_segments(self) -> None:
@@ -67,7 +73,7 @@ class DartBoard:
         coord_index = 0
         for angle_deg in calibration_angles.values():
             coords_pair = self._calculate_coordinate_pair(angle_deg, outer_radius)
-            calibration_coords[coord_index:coord_index + 2] = coords_pair
+            calibration_coords[coord_index : coord_index + 2] = coords_pair
             coord_index += 2
 
         return calibration_coords
@@ -86,10 +92,12 @@ class DartBoard:
         x_offset = outer_radius * np.cos(angle_rad)
         y_offset = outer_radius * np.sin(angle_rad)
 
-        return np.array([
-            [BOARD_CENTER_COORDINATE - x_offset, BOARD_CENTER_COORDINATE - y_offset],
-            [BOARD_CENTER_COORDINATE + x_offset, BOARD_CENTER_COORDINATE + y_offset],
-        ])
+        return np.array(
+            [
+                [BOARD_CENTER_COORDINATE - x_offset, BOARD_CENTER_COORDINATE - y_offset],
+                [BOARD_CENTER_COORDINATE + x_offset, BOARD_CENTER_COORDINATE + y_offset],
+            ],
+        )
 
     def get_calibration_reference_coordinates(self) -> np.ndarray:
         """Get the reference calibration coordinates for homography calculation."""

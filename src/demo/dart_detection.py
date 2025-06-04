@@ -1,4 +1,5 @@
 """Basic dart detection demo."""
+
 import logging
 from pathlib import Path
 from typing import TYPE_CHECKING
