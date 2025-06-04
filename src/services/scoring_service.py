@@ -34,7 +34,7 @@ class ScoringService:
             dart_scores.append(score)
             total_score += score.score_value
 
-            logger.info("Dart %s: Position {position} -> {score.score_string} ({score.score_value} points)", i)
+            logger.info("Dart %s: Position %s -> %s (%s points)", i, position, score.score_string, score.score_value)
 
         logger.info("Final scoring: Total %s points", total_score)
         return dart_scores

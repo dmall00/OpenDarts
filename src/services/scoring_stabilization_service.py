@@ -35,7 +35,7 @@ class ScoringStabilizingService:
             for centroid in prediction_groups
         ]
 
-        return DartPositions(stable_darts[:3])  # Max 3 darts
+        return DartPositions(stable_darts[:ProcessingConfig.max_allowed_darts])
 
     def __group_similar_darts(self, predictions: List[DartPosition]) -> Dict[Tuple[float, float], List[DartPosition]]:
         """Group dart predictions that are spatially close together."""

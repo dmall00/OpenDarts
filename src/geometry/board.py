@@ -8,9 +8,22 @@ from src.models.geometry_models import (
     BOARD_CENTER_COORDINATE,
     BOARD_DIAMETER,
     BULLSEYE_WIRE_WIDTH,
+    DARTBOARD_SEGMENT_ANGLES,
+    DARTBOARD_SEGMENT_NUMBERS,
+    DOUBLE_BULL_RADIUS,
+    DOUBLE_BULL_SCORE,
+    DOUBLE_RING_INNER_RADIUS,
+    DOUBLE_RING_OUTER_RADIUS,
+    MISS_SCORE,
     OUTER_RADIUS_RATIO,
-    RING_WIDTH,
+    SCORING_REGION_NAMES,
+    SEGMENT_9_15_ANGLE,
+    SEGMENT_11_6_ANGLE,
     SEGMENT_20_3_ANGLE_THRESHOLD,
+    SINGLE_BULL_RADIUS,
+    SINGLE_BULL_SCORE,
+    TRIPLE_RING_INNER_RADIUS,
+    TRIPLE_RING_OUTER_RADIUS,
 )
 
 
@@ -24,11 +37,11 @@ class DartBoard:
 
     def _setup_scoring_regions(self) -> None:
         """Initialize scoring regions and their radii."""
-        self._scoring_names = np.array(["DB", "SB", "S", "T", "S", "D", "miss"])
+        self._scoring_names = np.array(SCORING_REGION_NAMES)
         self.scoring_radii = np.array([
-            0, 6.35, 15.9,
-            107.4 - RING_WIDTH, 107.4,
-            170.0 - RING_WIDTH, 170.0,
+            0, DOUBLE_BULL_RADIUS, SINGLE_BULL_RADIUS,
+            TRIPLE_RING_INNER_RADIUS, TRIPLE_RING_OUTER_RADIUS,
+            DOUBLE_RING_INNER_RADIUS, DOUBLE_RING_OUTER_RADIUS,
         ])
 
         # Adjust for wire width
@@ -37,11 +50,8 @@ class DartBoard:
 
     def _setup_segments(self) -> None:
         """Initialize dartboard segments and their number mappings."""
-        self.segment_angles = np.array([-9, 9, 27, 45, 63, -81, -63, -45, -27])
-        self._segment_numbers = np.array([
-            [6, 11], [10, 14], [15, 9], [2, 12], [17, 5],
-            [19, 1], [7, 18], [16, 4], [8, 13],
-        ])
+        self.segment_angles = np.array(DARTBOARD_SEGMENT_ANGLES)
+        self._segment_numbers = np.array(DARTBOARD_SEGMENT_NUMBERS)
 
     def _setup_calibration_points(self) -> None:
         """Initialize reference calibration coordinates for homography calculation."""
@@ -66,8 +76,8 @@ class DartBoard:
         """Get the calibration angles for specific dartboard segments."""
         return {
             "20_3": SEGMENT_20_3_ANGLE_THRESHOLD,
-            "11_6": -9,  # Between segments 11 and 6
-            "9_15": 27,  # Between segments 9 and 15
+            "11_6": SEGMENT_11_6_ANGLE,
+            "9_15": SEGMENT_9_15_ANGLE,
         }
 
     def _calculate_coordinate_pair(self, angle_deg: float, outer_radius: float) -> np.ndarray:
@@ -105,12 +115,12 @@ class DartBoard:
     def calculate_score(self, segment_number: int, scoring_region: str) -> Tuple[str, int]:
         """Calculate the final score for a dart."""
         scoring_rules = {
-            "DB": ("DB", 50),
-            "SB": ("SB", 25),
+            "DB": ("DB", DOUBLE_BULL_SCORE),
+            "SB": ("SB", SINGLE_BULL_SCORE),
             "S": (f"S{segment_number}", segment_number),
             "T": (f"T{segment_number}", segment_number * 3),
             "D": (f"D{segment_number}", segment_number * 2),
-            "miss": ("miss", 0),
+            "miss": ("miss", MISS_SCORE),
         }
         return scoring_rules[scoring_region]
 

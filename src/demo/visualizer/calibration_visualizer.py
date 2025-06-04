@@ -13,6 +13,12 @@ from src.models.detection_models import DartScore, DetectionResult, HomoGraphyMa
 from src.models.geometry_models import (
     ANGLE_CALCULATION_EPSILON,
     BOARD_CENTER_COORDINATE,
+    VISUALIZATION_CIRCLE_RADIUS,
+    VISUALIZATION_DART_CIRCLE_RADIUS,
+    VISUALIZATION_SAMPLE_POSITION_RADIUS,
+    VISUALIZATION_TARGET_HEIGHT,
+    VISUALIZATION_TEXT_OFFSET,
+    VISUALIZATION_TEXT_RADIUS_RATIO,
 )
 from src.services.detection_service import DartDetectionService
 from src.utils.file_utils import load_image, resize_image
@@ -143,9 +149,9 @@ class CalibrationVisualizer:
 
         for i, (x, y) in enumerate(pixel_coords):
             if x >= 0 and y >= 0:
-                cv2.circle(image, (int(x), int(y)), 8, (0, 255, 0), 2)
+                cv2.circle(image, (int(x), int(y)), VISUALIZATION_CIRCLE_RADIUS, (0, 255, 0), 2)
                 cv2.putText(
-                    image, str(i + 1), (int(x + 10), int(y - 10)),
+                    image, str(i + 1), (int(x + VISUALIZATION_TEXT_OFFSET), int(y - VISUALIZATION_TEXT_OFFSET)),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2,
                 )
         return image
@@ -158,9 +164,9 @@ class CalibrationVisualizer:
         pixel_coords = dart_coords * np.array([width, height])
 
         for i, (x, y) in enumerate(pixel_coords):
-            cv2.circle(image, (int(x), int(y)), 6, (0, 0, 255), 2)
+            cv2.circle(image, (int(x), int(y)), VISUALIZATION_DART_CIRCLE_RADIUS, (0, 0, 255), 2)
             cv2.putText(
-                image, f"D{i + 1}", (int(x + 10), int(y + 10)),
+                image, f"D{i + 1}", (int(x + VISUALIZATION_TEXT_OFFSET), int(y + VISUALIZATION_TEXT_OFFSET)),
                 cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2,
             )
         return image
@@ -175,10 +181,10 @@ class CalibrationVisualizer:
         pixel_coords = dart_coords * np.array([width, height])
 
         for _i, ((x, y), score) in enumerate(zip(pixel_coords, dart_scores, strict=False)):
-            cv2.circle(image, (int(x), int(y)), 6, (0, 0, 255), 2)
+            cv2.circle(image, (int(x), int(y)), VISUALIZATION_DART_CIRCLE_RADIUS, (0, 0, 255), 2)
             score_text = score.score_string if hasattr(score, "score_string") else str(score)
             cv2.putText(
-                image, score_text, (int(x + 10), int(y - 10)),
+                image, score_text, (int(x + VISUALIZATION_TEXT_OFFSET), int(y - VISUALIZATION_TEXT_OFFSET)),
                 cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 0, 255), 3,
             )
         return image
@@ -222,7 +228,7 @@ class CalibrationVisualizer:
                 cv2.circle(image, center, radius, color, 2)
 
     def __draw_segment_numbers(self, image: np.ndarray, center: Tuple[int, int], max_radius: int) -> None:
-        text_radius = max_radius * 0.8
+        text_radius = max_radius * VISUALIZATION_TEXT_RADIUS_RATIO
         num_samples = 40
 
         for i in range(0, num_samples, 2):  # Draw every other sample to avoid clutter
@@ -242,8 +248,8 @@ class CalibrationVisualizer:
 
     def __calculate_sample_position(self, angle_rad: float) -> np.ndarray:
         return np.array([
-            BOARD_CENTER_COORDINATE + 0.4 * np.cos(angle_rad),
-            BOARD_CENTER_COORDINATE + 0.4 * np.sin(angle_rad),
+            BOARD_CENTER_COORDINATE + VISUALIZATION_SAMPLE_POSITION_RADIUS * np.cos(angle_rad),
+            BOARD_CENTER_COORDINATE + VISUALIZATION_SAMPLE_POSITION_RADIUS * np.sin(angle_rad),
         ])
 
     def __get_segment_number_for_angle(self, sample_position: np.ndarray) -> int:
@@ -263,7 +269,7 @@ class CalibrationVisualizer:
 
 
     def __create_side_by_side_view(self, original: np.ndarray, transformed: np.ndarray) -> np.ndarray:
-        target_height = min(original.shape[0], transformed.shape[0], 600)
+        target_height = min(original.shape[0], transformed.shape[0], VISUALIZATION_TARGET_HEIGHT)
 
         original_resized = self.__resize_to_height(original, target_height)
         transformed_resized = self.__resize_to_height(transformed, target_height)

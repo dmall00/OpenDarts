@@ -52,7 +52,7 @@ class YoloDartImageProcessor:
         dart_positions = self.__create_dart_positions(dart_detections)
         calibration_points = self.__create_calibration_points(calibration_detections)
 
-        logger.info("Extracted %s calibration points and {len(dart_positions)} darts", len(calibration_points))
+        logger.info("Extracted %s calibration points and %s darts", len(calibration_points), len(dart_positions))
         return YoloDartParseResult(calibration_points=CalibrationPoints(calibration_points),
                                    dart_positions=DartPositions(dart_positions))
 

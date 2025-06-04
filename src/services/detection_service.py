@@ -52,17 +52,18 @@ class DartDetectionService:
             original_dart_positions = yolo_dart_result.dart_positions
 
             dart_positions: DartPositions = self.__coordinate_service.transform_to_board_dimensions(
-                homography_matrix.matrix, yolo_dart_result.dart_positions.to_ndarray(),
+                homography_matrix.matrix,
+                yolo_dart_result.dart_positions.to_ndarray(),
             )
-
-            stable_darts: DartPositions = self.__stabilization_service.get_stable_darts(dart_positions.positions)
-            dart_scores: List[DartScore] = self.__scoring_service.calculate_scores(stable_darts.positions)
+            # TODO is this still needed?
+            # stable_darts: DartPositions = self.__stabilization_service.get_stable_darts(dart_positions.positions)
+            dart_scores: List[DartScore] = self.__scoring_service.calculate_scores(dart_positions.positions)
 
             processing_time = round(time.time() - start_time, 2)
             logger.info("Detection took %s seconds", processing_time)
 
             return self.__create_success_result(
-                dart_result=DartResult(stable_darts, dart_scores, original_dart_positions),
+                dart_result=DartResult(dart_positions, dart_scores, original_dart_positions),
                 calibration_points=yolo_dart_result.calibration_points,
                 homography_matrix=homography_matrix,
                 processing_time=processing_time)

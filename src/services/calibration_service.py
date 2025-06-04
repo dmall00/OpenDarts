@@ -91,8 +91,8 @@ class CalibrationService:
 
     def _get_valid_points_mask(self, calibration_coords: np.ndarray) -> np.ndarray:
         """Get mask for valid calibration points within image bounds."""
+        from src.models.geometry_models import NORMALIZED_COORDINATE_MAX, NORMALIZED_COORDINATE_MIN
         return np.all(
-            np.logical_and(calibration_coords >= 0, calibration_coords <= 1),
+            np.logical_and(calibration_coords >= NORMALIZED_COORDINATE_MIN, calibration_coords <= NORMALIZED_COORDINATE_MAX),
             axis=1,
         )
-

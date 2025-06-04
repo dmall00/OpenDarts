@@ -8,6 +8,7 @@ from typing import Dict, Final, List, Optional, Tuple
 import numpy as np
 
 from src.models.exception import Code
+from src.models.geometry_models import DART_CLASS_ID
 
 ROOT_PATH = Path(__file__).parent.parent.parent
 MODEL_PATH = ROOT_PATH / "models"
@@ -37,7 +38,7 @@ class Detection:
 class ClassMapping:
     """Maps YOLO class IDs to human-readable class names and checks for dart classes."""
 
-    dart_class = 4  # Class ID for dart
+    dart_class = DART_CLASS_ID
     mapping: Final[Dict[int, str]] = {
         0: "20",
         1: "3",
@@ -56,7 +57,8 @@ class ClassMapping:
     @classmethod
     def is_dart(cls, class_id: int) -> bool:
         """Check if the class ID corresponds to a dart."""
-        return cls.mapping.get(class_id) == "dart" or class_id == 4  # noqa: PLR2004
+        from src.models.geometry_models import DART_CLASS_ID
+        return cls.mapping.get(class_id) == "dart" or class_id == DART_CLASS_ID
 
 
 @dataclass
@@ -105,12 +107,20 @@ class DartScore:
 class ProcessingConfig:
     """Configurations for dart detection and scoring."""
 
+    from src.models.geometry_models import (
+        DEFAULT_CONFIDENCE_THRESHOLD,
+        DEFAULT_STABILIZING_THRESHOLD,
+        DEFAULT_TARGET_IMAGE_SIZE,
+        MAX_ALLOWED_DARTS,
+        MIN_CALIBRATION_POINTS_REQUIRED,
+    )
+
     model_path: str = str(MODEL_PATH / "dart_scorer.pt")
-    confidence_threshold: float = 0.6
-    target_image_size: Tuple[int, int] = (800, 800)
-    min_calibration_points: int = 4
-    max_allowed_darts: int = 3
-    stabilizing_threshold: float = 0.1
+    confidence_threshold: float = DEFAULT_CONFIDENCE_THRESHOLD
+    target_image_size: Tuple[int, int] = DEFAULT_TARGET_IMAGE_SIZE
+    min_calibration_points: int = MIN_CALIBRATION_POINTS_REQUIRED
+    max_allowed_darts: int = MAX_ALLOWED_DARTS
+    stabilizing_threshold: float = DEFAULT_STABILIZING_THRESHOLD
 
 
 @dataclass
@@ -171,5 +181,3 @@ class DetectionResult:
     code: Code
     message: str
     creation_time: datetime = field(default_factory=datetime.now)
-
-
