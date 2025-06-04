@@ -2,7 +2,7 @@
 
 from typing import Dict, List, Tuple
 
-from src.models.detection_models import DartPosition, DartPositions
+from src.models.detection_models import DartPosition, DartPositions, ProcessingConfig
 from src.utils.math_utils import calculate_distance
 
 
@@ -16,8 +16,7 @@ class ScoringStabilizingService:
     def __process_predictions(self, dart_predictions: List[DartPosition]) -> DartPositions:
         return self.__stabilize_single_frame(dart_predictions)
 
-    def __stabilize_single_frame(self, dart_predictions: List[DartPosition],
-                                 similarity_threshold: float = 0.01) -> DartPositions:
+    def __stabilize_single_frame(self, dart_predictions: List[DartPosition]) -> DartPositions:
         """
         Clean up dart predictions from a single frame by grouping similar positions.
 
@@ -27,7 +26,7 @@ class ScoringStabilizingService:
             return DartPositions([])
 
         prediction_groups = self.__group_similar_darts(
-            dart_predictions, similarity_threshold,
+            dart_predictions,
         )
 
         # Convert groups to stable positions (average of each group)
@@ -38,13 +37,12 @@ class ScoringStabilizingService:
 
         return DartPositions(stable_darts[:3])  # Max 3 darts
 
-    def __group_similar_darts(self, predictions: List[DartPosition],
-                              similarity_threshold: float) -> Dict[Tuple[float, float], List[DartPosition]]:
+    def __group_similar_darts(self, predictions: List[DartPosition]) -> Dict[Tuple[float, float], List[DartPosition]]:
         """Group dart predictions that are spatially close together."""
         if not predictions:
             return {}
 
-        groups = {}
+        groups: Dict[Tuple[float, float], List[DartPosition]] = {}
 
         for dart in predictions:
             dart_pos = (dart.x, dart.y)
@@ -52,7 +50,7 @@ class ScoringStabilizingService:
             # Find existing group this dart belongs to
             assigned_group = None
             for centroid in groups:
-                if calculate_distance(dart_pos, centroid) < similarity_threshold:
+                if calculate_distance(dart_pos, centroid) < ProcessingConfig.stabilizing_threshold:
                     assigned_group = centroid
                     break
 
@@ -63,7 +61,7 @@ class ScoringStabilizingService:
                 groups[dart_pos] = [dart]
 
         # Recalculate centroids for each group
-        refined_groups = {}
+        refined_groups: Dict[Tuple[float, float], List[DartPosition]] = {}
         for group_darts in groups.values():
             # Calculate average position as centroid
             avg_x = sum(dart.x for dart in group_darts) / len(group_darts)

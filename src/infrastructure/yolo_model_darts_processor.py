@@ -1,6 +1,6 @@
 """Contains a  class for YOLO-based dart detection."""
 import logging
-from typing import List
+from typing import Dict, List
 
 import numpy as np
 from ultralytics import YOLO
@@ -139,9 +139,9 @@ class YoloDartImageProcessor:
             point_type=f"{reason}_{calib_index}",
         )
 
-    def __group_calibration_detections(self, calibration_detections: List[Detection]) -> dict[int, List[Detection]]:
+    def __group_calibration_detections(self, calibration_detections: List[Detection]) -> Dict[int, List[Detection]]:
         """Group calibration detections by their calibration index."""
-        detections_by_index = {}
+        detections_by_index: Dict[int, List[Detection]]= {}
 
         for detection in calibration_detections:
             calib_index = detection.class_id if detection.class_id < ClassMapping.dart_class else detection.class_id - 1

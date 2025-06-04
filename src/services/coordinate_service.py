@@ -21,7 +21,7 @@ class TransformationService:
         """Transform dart coordinates to board coordinate system."""
         if len(dart_coords) == 0:
             logger.debug("No dart coordinates to transform")
-            return []
+            return DartPositions([])
 
         logger.debug("Transforming %s dart coordinates to board space", len(dart_coords))
 

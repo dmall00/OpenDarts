@@ -9,6 +9,12 @@ dependencies = [
     "ultralytics>=8.3.147",
 ]
 
+[dependency-groups]
+dev = [
+    "mypy>=1.16.0",
+    "ruff>=0.11.12",
+]
+
 
 [tool.ruff]
 line-length = 140
@@ -38,7 +44,6 @@ unfixable = ["F401", "F841"]
 [tool.ruff.pyupgrade]
 keep-runtime-typing = true
 
-[dependency-groups]
-dev = [
-    "mypy>=1.16.0",
-]
+[[tool.mypy.overrides]]
+module = ["ultralytics.*"]
+ignore_missing_imports = true

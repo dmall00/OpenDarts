@@ -17,11 +17,11 @@ class ScoringService:
     def __init__(self) -> None:
         self._board = DartBoard()
 
-    def calculate_scores(self, dart_positions: List[DartPosition]) -> tuple[list[Any], int] | list[Any]:
+    def calculate_scores(self, dart_positions: List[DartPosition]) -> List[DartScore]:
         """Calculate scores for all darts."""
         if not dart_positions:
             logger.debug("No dart positions to score")
-            return [], 0
+            return []
 
         logger.debug("Calculating scores for %s darts", len(dart_positions))
 

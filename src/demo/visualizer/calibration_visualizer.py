@@ -1,6 +1,7 @@
 """Visualization for calibration transformation results."""
 
 import logging
+from pathlib import Path
 from typing import List, Tuple
 
 import cv2
@@ -50,7 +51,7 @@ class CalibrationVisualizer:
         comparison = self.__create_side_by_side_view(original_viz, transformed_viz)
         self.__display_result(comparison)
 
-    def show_simple_transformation(self, image_path: str) -> None:
+    def show_simple_transformation(self, image_path: Path) -> None:
         """Visualize the transformation result for a given image path."""
         try:
             image = self.__load_and_prepare_image(image_path)
@@ -63,10 +64,16 @@ class CalibrationVisualizer:
                 print("Could not find sufficient calibration points for visualization")
                 return
 
+            if (result.calibration_points is None or
+                    result.homography_matrix is None or
+                    result.dart_result is None):
+                print("Missing required detection data for visualization")
+                return
+
             self.__show_transformation_result(
                 image,
                 result.calibration_points.to_ndarray(),
-                result.homography_matrix,
+                result.homography_matrix,  # Now we know it's not None
                 result.dart_result.original_dart_positions.to_ndarray(),
                 result.dart_result.dart_scores,
             )
@@ -220,7 +227,7 @@ class CalibrationVisualizer:
             angle_rad = np.deg2rad(angle_deg)
 
             sample_position = self.__calculate_sample_position(angle_rad)
-            segment_number = self.__get_segment_number_for_angle(sample_position, angle_rad)
+            segment_number = self.__get_segment_number_for_angle(sample_position)
 
             text_x = int(center[0] + text_radius * np.cos(angle_rad))
             text_y = int(center[1] + text_radius * np.sin(angle_rad))
@@ -286,13 +293,14 @@ class CalibrationVisualizer:
         cv2.destroyAllWindows()
 
     @staticmethod
-    def __load_and_prepare_image(image_path: str) -> ndarray | None:
+    def __load_and_prepare_image(image_path: Path) -> ndarray | None:
         image = load_image(image_path)
         if image is None:
             logger.error("Could not load image: %s", image_path)
             return None
         return resize_image(image=image)
 
-    def __is_valid_detection_result(self, result: DetectionResult) -> bool:
+    @staticmethod
+    def __is_valid_detection_result(result: DetectionResult) -> bool:
         return (result.homography_matrix is not None and
                 result.homography_matrix.matrix is not None)

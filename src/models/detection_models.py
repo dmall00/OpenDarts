@@ -104,6 +104,7 @@ class ProcessingConfig:
     target_image_size: Tuple[int, int] = (800, 800)
     min_calibration_points: int = 4
     max_allowed_darts: int = 3
+    stabilizing_threshold: float = 0.1
 
 
 @dataclass
