@@ -13,10 +13,10 @@ from src.models.detection_models import (
     DartResult,
     DartScore,
     DetectionResult,
+    HomoGraphyMatrix,
     YoloDartParseResult,
 )
 from src.models.exception import Code, DartDetectionError
-from src.models.geometry_models import HomoGraphyMatrix
 from src.services.calibration_service import CalibrationService
 from src.services.coordinate_service import TransformationService
 from src.services.scoring_service import ScoringService

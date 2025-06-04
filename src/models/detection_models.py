@@ -8,7 +8,6 @@ from typing import Dict, Final, List, Optional, Tuple
 import numpy as np
 
 from src.models.exception import Code
-from src.models.geometry_models import HomoGraphyMatrix
 
 ROOT_PATH = Path(__file__).parent.parent.parent
 MODEL_PATH = ROOT_PATH / "models"
@@ -59,6 +58,13 @@ class ClassMapping:
         """Check if the class ID corresponds to a dart."""
         return cls.mapping.get(class_id) == "dart" or class_id == 4  # noqa: PLR2004
 
+
+@dataclass
+class HomoGraphyMatrix:
+    """Represents a homography transformation matrix for dartboard calibration."""
+
+    matrix: np.ndarray
+    calibration_point_count: int
 
 @dataclass
 class DartPosition:
@@ -165,3 +171,5 @@ class DetectionResult:
     code: Code
     message: str
     creation_time: datetime = field(default_factory=datetime.now)
+
+

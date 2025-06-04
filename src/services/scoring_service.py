@@ -1,12 +1,13 @@
 """Service for scoring darts based on their positions."""
 
 import logging
-from typing import Any, List
+from typing import List
 
 import numpy as np
 
 from src.geometry.board import DartBoard
 from src.models.detection_models import DartPosition, DartScore
+from src.models.geometry_models import ANGLE_CALCULATION_EPSILON, BOARD_CENTER_COORDINATE
 
 logger = logging.getLogger(__name__)
 
@@ -53,16 +54,14 @@ class ScoringService:
     @staticmethod
     def __adjust_center_position(position: np.ndarray) -> np.ndarray:
         """Adjust positions that are exactly at center to avoid division by zero."""
-        board_center_x = 0.5
-        epsilon = 0.00001
         adjusted = position.copy()
-        if adjusted[0] == board_center_x:
-            adjusted[0] += epsilon
+        if adjusted[0] == BOARD_CENTER_COORDINATE:
+            adjusted[0] += ANGLE_CALCULATION_EPSILON
         return adjusted
 
     @staticmethod
     def __calculate_angle(position: np.ndarray) -> float:
         """Calculate angle from center for dartboard segment determination."""
-        angle_rad = np.arctan((position[1] - 0.5) / (position[0] - 0.5))
+        angle_rad = np.arctan((position[1] - BOARD_CENTER_COORDINATE) / (position[0] - BOARD_CENTER_COORDINATE))
         angle_deg = np.rad2deg(angle_rad)
         return float(np.floor(angle_deg) if angle_deg > 0 else np.ceil(angle_deg))

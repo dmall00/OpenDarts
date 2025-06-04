@@ -5,9 +5,8 @@ import cv2
 import numpy as np
 
 from src.geometry.board import DartBoard
-from src.models.detection_models import ProcessingConfig
+from src.models.detection_models import HomoGraphyMatrix, ProcessingConfig
 from src.models.exception import Code, DartDetectionError
-from src.models.geometry_models import HomoGraphyMatrix
 
 logger = logging.getLogger(__name__)
 

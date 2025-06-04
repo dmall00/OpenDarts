@@ -9,8 +9,11 @@ import numpy as np
 from numpy import ndarray
 
 from src.geometry.board import DartBoard
-from src.models.detection_models import DartScore, DetectionResult
-from src.models.geometry_models import HomoGraphyMatrix
+from src.models.detection_models import DartScore, DetectionResult, HomoGraphyMatrix
+from src.models.geometry_models import (
+    ANGLE_CALCULATION_EPSILON,
+    BOARD_CENTER_COORDINATE,
+)
 from src.services.detection_service import DartDetectionService
 from src.utils.file_utils import load_image, resize_image
 
@@ -239,16 +242,16 @@ class CalibrationVisualizer:
 
     def __calculate_sample_position(self, angle_rad: float) -> np.ndarray:
         return np.array([
-            0.5 + 0.4 * np.cos(angle_rad),
-            0.5 + 0.4 * np.sin(angle_rad),
+            BOARD_CENTER_COORDINATE + 0.4 * np.cos(angle_rad),
+            BOARD_CENTER_COORDINATE + 0.4 * np.sin(angle_rad),
         ])
 
     def __get_segment_number_for_angle(self, sample_position: np.ndarray) -> int:
         adjusted_position = sample_position.copy()
-        if adjusted_position[0] == 0.5:
-            adjusted_position[0] += 0.00001
+        if adjusted_position[0] == BOARD_CENTER_COORDINATE:
+            adjusted_position[0] += ANGLE_CALCULATION_EPSILON
 
-        angle_for_scoring = np.arctan((adjusted_position[1] - 0.5) / (adjusted_position[0] - 0.5))
+        angle_for_scoring = np.arctan((adjusted_position[1] - BOARD_CENTER_COORDINATE) / (adjusted_position[0] - BOARD_CENTER_COORDINATE))
         angle_deg_for_scoring = np.rad2deg(angle_for_scoring)
         angle_deg_for_scoring = self.__normalize_angle_for_segment_boundary(angle_deg_for_scoring)
         return self.dart_board.get_segment_number(float(angle_deg_for_scoring), sample_position)
