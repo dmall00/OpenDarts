@@ -7,6 +7,7 @@ from ultralytics.engine.results import Results
 from src.infrastructure.yolo_detector import YoloDartImageProcessor
 from src.models.detection_models import DetectionResult, DartResult, YoloDartParseResult, DartPositions, \
     DartScore, CalibrationPoints
+from src.models.exception import Code, DartDetectionFailed
 from src.models.geometry_models import HomoGraphyMatrix
 from src.services.calibration_service import CalibrationService
 from src.services.coordinate_service import TransformationService
@@ -32,7 +33,7 @@ class DartDetectionService:
         """
         try:
             start_time = time.time()
-            
+
             yolo_result: Results = self.__yolo_image_processor.detect(image)
             yolo_dart_result: YoloDartParseResult = self.__yolo_image_processor.extract_detections(yolo_result)
 
@@ -56,17 +57,32 @@ class DartDetectionService:
                 calibration_points=yolo_dart_result.calibration_points,
                 homography_matrix=homography_matrix,
                 processing_time=processing_time)
+        except DartDetectionFailed as e:
+            logger.warning(f"Dart detection failed: {str(e)}", exc_info=True)
+            return self.__create_error_result(e.error_code, e.message)
         except Exception as e:
-            logger.error(f"Detection pipeline failed: {str(e)}", exc_info=True)  # TODO
-            raise
+            logger.error(f"Unknown error during detection pipeline: {str(e)}", exc_info=True)
+            return self.__create_error_result(Code.UNKNOWN, f"Unknown error occurred: {e}")
 
-    def __create_success_result(self, dart_result: DartResult, calibration_points: CalibrationPoints,
+    @staticmethod
+    def __create_success_result(dart_result: DartResult, calibration_points: CalibrationPoints,
                                 homography_matrix: HomoGraphyMatrix, processing_time: float) -> DetectionResult:
         return DetectionResult(
             dart_result=dart_result,
             processing_time=processing_time,
             homography_matrix=homography_matrix,
             calibration_points=calibration_points,
-            success=True,
+            code=Code.SUCCESS,
             message=f"Successfully detected {len(dart_result.dart_positions.positions)} darts"
+        )
+
+    @staticmethod
+    def __create_error_result(code: Code, message: str) -> DetectionResult:
+        return DetectionResult(
+            dart_result=None,
+            processing_time=0.0,
+            homography_matrix=None,
+            calibration_points=CalibrationPoints(points=[]),
+            code=code,
+            message=message
         )

@@ -1,8 +1,10 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from datetime import datetime
 from typing import List, Tuple, Optional
 
 import numpy as np
 
+from src.models.exception import Code
 from src.models.geometry_models import HomoGraphyMatrix
 
 
@@ -109,9 +111,10 @@ class DartResult:
 
 @dataclass
 class DetectionResult:
-    dart_result: DartResult
+    dart_result: Optional[DartResult]
     processing_time: float
-    homography_matrix: HomoGraphyMatrix
-    calibration_points: CalibrationPoints
-    success: bool
+    homography_matrix: Optional[HomoGraphyMatrix]
+    calibration_points: Optional[CalibrationPoints]
+    code: Code
     message: str
+    creation_time: datetime = field(default_factory=datetime.now)

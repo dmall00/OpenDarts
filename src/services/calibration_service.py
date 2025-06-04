@@ -5,6 +5,7 @@ import numpy as np
 
 from src.geometry.board import DartBoard
 from src.models.detection_models import ProcessingConfig
+from src.models.exception import DartDetectionFailed, Code
 from src.models.geometry_models import HomoGraphyMatrix
 
 logger = logging.getLogger(__name__)
@@ -50,8 +51,8 @@ class CalibrationService:
     def _ensure_minimum_points(self, valid_count: int) -> None:
         """Ensure we have the minimum required valid points."""
         if valid_count < 4:
-            logger.warning(f"Insufficient valid calibration points: {valid_count}/4 minimum required")
-            raise ValueError(f"Only {valid_count} valid calibration points found, minimum 4 required")
+            msg = f"Only {valid_count} valid calibration points found, minimum 4 required"
+            raise DartDetectionFailed(Code.MISSING_CALIBRATION_POINTS, details=msg)
 
     def _compute_homography_matrix(self, calibration_coords: np.ndarray,
                                    valid_mask: np.ndarray,
@@ -66,13 +67,15 @@ class CalibrationService:
 
             if homography_matrix is None:
                 logger.error("OpenCV findHomography returned None")
-                raise ValueError("Failed to compute homography matrix - OpenCV returned None")
+                error_msg = "Failed to compute homography matrix - OpenCV returned None"
+                raise DartDetectionFailed(Code.HOMOGRAPHY, details=error_msg)
 
             return homography_matrix
-
+        except DartDetectionFailed:
+            raise
         except Exception as e:
-            logger.error(f"Homography calculation failed: {str(e)}", exc_info=True)
-            raise ValueError(f"Homography calculation failed: {str(e)}")
+            msg = "Homography calculation failed"
+            raise DartDetectionFailed(Code.HOMOGRAPHY, e, msg)
 
     def _create_homography_result(self, homography_matrix: np.ndarray,
                                   valid_count: int) -> HomoGraphyMatrix:

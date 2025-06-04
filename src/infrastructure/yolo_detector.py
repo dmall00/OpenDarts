@@ -10,6 +10,7 @@ from src.models.detection_models import (
     DartPosition,
     ClassMapping, Detection, ProcessingConfig, YoloDartParseResult, CalibrationPoints, DartPositions,
 )
+from src.models.exception import DartDetectionFailed, Code
 
 logger = logging.getLogger(__name__)
 
@@ -25,17 +26,13 @@ class YoloDartImageProcessor:
         logger.info("Running YOLO inference...")
         try:
             results = list(self._model(image, verbose=False))
-            if not results:
-                raise RuntimeError("No results from YOLO model")
-
             result = results[0]
             logger.info(f"YOLO inference complete. Detected {len(result.boxes)} objects")
             return result
 
         except Exception as e:
             error_msg = f"YOLO inference failed: {str(e)}"
-            logger.error(error_msg)
-            raise RuntimeError(error_msg)
+            raise DartDetectionFailed(Code.YOLO_ERROR, e, error_msg)
 
     def extract_detections(self, yolo_result: Results) -> YoloDartParseResult:
         """
