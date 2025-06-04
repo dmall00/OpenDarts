@@ -5,7 +5,7 @@ import cv2
 import numpy as np
 from numpy import ndarray
 
-from src.domain.board import DartBoard
+from src.geometry.board import DartBoard
 from src.models.detection_models import DetectionResult, DartScore
 from src.models.geometry_models import HomoGraphyMatrix
 from src.services.detection_service import DartDetectionService

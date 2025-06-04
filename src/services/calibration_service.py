@@ -3,7 +3,7 @@ import logging
 import cv2
 import numpy as np
 
-from src.domain.board import DartBoard
+from src.geometry.board import DartBoard
 from src.models.detection_models import ProcessingConfig
 from src.models.geometry_models import HomoGraphyMatrix
 

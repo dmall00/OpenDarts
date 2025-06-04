@@ -1,21 +1,21 @@
 import logging
-from typing import List
+from typing import List, Any
 
 import numpy as np
 
-from src.domain.board import DartBoard
+from src.geometry.board import DartBoard
 from src.models.detection_models import DartPosition, DartScore
 
 logger = logging.getLogger(__name__)
 
 
-class DartScorer:
+class ScoringService:
     """Domain service for calculating dart scores."""
 
     def __init__(self):
         self._board = DartBoard()
 
-    def calculate_scores(self, dart_positions: List[DartPosition]) -> List[DartScore]:
+    def calculate_scores(self, dart_positions: List[DartPosition]) -> tuple[list[Any], int] | list[Any]:
         """
         Calculate scores for all darts.
         """

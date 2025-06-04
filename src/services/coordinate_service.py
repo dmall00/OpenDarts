@@ -7,7 +7,7 @@ from src.models.detection_models import DartPosition, ProcessingConfig, DartPosi
 logger = logging.getLogger(__name__)
 
 
-class CoordinateService:
+class TransformationService:
     """Service for coordinate transformations and adjustments."""
 
     def transform_to_board_dimensions(self, homography_matrix: np.ndarray, dart_coords: np.ndarray,

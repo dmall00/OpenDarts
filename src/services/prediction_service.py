@@ -4,7 +4,7 @@ from src.models.detection_models import DartPosition, DartPositions
 from src.utils.math_utils import calculate_distance
 
 
-class PredictionService:
+class ScoringStabilizingService:
     """Service for processing and stabilizing dart predictions."""
 
     def get_stable_darts(self, dart_predictions: List[DartPosition]) -> DartPositions:
