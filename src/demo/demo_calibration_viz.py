@@ -8,9 +8,11 @@ import logging
 import os
 
 from src.demo.visualizer.calibration_visualizer import CalibrationVisualizer
+from src.models.detection_models import IMAGES_PATH
 
 
 def main():
+    default_image = "img_3.png"
     logging.basicConfig(
         level=logging.INFO,
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
@@ -32,10 +34,10 @@ def main():
             break
 
         if choice == "":
-            selected_image = "../data/img_3.png"
+            selected_image = IMAGES_PATH / default_image
         else:
             img_num = int(choice)
-            selected_image = f"../data/img_{img_num}.png"
+            selected_image = IMAGES_PATH / f"img_{img_num}.png"
 
         if not os.path.exists(selected_image):
             print(f"Error: Image file '{selected_image}' not found!")

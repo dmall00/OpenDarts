@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field
 from datetime import datetime
+from pathlib import Path
 from typing import List, Tuple, Optional
 
 import numpy as np
@@ -7,6 +8,9 @@ import numpy as np
 from src.models.exception import Code
 from src.models.geometry_models import HomoGraphyMatrix
 
+ROOT_PATH = Path(__file__).parent.parent.parent
+MODEL_PATH = ROOT_PATH / "models"
+IMAGES_PATH = ROOT_PATH / "images"
 
 @dataclass
 class Detection:
@@ -66,7 +70,7 @@ class DartScore:
 
 @dataclass
 class ProcessingConfig:
-    model_path: str = "../weights.pt"
+    model_path: str = str(MODEL_PATH / "dart_scorer.pt")
     confidence_threshold: float = 0.6
     repeat_threshold: int = 1
     queue_size: int = 5

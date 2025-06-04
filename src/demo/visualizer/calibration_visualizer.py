@@ -9,7 +9,7 @@ from src.geometry.board import DartBoard
 from src.models.detection_models import DetectionResult, DartScore
 from src.models.geometry_models import HomoGraphyMatrix
 from src.services.detection_service import DartDetectionService
-from src.utils.file_utils import resize_image
+from src.utils.file_utils import resize_image, load_image
 
 logger = logging.getLogger(__name__)
 
@@ -278,7 +278,7 @@ class CalibrationVisualizer:
         cv2.destroyAllWindows()
 
     def __load_and_prepare_image(self, image_path: str) -> ndarray | None:
-        image = cv2.imread(image_path)
+        image = load_image(image_path)
         if image is None:
             logger.error(f"Could not load image: {image_path}")
             return None

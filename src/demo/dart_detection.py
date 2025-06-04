@@ -15,7 +15,7 @@ def setup_logging():
 def main():
     setup_logging()
     detector = DartDetection()
-    image_path = Path("../data/img_3.png")
+    image_path = Path("../../images/img_3.png")
     result = detector.detect_darts(image_path)
 
     if result and result.code is Code.SUCCESS:
