@@ -21,6 +21,7 @@ from src.models.geometry_models import (
     VISUALIZATION_TEXT_RADIUS_RATIO,
 )
 from src.services.detection_service import DartDetectionService
+from src.services.image_preprocessor import ImagePreprocessor
 from src.utils.file_utils import load_image, resize_image
 
 logger = logging.getLogger(__name__)
@@ -33,6 +34,7 @@ class CalibrationVisualizer:
         self.window_name: str = "Calibration Visualization"
         self.dart_board: DartBoard = DartBoard()
         self.detection_service: DartDetectionService = DartDetectionService()
+        self.preprocessor = ImagePreprocessor()
 
     def __show_transformation_result(
             self,
@@ -301,13 +303,12 @@ class CalibrationVisualizer:
         cv2.waitKey(0)
         cv2.destroyAllWindows()
 
-    @staticmethod
-    def __load_and_prepare_image(image_path: Path) -> ndarray | None:
+    def __load_and_prepare_image(self, image_path: Path) -> ndarray | None:
         image = load_image(image_path)
         if image is None:
             logger.error("Could not load image: %s", image_path)
             return None
-        return resize_image(image=image)
+        return self.preprocessor.preprocess_image(image)
 
     @staticmethod
     def __is_valid_detection_result(result: DetectionResult) -> bool:

@@ -32,12 +32,6 @@ def __validate_image_path(image_path: Union[str, Path]) -> None:
 
     logger.debug("Image file validated: %s", image_path)
 
-def load_and_preprocess_image(image_path: Union[str, Path]) -> np.ndarray:
-    """Load image from path and apply preprocessing."""
-    image = load_image(image_path)
-    return resize_image(image)
-
-
 def load_image(image_path: Union[str, Path]) -> np.ndarray:
     """Load an image from the specified path and return it as a NumPy array."""
     __validate_image_path(str(image_path))
