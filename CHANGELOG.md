@@ -9,12 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Initial project setup with uv build system
-- GitHub Actions CI/CD pipeline for automated testing and releases
-- Comprehensive README with usage examples
-- Development tooling (ruff, mypy, pytest)
-
-## [0.1.0] - 2025-01-06
+## [0.1.0] - 06.06.2025
 
 ### Added
 
@@ -24,5 +19,3 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Scoring system for detected darts
 - Image preprocessing capabilities
 - CLI tools: `dart-scorer` and `calibration-visualizer`
-- Comprehensive test suite
-- Type hints and documentation

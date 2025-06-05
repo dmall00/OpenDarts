@@ -1,10 +1,17 @@
-# Dart Detection
+# 🎯 Dart Detection
 
-A Python package for dart detection and scoring using computer vision and YOLO models.
+A Python package for dart detection and scoring using computer vision and YOLO models. This package provides both
+programmatic APIs and command-line tools for detecting darts in images and calculating scores with high accuracy.
 
-## Features
+## ✨ Features
 
-## Installation
+- **🎯 High-accuracy dart detection** using YOLO-based computer vision models
+- **📊 Automatic scoring calculation** with dartboard calibration
+- **⚙️ Configurable processing pipeline** with customizable settings
+- **🖥️ Command-line tools** for quick dart scoring and calibration visualization
+- **📦 Easy installation** via PyPI or uv package manager
+
+## 🚀 Installation
 
 Install from PyPI:
 
@@ -18,41 +25,95 @@ Or using uv:
 uv add dart-detection
 ```
 
-## Quick Start
+## 📖 Quick Start
 
-### Basic Dart Detection
+### **Basic Dart Detection from Image Path**
 
 ```python
-from detector.entrypoint.dart_image_scorer import DartImageScorer
-from pathlib import Path
+from dart_detection.model.configuration import ProcessingConfig
+from dart_detection.entrypoint.dart_image_scorer import DartImageScorer
 
-# Initialize the scorer
+# Use default configuration
 scorer = DartImageScorer()
-
-# Detect darts in an image
 result = scorer.detect_darts("path/to/your/dart_image.jpg")
 
-print(f"Detected {len(result.darts)} darts")
-for dart in result.darts:
-    print(f"Dart at position: {dart.position}, Score: {dart.score}")
-```
-
-### Using Configuration
-
-```python
-from detector.model.configuration import ProcessingConfig
-from detector.entrypoint.dart_image_scorer import DartImageScorer
-
-# Custom configuration
+# Or with custom configuration
 config = ProcessingConfig(
     # Add your custom settings here
+    confidence_threshold=0.7,
+    image_size=(640, 640)
 )
 
 scorer = DartImageScorer(config)
 result = scorer.detect_darts("image.jpg")
+print(f"Detected {len(result.detections)} darts with total score: {result.total_score}")
 ```
 
-## Acknowledgments
+### **Advanced Usage with Raw Images**
 
-- Built with [Ultralytics YOLO](https://github.com/ultralytics/ultralytics)
-- Uses OpenCV for image processing
+For more control over the detection pipeline, use the `DartDetectionService` directly:
+
+```python
+import numpy as np
+from dart_detection.service.dart_detection_service import DartDetectionService
+from dart_detection.model.configuration import ProcessingConfig
+
+# Load your image as numpy array
+image = np.array(...)  # Your image data
+
+# Initialize service
+config = ProcessingConfig()
+detection_service = DartDetectionService(config)
+
+# Detect and score darts
+result = detection_service.detect_and_score(image)
+```
+
+## 🛠️ Command Line Tools
+
+The package includes two convenient command-line tools:
+
+### **Dart Scorer CLI**
+
+Score darts in images directly from the command line:
+
+```bash
+dart-scorer --help
+```
+
+### **Calibration Visualizer**
+
+Visualize dartboard calibration and detection results:
+
+```bash
+calibration-visualizer --help
+```
+
+An example can be seen below.
+
+## 📁 Package Structure
+
+The package is organized into several key components:
+
+- **dart_detection** - Contains executable scripts
+- **detector** - Core detection logic and models
+-
+
+## 🎯 How It Works
+
+The dart detection system uses a multi-stage pipeline:
+
+1. **Image Preprocessing** - Optimizes input images for better model performance
+2. **YOLO Detection** - Identifies dart locations using trained computer vision models
+3. **Calibration** - Maps detected coordinates to dartboard scoring regions
+4. **Scoring** - Calculates final scores based on dart positions
+
+![Dart board transfomration](doc/images/visualization_example.png)
+*Visualization of homogenous dartboard transformation with detected objects and scoring*
+
+## 🙏 Acknowledgments
+
+- Built with [Ultralytics YOLO](https://github.com/ultralytics/ultralytics) for object detection
+- Uses OpenCV for image processing and computer vision operations
+- Dart detection model and portions of the codebase adapted from [dart-sense](https://github.com/bnww/dart-sense) -
+  special thanks to the original contributor for their excellent work on dart detection algorithms.
