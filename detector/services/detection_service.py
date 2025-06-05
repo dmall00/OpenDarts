@@ -6,8 +6,8 @@ from typing import TYPE_CHECKING, List
 
 import numpy as np
 
-from src.infrastructure.yolo_model_darts_processor import YoloDartImageProcessor
-from src.models.detection_models import (
+from detector.infrastructure.yolo_model_darts_processor import YoloDartImageProcessor
+from detector.models.detection_models import (
     CalibrationPoints,
     DartPositions,
     DartResult,
@@ -16,10 +16,10 @@ from src.models.detection_models import (
     HomoGraphyMatrix,
     YoloDartParseResult,
 )
-from src.models.exception import Code, DartDetectionError
-from src.services.calibration_service import CalibrationService
-from src.services.coordinate_service import TransformationService
-from src.services.scoring_service import ScoringService
+from detector.models.exception import Code, DartDetectionError
+from detector.services.calibration_service import CalibrationService
+from detector.services.coordinate_service import TransformationService
+from detector.services.scoring_service import ScoringService
 
 if TYPE_CHECKING:
     from ultralytics.engine.results import Results

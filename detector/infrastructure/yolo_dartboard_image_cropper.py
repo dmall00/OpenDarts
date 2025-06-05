@@ -7,8 +7,8 @@ import numpy as np
 from ultralytics import YOLO
 from ultralytics.engine.results import Results
 
-from src.models.detection_models import ProcessingConfig
-from src.models.exception import Code, DartDetectionError
+from detector.models.detection_models import ProcessingConfig
+from detector.models.exception import Code, DartDetectionError
 
 logger = logging.getLogger(__name__)
 

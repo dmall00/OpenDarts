@@ -3,8 +3,8 @@
 import cv2
 from ultralytics import YOLO
 
-from src.models.detection_models import IMAGES_PATH, MODEL_PATH
-from src.utils.file_utils import resize_image
+from detector.models.detection_models import IMAGES_PATH, MODEL_PATH
+from detector.utils.file_utils import resize_image
 
 model = YOLO(str(MODEL_PATH / "dartboard_detection.pt"))
 image_path = str(IMAGES_PATH / "img_11.png")

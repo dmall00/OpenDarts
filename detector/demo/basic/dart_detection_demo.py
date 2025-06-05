@@ -4,10 +4,10 @@ import logging
 from pathlib import Path
 from typing import Union
 
-from src.models.detection_models import DetectionResult, ProcessingConfig
-from src.services.detection_service import DartDetectionService
-from src.services.image_preprocessor import ImagePreprocessor
-from src.utils.file_utils import load_image
+from detector.models.detection_models import DetectionResult, ProcessingConfig
+from detector.services.detection_service import DartDetectionService
+from detector.services.image_preprocessor import ImagePreprocessor
+from detector.utils.file_utils import load_image
 
 logger = logging.getLogger(__name__)
 

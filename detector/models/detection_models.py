@@ -7,8 +7,8 @@ from typing import Dict, Final, List, Optional, Tuple
 
 import numpy as np
 
-from src.models.exception import Code
-from src.models.geometry_models import DART_CLASS_ID
+from detector.models.exception import Code
+from detector.models.geometry_models import DART_CLASS_ID
 
 ROOT_PATH = Path(__file__).parent.parent.parent
 MODEL_PATH = ROOT_PATH / "models"
@@ -57,7 +57,7 @@ class ClassMapping:
     @classmethod
     def is_dart(cls, class_id: int) -> bool:
         """Check if the class ID corresponds to a dart."""
-        from src.models.geometry_models import DART_CLASS_ID
+        from detector.models.geometry_models import DART_CLASS_ID
 
         return cls.mapping.get(class_id) == "dart" or class_id == DART_CLASS_ID
 
@@ -109,7 +109,7 @@ class DartScore:
 class ProcessingConfig:
     """Configurations for dart detection and scoring."""
 
-    from src.models.geometry_models import (
+    from detector.models.geometry_models import (
         DEFAULT_CONFIDENCE_THRESHOLD,
         DEFAULT_STABILIZING_THRESHOLD,
         DEFAULT_TARGET_IMAGE_SIZE,

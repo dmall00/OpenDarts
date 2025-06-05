@@ -1,13 +1,14 @@
 """Service for calculating homography for dartboard calibration."""
 
 import logging
+from typing import Dict
 
 import cv2
 import numpy as np
 
-from src.geometry.board import DartBoard
-from src.models.detection_models import HomoGraphyMatrix, ProcessingConfig
-from src.models.exception import Code, DartDetectionError
+from detector.geometry.board import DartBoard
+from detector.models.detection_models import HomoGraphyMatrix, ProcessingConfig
+from detector.models.exception import Code, DartDetectionError
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +37,7 @@ class CalibrationService:
 
         return self.__create_homography_result(homography_matrix, valid_points_info["count"])
 
-    def _get_valid_points_info(self, calibration_coords: np.ndarray) -> dict:
+    def _get_valid_points_info(self, calibration_coords: np.ndarray) -> Dict[str, int | np.ndarray]:
         """Get information about valid calibration points."""
         valid_mask = self._get_valid_points_mask(calibration_coords)
         valid_count = np.count_nonzero(valid_mask)
@@ -48,7 +49,8 @@ class CalibrationService:
             "count": valid_count,
         }
 
-    def _ensure_minimum_points(self, valid_count: int) -> None:
+    @staticmethod
+    def _ensure_minimum_points(valid_count: int) -> None:
         """Ensure we have the minimum required valid points."""
         if valid_count < ProcessingConfig.min_calibration_points:
             msg = f"Only {valid_count} valid calibration points found, minimum 4 required"
@@ -87,9 +89,10 @@ class CalibrationService:
             calibration_point_count=valid_count,
         )
 
-    def _get_valid_points_mask(self, calibration_coords: np.ndarray) -> np.ndarray:
+    @staticmethod
+    def _get_valid_points_mask(calibration_coords: np.ndarray) -> np.ndarray:
         """Get mask for valid calibration points within image bounds."""
-        from src.models.geometry_models import NORMALIZED_COORDINATE_MAX, NORMALIZED_COORDINATE_MIN
+        from detector.models.geometry_models import NORMALIZED_COORDINATE_MAX, NORMALIZED_COORDINATE_MIN
 
         return np.all(
             np.logical_and(calibration_coords >= NORMALIZED_COORDINATE_MIN, calibration_coords <= NORMALIZED_COORDINATE_MAX),

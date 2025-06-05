@@ -4,7 +4,7 @@ import logging
 
 import numpy as np
 
-from src.models.detection_models import DartPosition, DartPositions, ProcessingConfig
+from detector.models.detection_models import DartPosition, DartPositions, ProcessingConfig
 
 logger = logging.getLogger(__name__)
 

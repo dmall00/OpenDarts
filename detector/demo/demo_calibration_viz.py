@@ -8,8 +8,8 @@ and homography matrix transformations are applied.
 import logging
 from pathlib import Path
 
-from src.demo.visualizer.calibration_visualizer import CalibrationVisualizer
-from src.models.detection_models import IMAGES_PATH
+from detector.demo.visualizer.calibration_visualizer import CalibrationVisualizer
+from detector.models.detection_models import IMAGES_PATH
 
 
 def main() -> None:

@@ -5,9 +5,9 @@ from typing import List
 
 import numpy as np
 
-from src.geometry.board import DartBoard
-from src.models.detection_models import DartPosition, DartScore
-from src.models.geometry_models import ANGLE_CALCULATION_EPSILON, BOARD_CENTER_COORDINATE
+from detector.geometry.board import DartBoard
+from detector.models.detection_models import DartPosition, DartScore
+from detector.models.geometry_models import ANGLE_CALCULATION_EPSILON, BOARD_CENTER_COORDINATE
 
 logger = logging.getLogger(__name__)
 

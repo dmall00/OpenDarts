@@ -7,7 +7,7 @@ import numpy as np
 from ultralytics import YOLO
 from ultralytics.engine.results import Results
 
-from src.models.detection_models import (
+from detector.models.detection_models import (
     CalibrationPoint,
     CalibrationPoints,
     ClassMapping,
@@ -17,7 +17,7 @@ from src.models.detection_models import (
     ProcessingConfig,
     YoloDartParseResult,
 )
-from src.models.exception import Code, DartDetectionError
+from detector.models.exception import Code, DartDetectionError
 
 logger = logging.getLogger(__name__)
 

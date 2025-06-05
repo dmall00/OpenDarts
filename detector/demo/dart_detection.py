@@ -4,11 +4,11 @@ import logging
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from src.demo.basic.dart_detection_demo import DartDetection
-from src.models.exception import Code
+from detector.demo.basic.dart_detection_demo import DartDetection
+from detector.models.exception import Code
 
 if TYPE_CHECKING:
-    from src.models.detection_models import DetectionResult
+    from detector.models.detection_models import DetectionResult
 
 
 def setup_logging() -> None:  # noqa: D103

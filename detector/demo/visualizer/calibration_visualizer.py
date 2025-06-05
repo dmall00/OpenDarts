@@ -8,9 +8,9 @@ import cv2
 import numpy as np
 from numpy import ndarray
 
-from src.geometry.board import DartBoard
-from src.models.detection_models import DartScore, DetectionResult, HomoGraphyMatrix
-from src.models.geometry_models import (
+from detector.geometry.board import DartBoard
+from detector.models.detection_models import DartScore, DetectionResult, HomoGraphyMatrix
+from detector.models.geometry_models import (
     ANGLE_CALCULATION_EPSILON,
     BOARD_CENTER_COORDINATE,
     VISUALIZATION_CIRCLE_RADIUS,
@@ -20,9 +20,9 @@ from src.models.geometry_models import (
     VISUALIZATION_TEXT_OFFSET,
     VISUALIZATION_TEXT_RADIUS_RATIO,
 )
-from src.services.detection_service import DartDetectionService
-from src.services.image_preprocessor import ImagePreprocessor
-from src.utils.file_utils import load_image, resize_image
+from detector.services.detection_service import DartDetectionService
+from detector.services.image_preprocessor import ImagePreprocessor
+from detector.utils.file_utils import load_image, resize_image
 
 logger = logging.getLogger(__name__)
 
