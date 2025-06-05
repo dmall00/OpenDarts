@@ -20,7 +20,6 @@ from src.models.exception import Code, DartDetectionError
 from src.services.calibration_service import CalibrationService
 from src.services.coordinate_service import TransformationService
 from src.services.scoring_service import ScoringService
-from src.services.scoring_stabilization_service import ScoringStabilizingService
 
 if TYPE_CHECKING:
     from ultralytics.engine.results import Results
@@ -35,7 +34,6 @@ class DartDetectionService:
         self.__yolo_image_processor = YoloDartImageProcessor()
         self.__calibration_service = CalibrationService()
         self.__coordinate_service = TransformationService()
-        self.__stabilization_service = ScoringStabilizingService()
         self.__scoring_service = ScoringService()
 
     def detect_and_score(self, image: np.ndarray) -> DetectionResult:
@@ -56,8 +54,6 @@ class DartDetectionService:
                 homography_matrix.matrix,
                 yolo_dart_result.dart_positions.to_ndarray(),
             )
-            # TODO is this still needed?
-            # stable_darts: DartPositions = self.__stabilization_service.get_stable_darts(dart_positions.positions)
             dart_scores: List[DartScore] = self.__scoring_service.calculate_scores(dart_positions.positions)
 
             processing_time = round(time.time() - start_time, 2)
