@@ -2,17 +2,29 @@
 
 from dataclasses import dataclass, field
 from datetime import datetime
+from enum import Enum
 from pathlib import Path
 from typing import Dict, Final, List, Optional, Tuple
 
 import numpy as np
 
-from detector.models.exception import Code
-from detector.models.geometry_models import DART_CLASS_ID
+from detector.model.geometry_models import DART_CLASS_ID
 
-ROOT_PATH = Path(__file__).parent.parent.parent
-MODEL_PATH = ROOT_PATH / "models"
-IMAGES_PATH = ROOT_PATH / "images"
+DETECTOR_PATH = Path(__file__).parent.parent
+MODEL_PATH = DETECTOR_PATH / "yolo"
+
+class Code(Enum):
+    """Enum containing error codes and their corresponding messages."""
+
+    SUCCESS = (0, "Successful dart detection")
+    YOLO_ERROR = (1, "Yolo model inference failed")
+    HOMOGRAPHY = (2, "Homography matrix calculation failed")
+    MISSING_CALIBRATION_POINTS = (3, "Not enough calibration points detected")
+    UNKNOWN = (4, "Unknown error")
+
+    def __init__(self, code: int, message: str) -> None:
+        self.code = code
+        self.message = message
 
 
 @dataclass
@@ -57,7 +69,7 @@ class ClassMapping:
     @classmethod
     def is_dart(cls, class_id: int) -> bool:
         """Check if the class ID corresponds to a dart."""
-        from detector.models.geometry_models import DART_CLASS_ID
+        from detector.model.geometry_models import DART_CLASS_ID
 
         return cls.mapping.get(class_id) == "dart" or class_id == DART_CLASS_ID
 
@@ -109,13 +121,11 @@ class DartScore:
 class ProcessingConfig:
     """Configurations for dart detection and scoring."""
 
-    from detector.models.geometry_models import (
-        DEFAULT_CONFIDENCE_THRESHOLD,
-        DEFAULT_STABILIZING_THRESHOLD,
-        DEFAULT_TARGET_IMAGE_SIZE,
-        MAX_ALLOWED_DARTS,
-        MIN_CALIBRATION_POINTS_REQUIRED,
-    )
+    DEFAULT_CONFIDENCE_THRESHOLD = 0.6  # Default confidence threshold for detections
+    DEFAULT_TARGET_IMAGE_SIZE = (800, 800)  # Default target image size for processing
+    MIN_CALIBRATION_POINTS_REQUIRED = 4  # Minimum calibration points required for homography
+    MAX_ALLOWED_DARTS = 3  # Maximum number of darts allowed in detection
+    DEFAULT_STABILIZING_THRESHOLD = 0.1  # Default threshold for dart position stabilization
 
     dart_scorer_model_path: str = str(MODEL_PATH / "dart_scorer.pt")
     dartboard_model_path: str = str(MODEL_PATH / "dartboard_detection.pt")
@@ -184,3 +194,23 @@ class DetectionResult:
     code: Code
     message: str
     creation_time: datetime = field(default_factory=datetime.now)
+
+
+class DartDetectionError(Exception):
+    """Exception raised when dart detection fails."""
+
+    def __init__(self, error_code: Code, cause: Optional[BaseException] = None, details: Optional[str] = None) -> None:
+        self.error_code = error_code
+        self.message = error_code.message
+        self.details = details
+        message = f"[Error {self.error_code.code}] {self.message}"
+        if details:
+            message += f": {details}"
+        if cause:
+            self.__cause__ = cause
+        super().__init__(message)
+
+    def __str__(self) -> str:
+        if self.details:
+            return f"[Error {self.error_code.code}] {self.message}: {self.details}"
+        return f"[Error {self.error_code.code}] {self.message}"

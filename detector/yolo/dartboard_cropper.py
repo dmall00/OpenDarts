@@ -7,8 +7,7 @@ import numpy as np
 from ultralytics import YOLO
 from ultralytics.engine.results import Results
 
-from detector.models.detection_models import ProcessingConfig
-from detector.models.exception import Code, DartDetectionError
+from detector.model.detection_models import Code, DartDetectionError, ProcessingConfig
 
 logger = logging.getLogger(__name__)
 
@@ -22,21 +21,21 @@ class YoloDartBoardImageCropper:
 
     def crop_image(self, image: np.ndarray) -> np.ndarray:
         """Crop the image to focus on the detected dartboard."""
-        detection_result = self._detect_dartboard(image)
-        bounding_box = self._extract_bounding_box(detection_result, image.shape)
-        cropped_image = self._crop_with_bounding_box(image, bounding_box)
+        detection_result = self.__detect_dartboard(image)
+        bounding_box = self.__extract_bounding_box(detection_result, image.shape)
+        cropped_image = self.__crop_with_bounding_box(image, bounding_box)
 
-        self._log_cropping_info(bounding_box, detection_result.boxes.conf[0], cropped_image.shape)
+        self.__log_cropping_info(bounding_box, detection_result.boxes.conf[0], cropped_image.shape)
 
         return cropped_image
 
-    def _detect_dartboard(self, image: np.ndarray) -> Results:
+    def __detect_dartboard(self, image: np.ndarray) -> Results:
         results = self._model(image, verbose=False)
         result = results[0]
-        self._validate_dartboard_detection_output(result)
+        self.__validate_dartboard_detection_output(result)
         return result
 
-    def _extract_bounding_box(self, result: Results, image_shape: Tuple[int, ...]) -> Tuple[int, int, int, int]:
+    def __extract_bounding_box(self, result: Results, image_shape: Tuple[int, ...]) -> Tuple[int, int, int, int]:
         xywh_normalized = result.boxes.xywhn[0]
         img_height, img_width = image_shape[:2]
 
@@ -44,7 +43,7 @@ class YoloDartBoardImageCropper:
 
         pixel_coords = self.__normalize_to_pixel_coordinates(x_center_norm, y_center_norm, width_norm, height_norm, img_width, img_height)
 
-        return self._calculate_bounding_box_corners(pixel_coords, img_width, img_height)
+        return self.__calculate_bounding_box_corners(pixel_coords, img_width, img_height)
 
     @staticmethod
     def __normalize_to_pixel_coordinates(  # noqa: PLR0913
@@ -63,7 +62,7 @@ class YoloDartBoardImageCropper:
         return x_center_px, y_center_px, width_px, height_px
 
     @staticmethod
-    def _calculate_bounding_box_corners(
+    def __calculate_bounding_box_corners(
         pixel_coords: Tuple[int, int, int, int],
         img_width: int,
         img_height: int,
@@ -79,12 +78,12 @@ class YoloDartBoardImageCropper:
         return x_start, y_start, x_end, y_end
 
     @staticmethod
-    def _crop_with_bounding_box(image: np.ndarray, bounding_box: Tuple[int, int, int, int]) -> np.ndarray:
+    def __crop_with_bounding_box(image: np.ndarray, bounding_box: Tuple[int, int, int, int]) -> np.ndarray:
         x_start, y_start, x_end, y_end = bounding_box
         return image[y_start:y_end, x_start:x_end]
 
     @staticmethod
-    def _log_cropping_info(bounding_box: Tuple[int, int, int, int], confidence: float, cropped_shape: Tuple[int, ...]) -> None:
+    def __log_cropping_info(bounding_box: Tuple[int, int, int, int], confidence: float, cropped_shape: Tuple[int, ...]) -> None:
         x_start, y_start, x_end, y_end = bounding_box
         logger.info(
             "Cropped dartboard from (%d,%d) with confidence %s to (%d,%d), size: %dx%d",
@@ -98,7 +97,7 @@ class YoloDartBoardImageCropper:
         )
 
     @staticmethod
-    def _validate_dartboard_detection_output(result: Results) -> None:
+    def __validate_dartboard_detection_output(result: Results) -> None:
         if not result:
             raise DartDetectionError(Code.YOLO_ERROR, details="No result from YOLO dartboard model")
         if not result.boxes:

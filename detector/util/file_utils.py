@@ -7,31 +7,9 @@ from typing import Union
 import cv2
 import numpy as np
 
-from detector.models.detection_models import ProcessingConfig
+from detector.model.detection_models import ProcessingConfig
 
 logger = logging.getLogger(__name__)
-
-
-def __validate_image_path(image_path: Union[str, Path]) -> None:
-    path = Path(image_path)
-
-    if not path.exists():
-        error_msg = f"Image file not found: {image_path}"
-        logger.error(error_msg)
-        raise FileNotFoundError(error_msg)
-
-    if not path.is_file():
-        error_msg = f"Image path is not a file: {image_path}"
-        logger.error(error_msg)
-        raise ValueError(error_msg)
-
-    valid_extensions = {".jpg", ".jpeg", ".png", ".bmp", ".tiff", ".tif", ".webp"}
-    if path.suffix.lower() not in valid_extensions:
-        error_msg = f"Unsupported image format: {path.suffix}. Supported: {valid_extensions}"
-        logger.error(error_msg)
-        raise ValueError(error_msg)
-
-    logger.debug("Image file validated: %s", image_path)
 
 
 def load_image(image_path: Union[str, Path]) -> np.ndarray:
@@ -50,3 +28,19 @@ def load_image(image_path: Union[str, Path]) -> np.ndarray:
 def resize_image(image: np.ndarray) -> np.ndarray:
     """Resize the image to the target size defined in ProcessingConfig."""
     return cv2.resize(image, ProcessingConfig.target_image_size, interpolation=cv2.INTER_AREA)
+
+
+def __validate_image_path(image_path: Union[str, Path]) -> None:
+    path = Path(image_path)
+
+    if not path.exists():
+        error_msg = f"Image file not found: {image_path}"
+        logger.error(error_msg)
+        raise FileNotFoundError(error_msg)
+
+    if not path.is_file():
+        error_msg = f"Image path is not a file: {image_path}"
+        logger.error(error_msg)
+        raise ValueError(error_msg)
+
+    logger.debug("Image file validated: %s", image_path)

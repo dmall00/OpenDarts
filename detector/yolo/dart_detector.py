@@ -7,17 +7,18 @@ import numpy as np
 from ultralytics import YOLO
 from ultralytics.engine.results import Results
 
-from detector.models.detection_models import (
+from detector.model.detection_models import (
     CalibrationPoint,
     CalibrationPoints,
     ClassMapping,
+    Code,
     DartDetection,
+    DartDetectionError,
     DartPosition,
     DartPositions,
     ProcessingConfig,
     YoloDartParseResult,
 )
-from detector.models.exception import Code, DartDetectionError
 
 logger = logging.getLogger(__name__)
 
@@ -56,7 +57,8 @@ class YoloDartImageProcessor:
         logger.info("Extracted %s calibration points and %s darts", len(calibration_points), len(dart_positions))
         return YoloDartParseResult(calibration_points=CalibrationPoints(calibration_points), dart_positions=DartPositions(dart_positions))
 
-    def __parse_yolo_results(self, yolo_result: Results) -> List[DartDetection]:
+    @staticmethod
+    def __parse_yolo_results(yolo_result: Results) -> List[DartDetection]:
         """Convert YOLO results into our internal Detection format."""
         detections = []
 
@@ -75,7 +77,8 @@ class YoloDartImageProcessor:
 
         return detections
 
-    def __create_dart_positions(self, dart_detections: List[DartDetection]) -> List[DartPosition]:
+    @staticmethod
+    def __create_dart_positions(dart_detections: List[DartDetection]) -> List[DartPosition]:
         """Create dart positions from dart detections (max 3 darts)."""
         dart_positions = []
 
@@ -131,7 +134,8 @@ class YoloDartImageProcessor:
 
         return calibration_points
 
-    def __create_invalid_calibration_point(self, calib_index: int, reason: str) -> CalibrationPoint:
+    @staticmethod
+    def __create_invalid_calibration_point(calib_index: int, reason: str) -> CalibrationPoint:
         """Create an invalid calibration point placeholder."""
         return CalibrationPoint(
             x=-1.0,
@@ -140,7 +144,8 @@ class YoloDartImageProcessor:
             point_type=f"{reason}_{calib_index}",
         )
 
-    def __group_calibration_detections(self, calibration_detections: List[DartDetection]) -> Dict[int, List[DartDetection]]:
+    @staticmethod
+    def __group_calibration_detections(calibration_detections: List[DartDetection]) -> Dict[int, List[DartDetection]]:
         """Group calibration detections by their calibration index."""
         detections_by_index: Dict[int, List[DartDetection]] = {}
 

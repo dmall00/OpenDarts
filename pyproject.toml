@@ -23,6 +23,7 @@ select = [
     "ALL"
 ]
 ignore = [
+    "PGH003",
     "T201",
     "D105",
     "D107",

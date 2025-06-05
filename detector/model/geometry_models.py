@@ -50,13 +50,6 @@ MISS_SCORE = 0
 # YOLO model constants
 DART_CLASS_ID = 4  # Class ID for dart detection in YOLO model
 
-# Processing configuration constants
-DEFAULT_CONFIDENCE_THRESHOLD = 0.6  # Default confidence threshold for detections
-DEFAULT_TARGET_IMAGE_SIZE = (800, 800)  # Default target image size for processing
-MIN_CALIBRATION_POINTS_REQUIRED = 4  # Minimum calibration points required for homography
-MAX_ALLOWED_DARTS = 3  # Maximum number of darts allowed in detection
-DEFAULT_STABILIZING_THRESHOLD = 0.1  # Default threshold for dart position stabilization
-
 # Coordinate bounds
 NORMALIZED_COORDINATE_MIN = 0.0  # Minimum normalized coordinate value
 NORMALIZED_COORDINATE_MAX = 1.0  # Maximum normalized coordinate value

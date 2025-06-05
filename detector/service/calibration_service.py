@@ -7,8 +7,7 @@ import cv2
 import numpy as np
 
 from detector.geometry.board import DartBoard
-from detector.models.detection_models import HomoGraphyMatrix, ProcessingConfig
-from detector.models.exception import Code, DartDetectionError
+from detector.model.detection_models import Code, DartDetectionError, HomoGraphyMatrix, ProcessingConfig
 
 logger = logging.getLogger(__name__)
 
@@ -22,24 +21,26 @@ class CalibrationService:
         self._user_calibration = -np.ones((6, 2))  # User manual calibration override
 
     def calculate_homography(
-        self, calibration_coords: np.ndarray, image_shape: float = ProcessingConfig.target_image_size[0],
+        self,
+        calibration_coords: np.ndarray,
+        image_shape: float = ProcessingConfig.target_image_size[0],
     ) -> HomoGraphyMatrix:
         """Calculate homography transformation matrix from calibration points."""
         logger.debug("Calculating homography transformation matrix")
-        valid_points_info = self._get_valid_points_info(calibration_coords)
-        self._ensure_minimum_points(valid_points_info["count"])
+        valid_points_info = self.__get_valid_points_info(calibration_coords)
+        self.__ensure_minimum_points(valid_points_info["count"])  # type: ignore
 
-        homography_matrix = self._compute_homography_matrix(
+        homography_matrix = self.__compute_homography_matrix(
             calibration_coords,
-            valid_points_info["mask"],
+            valid_points_info["mask"],  # type: ignore
             image_shape,
         )
 
-        return self.__create_homography_result(homography_matrix, valid_points_info["count"])
+        return self.__create_homography_result(homography_matrix, valid_points_info["count"])  # type: ignore
 
-    def _get_valid_points_info(self, calibration_coords: np.ndarray) -> Dict[str, int | np.ndarray]:
+    def __get_valid_points_info(self, calibration_coords: np.ndarray) -> Dict[str, int | np.ndarray]:
         """Get information about valid calibration points."""
-        valid_mask = self._get_valid_points_mask(calibration_coords)
+        valid_mask = self.__get_valid_points_mask(calibration_coords)
         valid_count = np.count_nonzero(valid_mask)
 
         logger.debug("Found %s valid calibration points", valid_count)
@@ -50,13 +51,13 @@ class CalibrationService:
         }
 
     @staticmethod
-    def _ensure_minimum_points(valid_count: int) -> None:
+    def __ensure_minimum_points(valid_count: int) -> None:
         """Ensure we have the minimum required valid points."""
         if valid_count < ProcessingConfig.min_calibration_points:
-            msg = f"Only {valid_count} valid calibration points found, minimum 4 required"
+            msg = f"Only {valid_count} valid calibration points found, minimum {ProcessingConfig.min_calibration_points} required"
             raise DartDetectionError(Code.MISSING_CALIBRATION_POINTS, details=msg)
 
-    def _compute_homography_matrix(self, calibration_coords: np.ndarray, valid_mask: np.ndarray, image_shape: float) -> np.ndarray:
+    def __compute_homography_matrix(self, calibration_coords: np.ndarray, valid_mask: np.ndarray, image_shape: float) -> np.ndarray:
         """Compute the homography matrix using OpenCV."""
         try:
             homography_matrix, _ = cv2.findHomography(
@@ -90,9 +91,9 @@ class CalibrationService:
         )
 
     @staticmethod
-    def _get_valid_points_mask(calibration_coords: np.ndarray) -> np.ndarray:
+    def __get_valid_points_mask(calibration_coords: np.ndarray) -> np.ndarray:
         """Get mask for valid calibration points within image bounds."""
-        from detector.models.geometry_models import NORMALIZED_COORDINATE_MAX, NORMALIZED_COORDINATE_MIN
+        from detector.model.geometry_models import NORMALIZED_COORDINATE_MAX, NORMALIZED_COORDINATE_MIN
 
         return np.all(
             np.logical_and(calibration_coords >= NORMALIZED_COORDINATE_MIN, calibration_coords <= NORMALIZED_COORDINATE_MAX),

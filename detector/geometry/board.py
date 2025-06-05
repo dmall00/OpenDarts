@@ -4,7 +4,7 @@ from typing import Dict, Tuple
 
 import numpy as np
 
-from detector.models.geometry_models import (
+from detector.model.geometry_models import (
     BOARD_CENTER_COORDINATE,
     BOARD_DIAMETER,
     BULLSEYE_WIRE_WIDTH,
@@ -34,71 +34,6 @@ class DartBoard:
         self.__setup_scoring_regions()
         self.__setup_segments()
         self.__setup_calibration_points()
-
-    def __setup_scoring_regions(self) -> None:
-        """Initialize scoring regions and their radii."""
-        self._scoring_names = np.array(SCORING_REGION_NAMES)
-        self.scoring_radii = np.array(
-            [
-                0,
-                DOUBLE_BULL_RADIUS,
-                SINGLE_BULL_RADIUS,
-                TRIPLE_RING_INNER_RADIUS,
-                TRIPLE_RING_OUTER_RADIUS,
-                DOUBLE_RING_INNER_RADIUS,
-                DOUBLE_RING_OUTER_RADIUS,
-            ],
-        )
-
-        # Adjust for wire width
-        self.scoring_radii[1:3] += BULLSEYE_WIRE_WIDTH / 2
-        self.scoring_radii /= BOARD_DIAMETER
-
-    def __setup_segments(self) -> None:
-        """Initialize dartboard segments and their number mappings."""
-        self.segment_angles = np.array(DARTBOARD_SEGMENT_ANGLES)
-        self._segment_numbers = np.array(DARTBOARD_SEGMENT_NUMBERS)
-
-    def __setup_calibration_points(self) -> None:
-        """Initialize reference calibration coordinates for homography calculation."""
-        self._calibration_reference_coords = self.__calculate_calibration_reference_coordinates()
-
-    def __calculate_calibration_reference_coordinates(self) -> np.ndarray:
-        """Calculate the reference calibration coordinates on the dartboard."""
-        calibration_coords = -np.ones((6, 2))
-        outer_radius = OUTER_RADIUS_RATIO
-
-        calibration_angles = self.__get_calibration_angles()
-
-        coord_index = 0
-        for angle_deg in calibration_angles.values():
-            coords_pair = self.__calculate_coordinate_pair(angle_deg, outer_radius)
-            calibration_coords[coord_index : coord_index + 2] = coords_pair
-            coord_index += 2
-
-        return calibration_coords
-
-    @staticmethod
-    def __get_calibration_angles() -> Dict[str, int]:
-        """Get the calibration angles for specific dartboard segments."""
-        return {
-            "20_3": SEGMENT_20_3_ANGLE_THRESHOLD,
-            "11_6": SEGMENT_11_6_ANGLE,
-            "9_15": SEGMENT_9_15_ANGLE,
-        }
-
-    @staticmethod
-    def __calculate_coordinate_pair(angle_deg: float, outer_radius: float) -> np.ndarray:
-        angle_rad = np.deg2rad(angle_deg)
-        x_offset = outer_radius * np.cos(angle_rad)
-        y_offset = outer_radius * np.sin(angle_rad)
-
-        return np.array(
-            [
-                [BOARD_CENTER_COORDINATE - x_offset, BOARD_CENTER_COORDINATE - y_offset],
-                [BOARD_CENTER_COORDINATE + x_offset, BOARD_CENTER_COORDINATE + y_offset],
-            ],
-        )
 
     def get_calibration_reference_coordinates(self) -> np.ndarray:
         """Get the reference calibration coordinates for homography calculation."""
@@ -133,6 +68,71 @@ class DartBoard:
             "miss": ("miss", MISS_SCORE),
         }
         return scoring_rules[scoring_region]
+
+    def __setup_scoring_regions(self) -> None:
+        """Initialize scoring regions and their radii."""
+        self._scoring_names = np.array(SCORING_REGION_NAMES)
+        self.scoring_radii = np.array(
+            [
+                0,
+                DOUBLE_BULL_RADIUS,
+                SINGLE_BULL_RADIUS,
+                TRIPLE_RING_INNER_RADIUS,
+                TRIPLE_RING_OUTER_RADIUS,
+                DOUBLE_RING_INNER_RADIUS,
+                DOUBLE_RING_OUTER_RADIUS,
+            ],
+        )
+
+        # Adjust for wire width
+        self.scoring_radii[1:3] += BULLSEYE_WIRE_WIDTH / 2
+        self.scoring_radii /= BOARD_DIAMETER
+
+    def __setup_segments(self) -> None:
+        """Initialize dartboard segments and their number mappings."""
+        self.segment_angles = np.array(DARTBOARD_SEGMENT_ANGLES)
+        self._segment_numbers = np.array(DARTBOARD_SEGMENT_NUMBERS)
+
+    def __calculate_calibration_reference_coordinates(self) -> np.ndarray:
+        """Calculate the reference calibration coordinates on the dartboard."""
+        calibration_coords = -np.ones((6, 2))
+        outer_radius = OUTER_RADIUS_RATIO
+
+        calibration_angles = self.__get_calibration_angles()
+
+        coord_index = 0
+        for angle_deg in calibration_angles.values():
+            coords_pair = self.__calculate_coordinate_pair(angle_deg, outer_radius)
+            calibration_coords[coord_index : coord_index + 2] = coords_pair
+            coord_index += 2
+
+        return calibration_coords
+
+    def __setup_calibration_points(self) -> None:
+        """Initialize reference calibration coordinates for homography calculation."""
+        self._calibration_reference_coords = self.__calculate_calibration_reference_coordinates()
+
+    @staticmethod
+    def __get_calibration_angles() -> Dict[str, int]:
+        """Get the calibration angles for specific dartboard segments."""
+        return {
+            "20_3": SEGMENT_20_3_ANGLE_THRESHOLD,
+            "11_6": SEGMENT_11_6_ANGLE,
+            "9_15": SEGMENT_9_15_ANGLE,
+        }
+
+    @staticmethod
+    def __calculate_coordinate_pair(angle_deg: float, outer_radius: float) -> np.ndarray:
+        angle_rad = np.deg2rad(angle_deg)
+        x_offset = outer_radius * np.cos(angle_rad)
+        y_offset = outer_radius * np.sin(angle_rad)
+
+        return np.array(
+            [
+                [BOARD_CENTER_COORDINATE - x_offset, BOARD_CENTER_COORDINATE - y_offset],
+                [BOARD_CENTER_COORDINATE + x_offset, BOARD_CENTER_COORDINATE + y_offset],
+            ],
+        )
 
     def __find_segment_index(self, angle: float) -> int:
         """Find the segment index for a given angle."""

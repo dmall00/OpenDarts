@@ -4,7 +4,7 @@ import logging
 
 import numpy as np
 
-from detector.models.detection_models import DartPosition, DartPositions, ProcessingConfig
+from detector.model.detection_models import DartPosition, DartPositions, ProcessingConfig
 
 logger = logging.getLogger(__name__)
 
@@ -12,8 +12,8 @@ logger = logging.getLogger(__name__)
 class TransformationService:
     """Service for coordinate transformations and adjustments."""
 
+    @staticmethod
     def transform_to_board_dimensions(
-        self,
         homography_matrix: np.ndarray,
         dart_coords: np.ndarray,
         image_shape: float = ProcessingConfig.target_image_size[0],

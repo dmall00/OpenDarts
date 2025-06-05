@@ -6,9 +6,10 @@ from typing import TYPE_CHECKING, List
 
 import numpy as np
 
-from detector.infrastructure.yolo_model_darts_processor import YoloDartImageProcessor
-from detector.models.detection_models import (
+from detector.model.detection_models import (
     CalibrationPoints,
+    Code,
+    DartDetectionError,
     DartPositions,
     DartResult,
     DartScore,
@@ -16,10 +17,10 @@ from detector.models.detection_models import (
     HomoGraphyMatrix,
     YoloDartParseResult,
 )
-from detector.models.exception import Code, DartDetectionError
-from detector.services.calibration_service import CalibrationService
-from detector.services.coordinate_service import TransformationService
-from detector.services.scoring_service import ScoringService
+from detector.service.calibration_service import CalibrationService
+from detector.service.coordinate_service import TransformationService
+from detector.service.scoring_service import ScoringService
+from detector.yolo.dart_detector import YoloDartImageProcessor
 
 if TYPE_CHECKING:
     from ultralytics.engine.results import Results
@@ -74,7 +75,10 @@ class DartDetectionService:
 
     @staticmethod
     def __create_success_result(
-        dart_result: DartResult, calibration_points: CalibrationPoints, homography_matrix: HomoGraphyMatrix, processing_time: float,
+        dart_result: DartResult,
+        calibration_points: CalibrationPoints,
+        homography_matrix: HomoGraphyMatrix,
+        processing_time: float,
     ) -> DetectionResult:
         return DetectionResult(
             dart_result=dart_result,

@@ -2,9 +2,9 @@
 
 import numpy as np
 
-from detector.infrastructure.yolo_dartboard_image_cropper import YoloDartBoardImageCropper
-from detector.models.exception import Code, DartDetectionError
-from detector.utils.file_utils import resize_image
+from detector.model.detection_models import Code, DartDetectionError
+from detector.util.file_utils import resize_image
+from detector.yolo.dartboard_cropper import YoloDartBoardImageCropper
 
 
 class ImagePreprocessor:

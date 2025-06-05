@@ -1,4 +1,9 @@
-"""Visualization for calibration transformation results."""
+"""
+Demo script to visualize calibration and homography transformations.
+
+This script shows how the dart board image looks after calibration points are detected
+and homography matrix transformations are applied.
+"""
 
 import logging
 from pathlib import Path
@@ -9,8 +14,8 @@ import numpy as np
 from numpy import ndarray
 
 from detector.geometry.board import DartBoard
-from detector.models.detection_models import DartScore, DetectionResult, HomoGraphyMatrix
-from detector.models.geometry_models import (
+from detector.model.detection_models import DartScore, DetectionResult, HomoGraphyMatrix
+from detector.model.geometry_models import (
     ANGLE_CALCULATION_EPSILON,
     BOARD_CENTER_COORDINATE,
     VISUALIZATION_CIRCLE_RADIUS,
@@ -20,9 +25,9 @@ from detector.models.geometry_models import (
     VISUALIZATION_TEXT_OFFSET,
     VISUALIZATION_TEXT_RADIUS_RATIO,
 )
-from detector.services.detection_service import DartDetectionService
-from detector.services.image_preprocessor import ImagePreprocessor
-from detector.utils.file_utils import load_image, resize_image
+from detector.service.detection_service import DartDetectionService
+from detector.service.image_preprocessor import ImagePreprocessor
+from detector.util.file_utils import load_image
 
 logger = logging.getLogger(__name__)
 
@@ -36,37 +41,7 @@ class CalibrationVisualizer:
         self.detection_service: DartDetectionService = DartDetectionService()
         self.preprocessor = ImagePreprocessor()
 
-    def __show_transformation_result(
-        self,
-        original_image: np.ndarray,
-        calibration_coords: np.ndarray,
-        homography_matrix: HomoGraphyMatrix,
-        dart_coords: np.ndarray,
-        dart_scores: List[DartScore],
-    ) -> None:
-        if not self.__is_valid_homography_matrix(homography_matrix):
-            logger.warning("Invalid homography matrix - cannot show transformation")
-            return
-
-        h_matrix = self.__prepare_homography_matrix(homography_matrix.matrix)
-        original_viz = self.__create_original_visualization(original_image, calibration_coords, dart_coords)
-        transformed_image = self.__apply_transformation(original_image, h_matrix)
-
-        if transformed_image is None:
-            return
-
-        transformed_viz = self.__create_transformed_visualization(
-            transformed_image,
-            dart_coords,
-            dart_scores,
-            h_matrix,
-            original_image.shape,
-        )
-
-        comparison = self.__create_side_by_side_view(original_viz, transformed_viz)
-        self.__display_result(comparison)
-
-    def show_simple_transformation(self, image_path: Path) -> None:
+    def visualize(self, image_path: Path) -> None:
         """Visualize the transformation result for a given image path."""
         try:
             image = self.__load_and_prepare_image(image_path)
@@ -97,6 +72,36 @@ class CalibrationVisualizer:
         except Exception as e:
             logger.exception("Error in visualization")
             print(f"Visualization error: {e!s}")
+
+    def __show_transformation_result(
+        self,
+        original_image: np.ndarray,
+        calibration_coords: np.ndarray,
+        homography_matrix: HomoGraphyMatrix,
+        dart_coords: np.ndarray,
+        dart_scores: List[DartScore],
+    ) -> None:
+        if not self.__is_valid_homography_matrix(homography_matrix):
+            logger.warning("Invalid homography matrix - cannot show transformation")
+            return
+
+        h_matrix = self.__prepare_homography_matrix(homography_matrix.matrix)
+        original_viz = self.__create_original_visualization(original_image, calibration_coords, dart_coords)
+        transformed_image = self.__apply_transformation(original_image, h_matrix)
+
+        if transformed_image is None:
+            return
+
+        transformed_viz = self.__create_transformed_visualization(
+            transformed_image,
+            dart_coords,
+            dart_scores,
+            h_matrix,
+            original_image.shape,
+        )
+
+        comparison = self.__create_side_by_side_view(original_viz, transformed_viz)
+        self.__display_result(comparison)
 
     def __is_valid_homography_matrix(self, homography_matrix: HomoGraphyMatrix) -> bool:
         return (
@@ -318,7 +323,7 @@ class CalibrationVisualizer:
         comparison = np.zeros((target_height, total_width, 3), dtype=np.uint8)
 
         comparison[:, : original_resized.shape[1]] = original_resized
-        comparison[:, original_resized.shape[1] + 20 :] = transformed_resized
+        comparison[:, original_resized.shape[1] + 20:] = transformed_resized
 
         self.__add_labels(comparison, original_resized.shape[1])
         return comparison
@@ -333,7 +338,8 @@ class CalibrationVisualizer:
     @staticmethod
     def __add_labels(comparison: np.ndarray, split_point: int) -> None:
         cv2.putText(comparison, "Original", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2)
-        cv2.putText(comparison, "Transformed", (split_point + 30, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2)
+        cv2.putText(comparison, "Transformed", (split_point + 30, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255),
+                    2)
 
     def __display_result(self, comparison: np.ndarray) -> None:
         cv2.imshow(self.window_name, comparison)

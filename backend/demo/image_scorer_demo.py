@@ -1,15 +1,13 @@
-"""Basic dart detection demo."""
+"""Demo running dart detection with an image scorer."""
 
 import logging
 from pathlib import Path
-from typing import TYPE_CHECKING
 
-from detector.demo.basic.dart_detection_demo import DartDetection
-from detector.models.exception import Code
+from backend import IMAGE_PATH
+from detector.entrypoint.dart_image_scorer import DartImageScorer
+from detector.model.detection_models import Code, DetectionResult
 
-if TYPE_CHECKING:
-    from detector.models.detection_models import DetectionResult
-
+logger = logging.getLogger(__name__)
 
 def setup_logging() -> None:  # noqa: D103
     logging.basicConfig(
@@ -17,12 +15,11 @@ def setup_logging() -> None:  # noqa: D103
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     )
 
-
-def main(image_path: Path = Path("../../images/img_3.png")) -> None:
+def main(image_path: Path = IMAGE_PATH / "img_3.png") -> None:
     """Run the Dart Detection demo with a single image."""
     setup_logging()
-    detector = DartDetection()
-    result: DetectionResult | None = detector.detect_darts(image_path)
+    detector = DartImageScorer()
+    result: DetectionResult = detector.detect_darts(image_path)
 
     if result and result.code is Code.SUCCESS:
         print(f"\n🎯 Dart Detection Results (Processing time: {result.processing_time:.2f}s)")
@@ -39,9 +36,8 @@ def main(image_path: Path = Path("../../images/img_3.png")) -> None:
 
         if result.calibration_points is not None:
             print(f"Calibration points: {len(result.calibration_points.points)}")
-        print(f"Homography matrix: {'Available' if result.homography_matrix is not None else 'Not available'}")
     else:
-        print(f"\n❌ Dart detection failed: {result.message if result else 'No result returned'}")
+        print(f"\n❌ Dart detection failed: {result}")
 
 
 if __name__ == "__main__":
