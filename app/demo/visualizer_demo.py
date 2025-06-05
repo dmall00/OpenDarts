@@ -80,13 +80,9 @@ if __name__ == "__main__":
     parser.add_argument(
         "--image_path",
         type=str,
-        help="Path to a specific image file for calibration visualization. If not provided, runs in interactive mode."
+        help="Path to a specific image file for calibration visualization. If not provided, runs in interactive mode.",
     )
-    parser.add_argument(
-        "--list",
-        action="store_true",
-        help="List all available PNG images in the images folder and exit."
-    )
+    parser.add_argument("--list", action="store_true", help="List all available PNG images in the images folder and exit.")
     args = parser.parse_args()
     if args.list:
         list_available_images()
