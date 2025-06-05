@@ -4,7 +4,7 @@ import argparse
 import logging
 from pathlib import Path
 
-from backend import IMAGE_PATH
+from app import IMAGE_PATH
 from detector.entrypoint.calibration_visualizer import CalibrationVisualizer
 
 

@@ -3,7 +3,7 @@
 import cv2
 from ultralytics import YOLO
 
-from backend import IMAGE_PATH
+from app import IMAGE_PATH
 from detector.model import MODEL_PATH
 from detector.util.file_utils import resize_image
 

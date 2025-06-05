@@ -32,8 +32,8 @@ dependencies = [
 ]
 
 [project.scripts]
-dart-scorer = "detector.entrypoint.dart_image_scorer:main"
-calibration-visualizer = "detector.entrypoint.calibration_visualizer:main"
+dart-scorer = "app.demo.dart_image_scorer:main"
+calibration-visualizer = "app.demo.calibration_visualizer:main"
 
 [project.urls]
 Homepage = "https://github.com/dmall00/dart-detection"

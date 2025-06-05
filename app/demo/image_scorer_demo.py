@@ -5,7 +5,7 @@ import logging
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from backend import IMAGE_PATH
+from app import IMAGE_PATH
 from detector.entrypoint.dart_image_scorer import DartImageScorer
 
 if TYPE_CHECKING:
