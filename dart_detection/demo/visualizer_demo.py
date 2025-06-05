@@ -2,10 +2,18 @@
 
 import argparse
 import logging
+import re
 from pathlib import Path
 
-from app import IMAGE_PATH
+from dart_detection import IMAGE_PATH
 from detector.entrypoint.calibration_visualizer import CalibrationVisualizer
+
+
+def __natural_sort_key(path: Path) -> str | int:
+    match = re.search(r"img_(\d+)\.png", path.name)
+    if match:
+        return int(match.group(1))
+    return path.name
 
 
 def list_available_images() -> None:
@@ -14,7 +22,7 @@ def list_available_images() -> None:
     png_files = list(IMAGE_PATH.glob("*.png"))
 
     if png_files:
-        for image_file in sorted(png_files):
+        for image_file in sorted(png_files, key=__natural_sort_key):
             print(f"  - {image_file.name}")
         print(f"\nTotal: {len(png_files)} image(s) found")
     else:
@@ -22,8 +30,23 @@ def list_available_images() -> None:
     print(f"Image folder path: {IMAGE_PATH}")
 
 
-def main(image_path: Path = None) -> None:  # noqa: RUF013
+def main() -> None:
     """Run the calibration visualization demo."""
+    parser = argparse.ArgumentParser(description="Run Dart Board Calibration Visualization demo.")
+    parser.add_argument(
+        "--image_path",
+        type=str,
+        help="Path to a specific image file for calibration visualization. If not provided, runs in interactive mode.",
+    )
+    parser.add_argument("--list", action="store_true", help="List all available PNG images in the images folder and exit.")
+    args = parser.parse_args()
+
+    if args.list:
+        list_available_images()
+        return
+
+    image_path = Path(args.image_path) if args.image_path else None
+
     default_image = "img_3.png"
     logging.basicConfig(
         level=logging.INFO,
@@ -76,16 +99,4 @@ def main(image_path: Path = None) -> None:  # noqa: RUF013
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Run Dart Board Calibration Visualization demo.")
-    parser.add_argument(
-        "--image_path",
-        type=str,
-        help="Path to a specific image file for calibration visualization. If not provided, runs in interactive mode.",
-    )
-    parser.add_argument("--list", action="store_true", help="List all available PNG images in the images folder and exit.")
-    args = parser.parse_args()
-    if args.list:
-        list_available_images()
-    else:
-        image_path = Path(args.image_path) if args.image_path else None
-        main(image_path)  # type: ignore
+    main()

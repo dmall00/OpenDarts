@@ -11,7 +11,7 @@ version = "0.1.0"
 description = "A Python package for dart detection and scoring using computer vision"
 readme = "README.md"
 license = { file = "LICENSE" }
-requires-python = ">=3.12"
+requires-python = ">=3.10"
 authors = [
     { name = "David Mall", email = "mall.david@web.de" },
 ]
@@ -32,8 +32,8 @@ dependencies = [
 ]
 
 [project.scripts]
-dart-scorer = "app.demo.dart_image_scorer:main"
-calibration-visualizer = "app.demo.calibration_visualizer:main"
+dart-scorer = "dart_detection.demo.image_scorer_demo:main"
+calibration-visualizer = "dart_detection.demo.visualizer_demo:main"
 
 [project.urls]
 Homepage = "https://github.com/dmall00/dart-detection"

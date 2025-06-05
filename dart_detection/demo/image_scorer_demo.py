@@ -5,7 +5,7 @@ import logging
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from app import IMAGE_PATH
+from dart_detection import IMAGE_PATH
 from detector.entrypoint.dart_image_scorer import DartImageScorer
 
 if TYPE_CHECKING:
@@ -21,8 +21,14 @@ def setup_logging() -> None:  # noqa: D103
     )
 
 
-def main(image_path: Path = IMAGE_PATH / "img_3.png") -> None:
+def main() -> None:
     """Run the Dart Detection demo with a single image."""
+    parser = argparse.ArgumentParser(description="Run Dart Detection with an image scorer.")
+    parser.add_argument("--image_path", type=str, default=str(IMAGE_PATH / "img_3.png"), help="Path to the image file for dart detection")
+
+    args = parser.parse_args()
+    image_path = Path(args.image_path)
+
     setup_logging()
     detector = DartImageScorer()
     result: DetectionResult = detector.detect_darts(image_path)
@@ -67,10 +73,4 @@ def main(image_path: Path = IMAGE_PATH / "img_3.png") -> None:
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Run Dart Detection with an image scorer.")
-    parser.add_argument("--image_path", type=str, default=str(IMAGE_PATH / "img_3.png"), help="Path to the image file for dart detection")
-
-    args = parser.parse_args()
-    image_path = Path(args.image_path)
-
-    main(image_path)
+    main()
