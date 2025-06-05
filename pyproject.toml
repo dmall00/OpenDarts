@@ -6,6 +6,7 @@ requires-python = ">=3.12"
 dependencies = [
     "numpy>=2.2.6",
     "opencv-python>=4.11.0.86",
+    "pydantic>=2.11.5",
     "ultralytics>=8.3.147",
 ]
 
@@ -15,13 +16,12 @@ dev = [
     "ruff>=0.11.12",
 ]
 
-
 [tool.ruff]
 line-length = 140
 target-version = "py312"
-select = [
-    "ALL"
-]
+
+[tool.ruff.lint]
+select = ["ALL"]
 ignore = [
     "PGH003",
     "T201",
@@ -39,10 +39,10 @@ ignore = [
 ]
 unfixable = ["F401", "F841"]
 
-[tool.ruff.per-file-ignores]
+[tool.ruff.lint.per-file-ignores]
 "test_*.py" = ["ANN001", "ANN002", "ANN003", "D103"]
 
-[tool.ruff.pyupgrade]
+[tool.ruff.lint.pyupgrade]
 keep-runtime-typing = true
 
 [[tool.mypy.overrides]]

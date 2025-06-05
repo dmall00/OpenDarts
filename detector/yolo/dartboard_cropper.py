@@ -7,7 +7,9 @@ import numpy as np
 from ultralytics import YOLO
 from ultralytics.engine.results import Results
 
-from detector.model.detection_models import Code, DartDetectionError, ProcessingConfig
+from detector.model.configuration import ProcessingConfig
+from detector.model.detection_result_code import DetectionResultCode
+from detector.model.exception import DartDetectionError
 
 logger = logging.getLogger(__name__)
 
@@ -99,6 +101,6 @@ class YoloDartBoardImageCropper:
     @staticmethod
     def __validate_dartboard_detection_output(result: Results) -> None:
         if not result:
-            raise DartDetectionError(Code.YOLO_ERROR, details="No result from YOLO dartboard model")
+            raise DartDetectionError(DetectionResultCode.YOLO_ERROR, details="No result from YOLO dartboard model")
         if not result.boxes:
-            raise DartDetectionError(Code.YOLO_ERROR, details="No boxes detected by YOLO dartboard model")
+            raise DartDetectionError(DetectionResultCode.YOLO_ERROR, details="No boxes detected by YOLO dartboard model")

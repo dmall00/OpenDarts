@@ -1,13 +1,19 @@
 """Service for scoring darts based on their positions."""
 
 import logging
-from typing import List
+from typing import List, Tuple
 
 import numpy as np
 
 from detector.geometry.board import DartBoard
-from detector.model.detection_models import DartPosition, DartScore
-from detector.model.geometry_models import ANGLE_CALCULATION_EPSILON, BOARD_CENTER_COORDINATE
+from detector.model.detection_models import Dart2dPosition, DartDetection, DartScore
+from detector.model.geometry_models import (
+    ANGLE_CALCULATION_EPSILON,
+    BOARD_CENTER_COORDINATE,
+    DOUBLE_BULL_SCORE,
+    MISS_SCORE,
+    SINGLE_BULL_SCORE,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -18,28 +24,23 @@ class ScoringService:
     def __init__(self) -> None:
         self._board = DartBoard()
 
-    def calculate_scores(self, dart_positions: List[DartPosition]) -> List[DartScore]:
+    def calculate_scores(self, dart_detections: List[DartDetection]) -> None:
         """Calculate scores for all darts."""
-        if not dart_positions:
-            logger.debug("No dart positions to score")
-            return []
+        logger.debug("Calculating scores for %s darts", len(dart_detections))
 
-        logger.debug("Calculating scores for %s darts", len(dart_positions))
-
-        dart_scores = []
         total_score = 0
 
-        for i, position in enumerate(dart_positions):
-            score = self.__calculate_single_dart_score(position)
-            dart_scores.append(score)
+        for i, detection in enumerate(dart_detections):
+            position = detection.dart_position
+            score = self.__calculate_single_dart_score(position)  # type: ignore
+            detection.dart_score = score
             total_score += score.score_value
 
             logger.info("Dart %s: Position %s -> %s (%s points)", i, position, score.score_string, score.score_value)
 
         logger.info("Final scoring: Total %s points", total_score)
-        return dart_scores
 
-    def __calculate_single_dart_score(self, position: DartPosition) -> DartScore:
+    def __calculate_single_dart_score(self, position: Dart2dPosition) -> DartScore:
         """Calculate score for a single dart."""
         position_array = self.__adjust_center_position(position.to_array())
         angle = self.__calculate_angle(position_array)
@@ -47,9 +48,22 @@ class ScoringService:
         segment_number = self._board.get_segment_number(angle, position_array)
         scoring_region = self._board.get_scoring_region(position_array)
 
-        score_string, score_value = self._board.calculate_score(segment_number, scoring_region)
+        score_string, score_value = self.__calculate_score(segment_number, scoring_region)
 
         return DartScore(score_string=score_string, score_value=score_value)
+
+    @staticmethod
+    def __calculate_score(segment_number: int, scoring_region: str) -> Tuple[str, int]:
+        """Calculate the final score for a dart."""
+        scoring_rules = {
+            "DB": ("DB", DOUBLE_BULL_SCORE),
+            "SB": ("SB", SINGLE_BULL_SCORE),
+            "S": (f"S{segment_number}", segment_number),
+            "T": (f"T{segment_number}", segment_number * 3),
+            "D": (f"D{segment_number}", segment_number * 2),
+            "miss": ("miss", MISS_SCORE),
+        }
+        return scoring_rules[scoring_region]
 
     @staticmethod
     def __adjust_center_position(position: np.ndarray) -> np.ndarray:

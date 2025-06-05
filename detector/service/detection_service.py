@@ -7,19 +7,17 @@ from typing import TYPE_CHECKING, List
 import numpy as np
 
 from detector.model.detection_models import (
-    CalibrationPoints,
-    Code,
-    DartDetectionError,
-    DartPositions,
-    DartResult,
-    DartScore,
+    CalibrationPoint,
+    DartDetection,
     DetectionResult,
     HomoGraphyMatrix,
     YoloDartParseResult,
 )
+from detector.model.detection_result_code import DetectionResultCode
+from detector.model.exception import DartDetectionError
 from detector.service.calibration_service import CalibrationService
-from detector.service.coordinate_service import TransformationService
 from detector.service.scoring_service import ScoringService
+from detector.service.transformation_service import TransformationService
 from detector.yolo.dart_detector import YoloDartImageProcessor
 
 if TYPE_CHECKING:
@@ -44,24 +42,20 @@ class DartDetectionService:
 
             yolo_result: Results = self.__yolo_image_processor.detect(image)
             yolo_dart_result: YoloDartParseResult = self.__yolo_image_processor.extract_detections(yolo_result)
+            dart_detections: List[DartDetection] = yolo_dart_result.dart_detections
 
-            homography_matrix: HomoGraphyMatrix = self.__calibration_service.calculate_homography(
-                yolo_dart_result.calibration_points.to_ndarray(),
+            homography_matrix: HomoGraphyMatrix = self.__calibration_service.calculate_homography(yolo_dart_result.calibration_points)
+            self.__coordinate_service.transform_to_board_dimensions(
+                homography_matrix,
+                dart_detections,
             )
-
-            original_dart_positions = yolo_dart_result.dart_positions
-
-            dart_positions: DartPositions = self.__coordinate_service.transform_to_board_dimensions(
-                homography_matrix.matrix,
-                yolo_dart_result.dart_positions.to_ndarray(),
-            )
-            dart_scores: List[DartScore] = self.__scoring_service.calculate_scores(dart_positions.positions)
+            self.__scoring_service.calculate_scores(dart_detections)
 
             processing_time = round(time.time() - start_time, 2)
             logger.info("Detection took %s seconds", processing_time)
 
             return self.__create_success_result(
-                dart_result=DartResult(dart_positions, dart_scores, original_dart_positions),
+                dart_detections=dart_detections,
                 calibration_points=yolo_dart_result.calibration_points,
                 homography_matrix=homography_matrix,
                 processing_time=processing_time,
@@ -71,31 +65,31 @@ class DartDetectionService:
             return self.__create_error_result(e.error_code, e.message)
         except Exception as e:
             logger.exception("Unknown error during detection pipeline")
-            return self.__create_error_result(Code.UNKNOWN, f"Unknown error occurred: {e}")
+            return self.__create_error_result(DetectionResultCode.UNKNOWN, f"Unknown error occurred: {e}")
 
     @staticmethod
     def __create_success_result(
-        dart_result: DartResult,
-        calibration_points: CalibrationPoints,
+        dart_detections: List[DartDetection],
+        calibration_points: List[CalibrationPoint],
         homography_matrix: HomoGraphyMatrix,
         processing_time: float,
     ) -> DetectionResult:
         return DetectionResult(
-            dart_result=dart_result,
+            dart_detections=dart_detections,
             processing_time=processing_time,
             homography_matrix=homography_matrix,
             calibration_points=calibration_points,
-            code=Code.SUCCESS,
-            message=f"Successfully detected {len(dart_result.dart_positions.positions)} darts",
+            result_code=DetectionResultCode.SUCCESS,
+            message=f"Successfully detected {len(dart_detections)} darts",
         )
 
     @staticmethod
-    def __create_error_result(code: Code, message: str) -> DetectionResult:
+    def __create_error_result(code: DetectionResultCode, message: str) -> DetectionResult:
         return DetectionResult(
-            dart_result=None,
+            dart_detections=[],
             processing_time=0.0,
             homography_matrix=None,
-            calibration_points=CalibrationPoints(points=[]),
-            code=code,
+            calibration_points=[],
+            result_code=code,
             message=message,
         )

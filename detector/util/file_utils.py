@@ -7,7 +7,7 @@ from typing import Union
 import cv2
 import numpy as np
 
-from detector.model.detection_models import ProcessingConfig
+from detector.model.configuration import ProcessingConfig
 
 logger = logging.getLogger(__name__)
 

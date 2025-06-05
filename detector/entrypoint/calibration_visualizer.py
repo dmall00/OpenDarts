@@ -14,7 +14,7 @@ import numpy as np
 from numpy import ndarray
 
 from detector.geometry.board import DartBoard
-from detector.model.detection_models import DartScore, DetectionResult, HomoGraphyMatrix
+from detector.model.detection_models import DartScore, DetectionResult, HomoGraphyMatrix, XYToArray
 from detector.model.geometry_models import (
     ANGLE_CALCULATION_EPSILON,
     BOARD_CENTER_COORDINATE,
@@ -50,44 +50,27 @@ class CalibrationVisualizer:
 
             result = self.detection_service.detect_and_score(image)
 
-            if not self.__is_valid_detection_result(result):
-                print("Could not find sufficient calibration points for visualization")
+            if not result.is_success():
+                print(f"Detection failed: {result.result_code.message}")
                 return
 
-            if result.calibration_points is None or result.homography_matrix is None or result.dart_result is None:
-                print("Missing required detection data for visualization")
-                return
+            self.__show_transformation_result(image, result)
 
-            self.__show_transformation_result(
-                image,
-                result.calibration_points.to_ndarray(),
-                result.homography_matrix,  # Now we know it's not None
-                result.dart_result.original_dart_positions.to_ndarray(),
-                result.dart_result.dart_scores,
-            )
-
-            print(f"Detected darts: {result.dart_result.dart_scores}")
-            print(f"Total score: {result.dart_result.get_total_score()}")
+            print(f"Detected darts: {len(result.dart_detections)}")
+            print(f"Total score: {result.get_total_score()}")
 
         except Exception as e:
             logger.exception("Error in visualization")
             print(f"Visualization error: {e!s}")
 
-    def __show_transformation_result(
-        self,
-        original_image: np.ndarray,
-        calibration_coords: np.ndarray,
-        homography_matrix: HomoGraphyMatrix,
-        dart_coords: np.ndarray,
-        dart_scores: List[DartScore],
-    ) -> None:
-        if not self.__is_valid_homography_matrix(homography_matrix):
-            logger.warning("Invalid homography matrix - cannot show transformation")
-            return
+    def __show_transformation_result(self, original_image: np.ndarray, result: DetectionResult) -> None:
+        h_matrix: HomoGraphyMatrix = result.homography_matrix.matrix  # type: ignore
+        calibration_coords: np.ndarray = XYToArray.to_ndarray(result.calibration_points)
+        dart_coords: np.ndarray = XYToArray.to_ndarray([d.original_dart_position for d in result.dart_detections])
+        dart_scores: List[DartScore] = [d.dart_score for d in result.dart_detections]  # type: ignore
 
-        h_matrix = self.__prepare_homography_matrix(homography_matrix.matrix)
         original_viz = self.__create_original_visualization(original_image, calibration_coords, dart_coords)
-        transformed_image = self.__apply_transformation(original_image, h_matrix)
+        transformed_image = self.__apply_transformation(original_image, h_matrix)  # type: ignore
 
         if transformed_image is None:
             return
@@ -96,25 +79,12 @@ class CalibrationVisualizer:
             transformed_image,
             dart_coords,
             dart_scores,
-            h_matrix,
+            h_matrix,  # type: ignore
             original_image.shape,
         )
 
         comparison = self.__create_side_by_side_view(original_viz, transformed_viz)
         self.__display_result(comparison)
-
-    def __is_valid_homography_matrix(self, homography_matrix: HomoGraphyMatrix) -> bool:
-        return (
-            homography_matrix is not None
-            and homography_matrix.matrix is not None
-            and isinstance(homography_matrix.matrix, np.ndarray)
-            and homography_matrix.matrix.shape == (3, 3)
-        )
-
-    def __prepare_homography_matrix(self, h_matrix: np.ndarray) -> np.ndarray:
-        if h_matrix.dtype not in [np.float32, np.float64]:
-            h_matrix = h_matrix.astype(np.float32)
-        return h_matrix
 
     def __create_original_visualization(
         self,
@@ -127,7 +97,8 @@ class CalibrationVisualizer:
             viz = self.__draw_dart_points(viz, dart_coords)
         return viz
 
-    def __apply_transformation(self, original_image: np.ndarray, h_matrix: np.ndarray) -> ndarray | None:
+    @staticmethod
+    def __apply_transformation(original_image: np.ndarray, h_matrix: np.ndarray) -> ndarray | None:
         try:
             return cv2.warpPerspective(
                 original_image,
@@ -154,7 +125,8 @@ class CalibrationVisualizer:
 
         return viz
 
-    def __draw_calibration_points(self, image: np.ndarray, calibration_coords: np.ndarray) -> np.ndarray:
+    @staticmethod
+    def __draw_calibration_points(image: np.ndarray, calibration_coords: np.ndarray) -> np.ndarray:
         if len(calibration_coords) == 0:
             return image
 
@@ -175,7 +147,8 @@ class CalibrationVisualizer:
                 )
         return image
 
-    def __draw_dart_points(self, image: np.ndarray, dart_coords: np.ndarray) -> np.ndarray:
+    @staticmethod
+    def __draw_dart_points(image: np.ndarray, dart_coords: np.ndarray) -> np.ndarray:
         if len(dart_coords) == 0:
             return image
 
@@ -195,8 +168,8 @@ class CalibrationVisualizer:
             )
         return image
 
+    @staticmethod
     def __draw_dart_points_with_scores(
-        self,
         image: np.ndarray,
         dart_coords: np.ndarray,
         dart_scores: List[DartScore],
@@ -221,8 +194,8 @@ class CalibrationVisualizer:
             )
         return image
 
+    @staticmethod
     def __transform_dart_coords(
-        self,
         dart_coords: np.ndarray,
         homography_matrix: np.ndarray,
         image_shape: Tuple[int, ...],
@@ -291,7 +264,8 @@ class CalibrationVisualizer:
                 2,
             )
 
-    def __calculate_sample_position(self, angle_rad: float) -> np.ndarray:
+    @staticmethod
+    def __calculate_sample_position(angle_rad: float) -> np.ndarray:
         return np.array(
             [
                 BOARD_CENTER_COORDINATE + VISUALIZATION_SAMPLE_POSITION_RADIUS * np.cos(angle_rad),
@@ -323,7 +297,7 @@ class CalibrationVisualizer:
         comparison = np.zeros((target_height, total_width, 3), dtype=np.uint8)
 
         comparison[:, : original_resized.shape[1]] = original_resized
-        comparison[:, original_resized.shape[1] + 20:] = transformed_resized
+        comparison[:, original_resized.shape[1] + 20 :] = transformed_resized
 
         self.__add_labels(comparison, original_resized.shape[1])
         return comparison
@@ -338,8 +312,7 @@ class CalibrationVisualizer:
     @staticmethod
     def __add_labels(comparison: np.ndarray, split_point: int) -> None:
         cv2.putText(comparison, "Original", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2)
-        cv2.putText(comparison, "Transformed", (split_point + 30, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255),
-                    2)
+        cv2.putText(comparison, "Transformed", (split_point + 30, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2)
 
     def __display_result(self, comparison: np.ndarray) -> None:
         cv2.imshow(self.window_name, comparison)
@@ -352,7 +325,3 @@ class CalibrationVisualizer:
             logger.error("Could not load image: %s", image_path)
             return None
         return self.preprocessor.preprocess_image(image)
-
-    @staticmethod
-    def __is_valid_detection_result(result: DetectionResult) -> bool:
-        return result.homography_matrix is not None and result.homography_matrix.matrix is not None

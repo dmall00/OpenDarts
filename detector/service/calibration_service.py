@@ -1,13 +1,16 @@
 """Service for calculating homography for dartboard calibration."""
 
 import logging
-from typing import Dict
+from typing import Dict, List
 
 import cv2
 import numpy as np
 
 from detector.geometry.board import DartBoard
-from detector.model.detection_models import Code, DartDetectionError, HomoGraphyMatrix, ProcessingConfig
+from detector.model.configuration import ProcessingConfig
+from detector.model.detection_models import CalibrationPoint, HomoGraphyMatrix, XYToArray
+from detector.model.detection_result_code import DetectionResultCode
+from detector.model.exception import DartDetectionError
 
 logger = logging.getLogger(__name__)
 
@@ -22,11 +25,13 @@ class CalibrationService:
 
     def calculate_homography(
         self,
-        calibration_coords: np.ndarray,
+        calibration_points: List[CalibrationPoint],
         image_shape: float = ProcessingConfig.target_image_size[0],
     ) -> HomoGraphyMatrix:
         """Calculate homography transformation matrix from calibration points."""
         logger.debug("Calculating homography transformation matrix")
+        calibration_coords = XYToArray.to_ndarray(calibration_points)
+
         valid_points_info = self.__get_valid_points_info(calibration_coords)
         self.__ensure_minimum_points(valid_points_info["count"])  # type: ignore
 
@@ -55,7 +60,7 @@ class CalibrationService:
         """Ensure we have the minimum required valid points."""
         if valid_count < ProcessingConfig.min_calibration_points:
             msg = f"Only {valid_count} valid calibration points found, minimum {ProcessingConfig.min_calibration_points} required"
-            raise DartDetectionError(Code.MISSING_CALIBRATION_POINTS, details=msg)
+            raise DartDetectionError(DetectionResultCode.MISSING_CALIBRATION_POINTS, details=msg)
 
     def __compute_homography_matrix(self, calibration_coords: np.ndarray, valid_mask: np.ndarray, image_shape: float) -> np.ndarray:
         """Compute the homography matrix using OpenCV."""
@@ -73,14 +78,14 @@ class CalibrationService:
             raise
         except Exception as e:
             msg = "Homography calculation failed"
-            raise DartDetectionError(Code.HOMOGRAPHY, e, msg) from e
+            raise DartDetectionError(DetectionResultCode.HOMOGRAPHY, e, msg) from e
 
     @staticmethod
     def __validate_homography_matrix(homography_matrix: np.ndarray) -> None:
         if homography_matrix is None:
             logger.error("OpenCV findHomography returned None")
             error_msg = "Failed to compute homography matrix - OpenCV returned None"
-            raise DartDetectionError(Code.HOMOGRAPHY, details=error_msg)
+            raise DartDetectionError(DetectionResultCode.HOMOGRAPHY, details=error_msg)
 
     @staticmethod
     def __create_homography_result(homography_matrix: np.ndarray, valid_count: int) -> HomoGraphyMatrix:

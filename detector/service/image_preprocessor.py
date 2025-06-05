@@ -2,7 +2,8 @@
 
 import numpy as np
 
-from detector.model.detection_models import Code, DartDetectionError
+from detector.model.detection_result_code import DetectionResultCode
+from detector.model.exception import DartDetectionError
 from detector.util.file_utils import resize_image
 from detector.yolo.dartboard_cropper import YoloDartBoardImageCropper
 
@@ -16,6 +17,6 @@ class ImagePreprocessor:
     def preprocess_image(self, image: np.ndarray) -> np.ndarray:
         """Preprocess the input image by resizing it and applying other transformations."""
         if image is None:
-            raise DartDetectionError(Code.UNKNOWN, details="Input image is None")
+            raise DartDetectionError(DetectionResultCode.UNKNOWN, details="Input image is None")
         cropped_image = self.__image_cropper.crop_image(image)
         return resize_image(cropped_image)

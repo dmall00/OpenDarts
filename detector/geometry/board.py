@@ -1,6 +1,6 @@
 """Geometry and scoring model for a dartboard."""
 
-from typing import Dict, Tuple
+from typing import Dict
 
 import numpy as np
 
@@ -11,17 +11,14 @@ from detector.model.geometry_models import (
     DARTBOARD_SEGMENT_ANGLES,
     DARTBOARD_SEGMENT_NUMBERS,
     DOUBLE_BULL_RADIUS,
-    DOUBLE_BULL_SCORE,
     DOUBLE_RING_INNER_RADIUS,
     DOUBLE_RING_OUTER_RADIUS,
-    MISS_SCORE,
     OUTER_RADIUS_RATIO,
     SCORING_REGION_NAMES,
     SEGMENT_9_15_ANGLE,
     SEGMENT_11_6_ANGLE,
     SEGMENT_20_3_ANGLE_THRESHOLD,
     SINGLE_BULL_RADIUS,
-    SINGLE_BULL_SCORE,
     TRIPLE_RING_INNER_RADIUS,
     TRIPLE_RING_OUTER_RADIUS,
 )
@@ -55,19 +52,6 @@ class DartBoard:
         distance_from_center = self.__calculate_distance_from_center(position)
         region_index = np.argmax(self.scoring_radii[distance_from_center > self.scoring_radii])
         return str(self._scoring_names[region_index])
-
-    @staticmethod
-    def calculate_score(segment_number: int, scoring_region: str) -> Tuple[str, int]:
-        """Calculate the final score for a dart."""
-        scoring_rules = {
-            "DB": ("DB", DOUBLE_BULL_SCORE),
-            "SB": ("SB", SINGLE_BULL_SCORE),
-            "S": (f"S{segment_number}", segment_number),
-            "T": (f"T{segment_number}", segment_number * 3),
-            "D": (f"D{segment_number}", segment_number * 2),
-            "miss": ("miss", MISS_SCORE),
-        }
-        return scoring_rules[scoring_region]
 
     def __setup_scoring_regions(self) -> None:
         """Initialize scoring regions and their radii."""

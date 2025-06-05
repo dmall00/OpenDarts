@@ -2,12 +2,16 @@
 
 import logging
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from backend import IMAGE_PATH
 from detector.entrypoint.dart_image_scorer import DartImageScorer
-from detector.model.detection_models import Code, DetectionResult
+
+if TYPE_CHECKING:
+    from detector.model.detection_models import DetectionResult
 
 logger = logging.getLogger(__name__)
+
 
 def setup_logging() -> None:  # noqa: D103
     logging.basicConfig(
@@ -15,29 +19,50 @@ def setup_logging() -> None:  # noqa: D103
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     )
 
+
 def main(image_path: Path = IMAGE_PATH / "img_3.png") -> None:
     """Run the Dart Detection demo with a single image."""
     setup_logging()
     detector = DartImageScorer()
     result: DetectionResult = detector.detect_darts(image_path)
 
-    if result and result.code is Code.SUCCESS:
-        print(f"\n🎯 Dart Detection Results (Processing time: {result.processing_time:.2f}s)")
+    if result.is_success():
+        print("\n🎯 Dart Detection Results")
+        print(f"⏱️  Processing time: {result.processing_time:.2f}s")
+        print("-" * 50)
 
-        if result.dart_result is not None and result.dart_result.dart_positions is not None:
-            print(f"Darts detected: {len(result.dart_result.dart_positions.positions)}")
+        if result.dart_detections:
+            print(f"🎯 Darts detected: {len(result.dart_detections)}")
 
-            if result.dart_result.dart_positions.positions:
-                for i, (pos, score) in enumerate(
-                    zip(result.dart_result.dart_positions.positions, result.dart_result.dart_scores, strict=False),
-                ):
-                    print(f"  Dart {i + 1}: {score.score_string} at ({pos.x:.2f}, {pos.y:.2f})")
-                print(f"Total Score: {result.dart_result.get_total_score()}")
+            total_score = 0
+            for i, detection in enumerate(result.dart_detections):
+                if detection.dart_score:
+                    # Use transformed position if available, otherwise original
+                    pos = detection.dart_position or detection.original_dart_position
+                    print(
+                        f"  🎯 Dart {i + 1}: {detection.dart_score.score_string} "
+                        f"({detection.dart_score.score_value} pts) "
+                        f"at ({pos.x:.2f}, {pos.y:.2f}) "
+                        f"[Confidence: {detection.confidence:.1%}]",
+                    )
+                    total_score += detection.dart_score.score_value
+                else:
+                    pos = detection.dart_position or detection.original_dart_position
+                    print(f"  ❓ Dart {i + 1}: Score pending at ({pos.x:.2f}, {pos.y:.2f}) [Confidence: {detection.confidence:.1%}]")
 
-        if result.calibration_points is not None:
-            print(f"Calibration points: {len(result.calibration_points.points)}")
+            print("-" * 50)
+            print(f"🏆 Total Score: {total_score} points")
+        else:
+            print("❌ No darts detected")
+
+        if result.calibration_points:
+            print(f"\n🔧 Calibration points detected: {len(result.calibration_points)}")
+
     else:
-        print(f"\n❌ Dart detection failed: {result}")
+        error_msg = result.result_code.message
+        print(f"\n❌ Dart detection failed: {error_msg}")
+        if result.message:
+            print(f"   Details: {result.message}")
 
 
 if __name__ == "__main__":
