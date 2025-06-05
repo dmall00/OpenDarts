@@ -56,12 +56,8 @@ def compare_dart_scores(predicted_scores: List[str], ground_truth_scores: List[s
 
 def test_dart_detection_sanity() -> None:
     """Sanity test for dart detection system.Tests all images against ground truth and asserts minimum match percentage."""
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    )
     scorer = DartImageScorer()
-
+    logger = logging.getLogger(__name__)
     ground_truth = load_ground_truth()
 
     total_images = 0
@@ -69,9 +65,9 @@ def test_dart_detection_sanity() -> None:
     match_scores = []
     failed_images = []
 
-    print(f"Running sanity test on {len(ground_truth)} images...")
-    print(f"Minimum required match percentage: {MINIMUM_MATCH_PERCENTAGE * 100}%")
-    print("-" * 60)
+    logger.info("Running sanity test on %s images...", len(ground_truth))
+    logger.info("Minimum required match percentage: %s%%", MINIMUM_MATCH_PERCENTAGE * 100)
+    logger.info("-" * 60)
 
     for filename, expected_scores in ground_truth.items():
         total_images += 1
@@ -84,37 +80,38 @@ def test_dart_detection_sanity() -> None:
             match_percentage = compare_dart_scores(predicted_scores, expected_scores)
             match_scores.append(match_percentage)
 
-            print(f"{filename}: {match_percentage:.2%} match")
-            print(f"  Expected: {expected_scores}")
-            print(f"  Predicted: {predicted_scores}")
+            logger.info("%s: %.2f%% match", filename, match_percentage * 100)
+            logger.info("  Expected: %s", expected_scores)
+            logger.info("  Predicted: %s", predicted_scores)
 
         else:
-            print(f"{filename}: DETECTION FAILED - {result.message}")
+            logger.info("%s: DETECTION FAILED - %s", filename, result.message)
             failed_images.append(filename)
             match_scores.append(0.0)
-        print()
+        logger.info("")
 
     overall_match_percentage = sum(match_scores) / len(match_scores) if match_scores else 0.0
     success_rate = successful_detections / total_images if total_images > 0 else 0.0
 
-    print("=" * 60)
-    print("SANITY TEST RESULTS")
-    print("=" * 60)
-    print(f"Total images tested: {total_images}")
-    print(f"Successful detections: {successful_detections} ({success_rate:.2%})")
-    print(f"Failed detections: {len(failed_images)}")
-    print(f"Overall match percentage: {overall_match_percentage:.2%}")
-    print(f"Required minimum: {MINIMUM_MATCH_PERCENTAGE * 100}%")
+    logger.info("=" * 60)
+    logger.info("SANITY TEST RESULTS")
+    logger.info("=" * 60)
+    logger.info("Total images tested: %s", total_images)
+    logger.info("Successful detections: %s (%.2f%%)", successful_detections, success_rate * 100)
+    logger.info("Failed detections: %s", len(failed_images))
+    logger.info("Overall match percentage: %.2f%%", overall_match_percentage * 100)
+    logger.info("Required minimum: %s%%", MINIMUM_MATCH_PERCENTAGE * 100)
 
     if failed_images:
-        print(f"\nFailed images: {', '.join(failed_images)}")
+        logger.info("\nFailed images: %s", ", ".join(failed_images))
 
     assert overall_match_percentage >= MINIMUM_MATCH_PERCENTAGE, (
         f"Sanity test failed! Overall match percentage ({overall_match_percentage:.2%}) "
         f"is below minimum required ({MINIMUM_MATCH_PERCENTAGE * 100}%)"
     )
 
-    print(
-        f"\n✅ SANITY TEST PASSED! Match percentage ({overall_match_percentage:.2%}) "
-        f"meets minimum requirement ({MINIMUM_MATCH_PERCENTAGE * 100}%)",
+    logger.info(
+        "\n✅ SANITY TEST PASSED! Match percentage (%.2f%%) meets minimum requirement (%.2f%%)",
+        overall_match_percentage * 100,
+        MINIMUM_MATCH_PERCENTAGE * 100,
     )

@@ -4,6 +4,7 @@ import logging
 from typing import Dict, List
 
 import numpy as np
+import torch
 from ultralytics import YOLO
 from ultralytics.engine.results import Results
 
@@ -27,8 +28,10 @@ class YoloDartImageProcessor:
 
     def __init__(self, config: ProcessingConfig) -> None:
         self.__config = config
-        logger.info("Loading YOLO model from: %s", ImmutableConfig.dart_scorer_model_path)
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+        logger.info("Loading YOLO model from: %s to device %s", ImmutableConfig.dart_scorer_model_path, device)
         self._model = YOLO(ImmutableConfig.dart_scorer_model_path)
+        self._model.to(device)
 
     def detect(self, image: np.ndarray) -> Results:
         """Run YOLO inference on image."""

@@ -5,6 +5,7 @@ import time
 from typing import Tuple
 
 import numpy as np
+import torch
 from ultralytics import YOLO
 from ultralytics.engine.results import Results
 
@@ -19,8 +20,10 @@ class YoloDartBoardImageCropper:
     """Crops dartboard images using YOLO object detection."""
 
     def __init__(self) -> None:
-        logger.info("Loading YOLO model from: %s", ImmutableConfig.dartboard_model_path)
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+        logger.info("Loading YOLO model from: %s to device ", ImmutableConfig.dartboard_model_path)
         self._model = YOLO(ImmutableConfig.dartboard_model_path)
+        self._model.to(device)
 
     def crop_image(self, image: np.ndarray) -> np.ndarray:
         """Crop the image to focus on the detected dartboard."""

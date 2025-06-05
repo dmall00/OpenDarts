@@ -9,11 +9,11 @@ from dart_detection import IMAGE_PATH
 from detector.entrypoint.calibration_visualizer import CalibrationVisualizer
 
 
-def __natural_sort_key(path: Path) -> str | int:
+def __natural_sort_key(path: Path) -> tuple[int, int | str]:
     match = re.search(r"img_(\d+)\.png", path.name)
     if match:
-        return int(match.group(1))
-    return path.name
+        return 0, int(match.group(1))
+    return 1, path.name
 
 
 def list_available_images() -> None:
