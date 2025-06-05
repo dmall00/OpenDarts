@@ -2,13 +2,15 @@
 
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import List, Optional, Sequence
+from typing import TYPE_CHECKING, List, Optional, Sequence
 
 import numpy as np
 
-from detector.model.configuration import ProcessingConfig
 from detector.model.detection_result_code import DetectionResultCode
 from detector.model.yolo_dart_class_mapping import YoloDartClassMapping
+
+if TYPE_CHECKING:
+    from detector.model.configuration import ProcessingConfig
 
 
 class XYToArray:
@@ -43,10 +45,9 @@ class YoloDetection:
         """Check if the detection corresponds to a dart class."""
         return YoloDartClassMapping.is_dart(self.class_id)
 
-    @property
-    def is_high_confidence(self) -> bool:
+    def is_high_confidence(self, config: "ProcessingConfig") -> bool:
         """Check if the detection confidence is above the configured threshold."""
-        return self.confidence >= ProcessingConfig.confidence_threshold
+        return self.confidence >= config.calibration_confidence_threshold
 
 
 @dataclass

@@ -14,14 +14,16 @@ logger = logging.getLogger(__name__)
 class TransformationService:
     """Service for coordinate transformations and adjustments."""
 
-    @staticmethod
-    def transform_to_board_dimensions(homography_matrix: HomoGraphyMatrix, dart_detections: List[DartDetection]) -> None:
+    def __init__(self, config: ProcessingConfig) -> None:
+        self.__config = config
+
+    def transform_to_board_dimensions(self, homography_matrix: HomoGraphyMatrix, dart_detections: List[DartDetection]) -> None:
         """Transform dart coordinates to board coordinate system and map to dart_position."""
         logger.debug("Transforming %s dart coordinates to board space", len(dart_detections))
 
         for detection in dart_detections:
             # Convert original dart position to pixel coordinates
-            image_shape = ProcessingConfig.target_image_size[0]
+            image_shape = self.__config.target_image_size[0]
             pixel_coords = np.array([detection.original_dart_position.x, detection.original_dart_position.y]) * image_shape
 
             # Create homogeneous coordinates

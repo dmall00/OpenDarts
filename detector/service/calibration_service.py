@@ -18,7 +18,8 @@ logger = logging.getLogger(__name__)
 class CalibrationService:
     """Service for dartboard calibration and homography calculation."""
 
-    def __init__(self) -> None:
+    def __init__(self, config: ProcessingConfig) -> None:
+        self.__config = config
         self._dartboard = DartBoard()
         self._reference_coordinates = self._dartboard.get_calibration_reference_coordinates()
         self._user_calibration = -np.ones((6, 2))  # User manual calibration override
@@ -26,7 +27,6 @@ class CalibrationService:
     def calculate_homography(
         self,
         calibration_points: List[CalibrationPoint],
-        image_shape: float = ProcessingConfig.target_image_size[0],
     ) -> HomoGraphyMatrix:
         """Calculate homography transformation matrix from calibration points."""
         logger.debug("Calculating homography transformation matrix")
@@ -34,6 +34,7 @@ class CalibrationService:
 
         valid_points_info = self.__get_valid_points_info(calibration_coords)
         self.__ensure_minimum_points(valid_points_info["count"])  # type: ignore
+        image_shape = self.__config.target_image_size[0]
 
         homography_matrix = self.__compute_homography_matrix(
             calibration_coords,
@@ -55,11 +56,10 @@ class CalibrationService:
             "count": valid_count,
         }
 
-    @staticmethod
-    def __ensure_minimum_points(valid_count: int) -> None:
+    def __ensure_minimum_points(self, valid_count: int) -> None:
         """Ensure we have the minimum required valid points."""
-        if valid_count < ProcessingConfig.min_calibration_points:
-            msg = f"Only {valid_count} valid calibration points found, minimum {ProcessingConfig.min_calibration_points} required"
+        if valid_count < self.__config.min_calibration_points:
+            msg = f"Only {valid_count} valid calibration points found, minimum {self.__config.min_calibration_points} required"
             raise DartDetectionError(DetectionResultCode.MISSING_CALIBRATION_POINTS, details=msg)
 
     def __compute_homography_matrix(self, calibration_coords: np.ndarray, valid_mask: np.ndarray, image_shape: float) -> np.ndarray:

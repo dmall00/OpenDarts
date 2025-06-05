@@ -7,7 +7,7 @@ import numpy as np
 from ultralytics import YOLO
 from ultralytics.engine.results import Results
 
-from detector.model.configuration import ProcessingConfig
+from detector.model.configuration import ImmutableConfig, ProcessingConfig
 from detector.model.detection_models import (
     CalibrationPoint,
     Dart2dPosition,
@@ -25,9 +25,10 @@ logger = logging.getLogger(__name__)
 class YoloDartImageProcessor:
     """Processor for running YOLO inference and extracting dart positions and calibration points."""
 
-    def __init__(self) -> None:
-        logger.info("Loading YOLO model from: %s", ProcessingConfig.dart_scorer_model_path)
-        self._model = YOLO(ProcessingConfig.dart_scorer_model_path)
+    def __init__(self, config: ProcessingConfig) -> None:
+        self.__config = config
+        logger.info("Loading YOLO model from: %s", ImmutableConfig.dart_scorer_model_path)
+        self._model = YOLO(ImmutableConfig.dart_scorer_model_path)
 
     def detect(self, image: np.ndarray) -> Results:
         """Run YOLO inference on image."""
@@ -48,7 +49,7 @@ class YoloDartImageProcessor:
         detections = self.__parse_yolo_results(yolo_result)
 
         dart_detections = [d for d in detections if d.is_dart]
-        calibration_detections = [d for d in detections if not d.is_dart and d.is_high_confidence]
+        calibration_detections = [d for d in detections if not d.is_dart and d.is_high_confidence(self.__config)]
 
         dart_detection_results = self.__create_dart_detections(dart_detections)
         calibration_points = self.__create_calibration_points(calibration_detections)
@@ -76,17 +77,25 @@ class YoloDartImageProcessor:
 
         return detections
 
-    @staticmethod
-    def __create_dart_detections(dart_detections: List[YoloDetection]) -> List[DartDetection]:
+    def __create_dart_detections(self, dart_detections: List[YoloDetection]) -> List[DartDetection]:
         """Create dart detections from dart detections (max 3 darts)."""
         dart_detection_results = []
 
-        if len(dart_detections) > ProcessingConfig.max_allowed_darts:
-            logger.warning("Found %s darts, but only using the first %s", len(dart_detections), ProcessingConfig.max_allowed_darts)
+        if len(dart_detections) > self.__config.max_allowed_darts:
+            logger.warning("Found %s darts, but only using the first %s", len(dart_detections), self.__config.max_allowed_darts)
         if len(dart_detections) == 0:
             raise DartDetectionError(DetectionResultCode.NO_DARTS, details="No dart detections found")
 
-        for detection in dart_detections[: ProcessingConfig.max_allowed_darts]:
+        for detection in dart_detections[: self.__config.max_allowed_darts]:
+            if self.__config.dart_confidence_threshold > 0.0 and detection.confidence < self.__config.dart_confidence_threshold:
+                logger.info(
+                    "Dart detection at (%s, %s) with confidence %s is below minimum threshold %s, skipping",
+                    f"{detection.center_x:.3f}",
+                    f"{detection.center_y:.3f}",
+                    f"{detection.confidence:.3f}",
+                    f"{self.__config.dart_confidence_threshold:.3f}",
+                )
+                continue
             dart_position = Dart2dPosition(x=detection.center_x, y=detection.center_y)
             dart_detection = DartDetection(
                 original_dart_position=dart_position,

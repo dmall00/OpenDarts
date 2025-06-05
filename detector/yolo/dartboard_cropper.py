@@ -7,7 +7,7 @@ import numpy as np
 from ultralytics import YOLO
 from ultralytics.engine.results import Results
 
-from detector.model.configuration import ProcessingConfig
+from detector.model.configuration import ImmutableConfig
 from detector.model.detection_result_code import DetectionResultCode
 from detector.model.exception import DartDetectionError
 
@@ -18,8 +18,8 @@ class YoloDartBoardImageCropper:
     """Crops dartboard images using YOLO object detection."""
 
     def __init__(self) -> None:
-        logger.info("Loading YOLO model from: %s", ProcessingConfig.dartboard_model_path)
-        self._model = YOLO(ProcessingConfig.dartboard_model_path)
+        logger.info("Loading YOLO model from: %s", ImmutableConfig.dartboard_model_path)
+        self._model = YOLO(ImmutableConfig.dartboard_model_path)
 
     def crop_image(self, image: np.ndarray) -> np.ndarray:
         """Crop the image to focus on the detected dartboard."""

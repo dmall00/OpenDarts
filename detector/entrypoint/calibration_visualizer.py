@@ -7,13 +7,14 @@ and homography matrix transformations are applied.
 
 import logging
 from pathlib import Path
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 import cv2
 import numpy as np
 from numpy import ndarray
 
 from detector.geometry.board import DartBoard
+from detector.model.configuration import ProcessingConfig
 from detector.model.detection_models import DartScore, DetectionResult, HomoGraphyMatrix, XYToArray
 from detector.model.geometry_models import (
     ANGLE_CALCULATION_EPSILON,
@@ -35,11 +36,12 @@ logger = logging.getLogger(__name__)
 class CalibrationVisualizer:
     """Class for visualizing the calibration transformation results."""
 
-    def __init__(self) -> None:
+    def __init__(self, config: Optional[ProcessingConfig] = None) -> None:
+        self.__config = config or ProcessingConfig()
         self.window_name: str = "Calibration Visualization"
         self.dart_board: DartBoard = DartBoard()
-        self.detection_service: DartDetectionService = DartDetectionService()
-        self.preprocessor = ImagePreprocessor()
+        self.detection_service: DartDetectionService = DartDetectionService(self.__config)
+        self.preprocessor = ImagePreprocessor(self.__config)
 
     def visualize(self, image_path: Path) -> None:
         """Visualize the transformation result for a given image path."""

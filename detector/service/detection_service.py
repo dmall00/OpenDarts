@@ -2,10 +2,11 @@
 
 import logging
 import time
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING, List, Optional
 
 import numpy as np
 
+from detector.model.configuration import ProcessingConfig
 from detector.model.detection_models import (
     CalibrationPoint,
     DartDetection,
@@ -29,10 +30,11 @@ logger = logging.getLogger(__name__)
 class DartDetectionService:
     """Service responsible for orchestrating the dart detection pipeline."""
 
-    def __init__(self) -> None:
-        self.__yolo_image_processor = YoloDartImageProcessor()
-        self.__calibration_service = CalibrationService()
-        self.__coordinate_service = TransformationService()
+    def __init__(self, config: Optional[ProcessingConfig] = None) -> None:
+        self.__config = config or ProcessingConfig()
+        self.__yolo_image_processor = YoloDartImageProcessor(self.__config)
+        self.__calibration_service = CalibrationService(self.__config)
+        self.__coordinate_service = TransformationService(self.__config)
         self.__scoring_service = ScoringService()
 
     def detect_and_score(self, image: np.ndarray) -> DetectionResult:

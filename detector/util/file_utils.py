@@ -2,12 +2,10 @@
 
 import logging
 from pathlib import Path
-from typing import Union
+from typing import Tuple, Union
 
 import cv2
 import numpy as np
-
-from detector.model.configuration import ProcessingConfig
 
 logger = logging.getLogger(__name__)
 
@@ -25,9 +23,10 @@ def load_image(image_path: Union[str, Path]) -> np.ndarray:
     return image
 
 
-def resize_image(image: np.ndarray) -> np.ndarray:
-    """Resize the image to the target size defined in ProcessingConfig."""
-    return cv2.resize(image, ProcessingConfig.target_image_size, interpolation=cv2.INTER_AREA)
+def resize_image(image: np.ndarray, target_size: Tuple[int, int] = (800, 800)) -> np.ndarray:
+    """Resize the image to the target size."""
+    logger.debug("Resizing image to target size: %s", target_size)
+    return cv2.resize(image, target_size, interpolation=cv2.INTER_AREA)
 
 
 def __validate_image_path(image_path: Union[str, Path]) -> None:
