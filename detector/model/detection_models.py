@@ -119,5 +119,5 @@ class DetectionResult:
         return sum(dart_score.score_value for score in self.dart_detections if (dart_score := score.dart_score) is not None)
 
     def is_success(self) -> bool:
-      """Check if the detection result is successful."""
-      return self is not None and self.result_code is DetectionResultCode.SUCCESS
+        """Check if the detection result is successful."""
+        return self is not None and self.result_code is DetectionResultCode.SUCCESS

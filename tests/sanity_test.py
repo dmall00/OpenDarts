@@ -118,4 +118,3 @@ def test_dart_detection_sanity() -> None:
         f"\n✅ SANITY TEST PASSED! Match percentage ({overall_match_percentage:.2%}) "
         f"meets minimum requirement ({MINIMUM_MATCH_PERCENTAGE * 100}%)",
     )
-

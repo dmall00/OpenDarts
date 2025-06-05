@@ -12,6 +12,7 @@ from detector.util.file_utils import load_image
 
 logger = logging.getLogger(__name__)
 
+
 class DartImageScorer:
     """Entrypoint for dart detection and scoring from a given image path."""
 

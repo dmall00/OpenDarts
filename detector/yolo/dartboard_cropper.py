@@ -87,8 +87,9 @@ class YoloDartBoardImageCropper:
         return image[y_start:y_end, x_start:x_end]
 
     @staticmethod
-    def __log_cropping_info(bounding_box: Tuple[int, int, int, int], confidence: float, cropped_shape: Tuple[int, ...],
-                            start: float) -> None:
+    def __log_cropping_info(
+        bounding_box: Tuple[int, int, int, int], confidence: float, cropped_shape: Tuple[int, ...], start: float
+    ) -> None:
         end = time.time()
         x_start, y_start, x_end, y_end = bounding_box
         logger.info(

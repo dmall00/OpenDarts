@@ -1,5 +1,6 @@
 """Demo running visualization of dart board calibration."""
 
+import argparse
 import logging
 from pathlib import Path
 
@@ -7,7 +8,21 @@ from backend import IMAGE_PATH
 from detector.entrypoint.calibration_visualizer import CalibrationVisualizer
 
 
-def main() -> None:
+def list_available_images() -> None:
+    """List all available PNG images in the IMAGE_PATH folder."""
+    print("Available images in the folder:")
+    png_files = list(IMAGE_PATH.glob("*.png"))
+
+    if png_files:
+        for image_file in sorted(png_files):
+            print(f"  - {image_file.name}")
+        print(f"\nTotal: {len(png_files)} image(s) found")
+    else:
+        print("  No PNG images found in the folder.")
+    print(f"Image folder path: {IMAGE_PATH}")
+
+
+def main(image_path: Path = None) -> None:  # noqa: RUF013
     """Run the calibration visualization demo."""
     default_image = "img_3.png"
     logging.basicConfig(
@@ -21,8 +36,17 @@ def main() -> None:
 
     visualizer = CalibrationVisualizer()
 
+    if image_path:
+        if not image_path.exists():
+            print(f"Error: Image file '{image_path}' not found!")
+            return
+        print(f"Processing image: {image_path}")
+        visualizer.visualize(image_path)
+        return
+
     while True:
         print("\nEnter an image number (e.g. 1, 2, 7), or press Enter for the default image (img_3.png):")
+        print("Enter 'list' to see all available images.")
         print("To exit enter 'q', 'exit' or 'quit':")
 
         choice = input().strip().lower()
@@ -30,13 +54,21 @@ def main() -> None:
             print("Program is exiting.")
             break
 
+        if choice == "list":
+            list_available_images()
+            continue
+
         if choice == "":
             selected_image = IMAGE_PATH / default_image
         else:
-            img_num = int(choice)
-            selected_image = IMAGE_PATH / f"img_{img_num}.png"
+            try:
+                img_num = int(choice)
+                selected_image = IMAGE_PATH / f"img_{img_num}.png"
+            except ValueError:
+                print("Error: Please enter a valid number, 'list', or press Enter for default.")
+                continue
 
-        if not Path.exists(selected_image):
+        if not selected_image.exists():
             print(f"Error: Image file '{selected_image}' not found!")
             continue
 
@@ -44,4 +76,20 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(description="Run Dart Board Calibration Visualization demo.")
+    parser.add_argument(
+        "--image_path",
+        type=str,
+        help="Path to a specific image file for calibration visualization. If not provided, runs in interactive mode."
+    )
+    parser.add_argument(
+        "--list",
+        action="store_true",
+        help="List all available PNG images in the images folder and exit."
+    )
+    args = parser.parse_args()
+    if args.list:
+        list_available_images()
+    else:
+        image_path = Path(args.image_path) if args.image_path else None
+        main(image_path)  # type: ignore

@@ -1,4 +1,5 @@
 """Contains exception classes for handling errors during dart detection."""
+
 from typing import Optional
 
 from detector.model.detection_result_code import DetectionResultCode

@@ -1,4 +1,5 @@
 """Contains mappings between YOLO class IDs and human-readable class names, including dart classes."""
+
 from typing import Dict, Final
 
 from detector.model.geometry_models import DART_CLASS_ID

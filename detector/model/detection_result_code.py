@@ -1,4 +1,5 @@
 """Contains the DetectionResultCode enum for error codes and messages."""
+
 from enum import Enum
 
 

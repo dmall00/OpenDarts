@@ -1,5 +1,6 @@
 """Demo running dart detection with an image scorer."""
 
+import argparse
 import logging
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -66,4 +67,15 @@ def main(image_path: Path = IMAGE_PATH / "img_3.png") -> None:
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(description="Run Dart Detection with an image scorer.")
+    parser.add_argument(
+        "--image_path",
+        type=str,
+        default=str(IMAGE_PATH / "img_3.png"),
+        help="Path to the image file for dart detection"
+    )
+
+    args = parser.parse_args()
+    image_path = Path(args.image_path)
+
+    main(image_path)

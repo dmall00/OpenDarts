@@ -1,4 +1,5 @@
 """Preprocess images for further processing."""
+
 import logging
 
 import numpy as np
@@ -10,6 +11,7 @@ from detector.util.file_utils import resize_image
 from detector.yolo.dartboard_cropper import YoloDartBoardImageCropper
 
 logger = logging.getLogger(__name__)
+
 
 class ImagePreprocessor:
     """Service to preprocess images for further processing."""
