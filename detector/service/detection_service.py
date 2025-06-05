@@ -41,7 +41,6 @@ class DartDetectionService:
         """Execute the complete detection and scoring pipeline."""
         try:
             start_time = time.time()
-
             yolo_result: Results = self.__yolo_image_processor.detect(image)
             yolo_dart_result: YoloDartParseResult = self.__yolo_image_processor.extract_detections(yolo_result)
             dart_detections: List[DartDetection] = yolo_dart_result.dart_detections

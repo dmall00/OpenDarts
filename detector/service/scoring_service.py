@@ -36,7 +36,14 @@ class ScoringService:
             detection.dart_score = score
             total_score += score.score_value
 
-            logger.info("Dart %s: Position %s -> %s (%s points)", i, position, score.score_string, score.score_value)
+            logger.info(
+                "Dart %s: Position %s -> %s (%s points) Confidence: %s",
+                i,
+                position,
+                score.score_string,
+                score.score_value,
+                round(detection.confidence, 3),
+            )
 
         logger.info("Final scoring: Total %s points", total_score)
 

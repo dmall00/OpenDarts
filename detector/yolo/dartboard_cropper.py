@@ -1,6 +1,7 @@
 """Crops dartboard images using YOLO object detection."""
 
 import logging
+import time
 from typing import Tuple
 
 import numpy as np
@@ -23,11 +24,12 @@ class YoloDartBoardImageCropper:
 
     def crop_image(self, image: np.ndarray) -> np.ndarray:
         """Crop the image to focus on the detected dartboard."""
+        start = time.time()
         detection_result = self.__detect_dartboard(image)
         bounding_box = self.__extract_bounding_box(detection_result, image.shape)
         cropped_image = self.__crop_with_bounding_box(image, bounding_box)
 
-        self.__log_cropping_info(bounding_box, detection_result.boxes.conf[0], cropped_image.shape)
+        self.__log_cropping_info(bounding_box, detection_result.boxes.conf[0], cropped_image.shape, start)
 
         return cropped_image
 
@@ -85,10 +87,13 @@ class YoloDartBoardImageCropper:
         return image[y_start:y_end, x_start:x_end]
 
     @staticmethod
-    def __log_cropping_info(bounding_box: Tuple[int, int, int, int], confidence: float, cropped_shape: Tuple[int, ...]) -> None:
+    def __log_cropping_info(bounding_box: Tuple[int, int, int, int], confidence: float, cropped_shape: Tuple[int, ...],
+                            start: float) -> None:
+        end = time.time()
         x_start, y_start, x_end, y_end = bounding_box
         logger.info(
-            "Cropped dartboard from (%d,%d) with confidence %s to (%d,%d), size: %dx%d",
+            "Cropped dartboard in %s seconds from (%d,%d) with confidence %s to (%d,%d), size: %dx%d",
+            round(end - start, 2),
             x_start,
             y_start,
             f"{confidence:.3f}",

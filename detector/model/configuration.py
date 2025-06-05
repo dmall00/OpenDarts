@@ -45,6 +45,6 @@ class ProcessingConfig(BaseModel):
         description="Maximum number of darts allowed in detection",
     )
     enable_cropping_model: bool = Field(
-        default=True,
+        default=False,
         description="Enable cropping model for dart detection",
     )

@@ -6,7 +6,6 @@ from typing import TYPE_CHECKING
 
 from backend import IMAGE_PATH
 from detector.entrypoint.dart_image_scorer import DartImageScorer
-from detector.model.configuration import ProcessingConfig
 
 if TYPE_CHECKING:
     from detector.model.detection_models import DetectionResult
