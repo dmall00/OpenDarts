@@ -5,8 +5,9 @@ import logging
 import re
 from pathlib import Path
 
-from dart_detection import IMAGE_PATH
 from detector.entrypoint.calibration_visualizer import CalibrationVisualizer
+from detector.model.configuration import ProcessingConfig
+from detector.script import IMAGE_PATH
 
 
 def __natural_sort_key(path: Path) -> tuple[int, int | str]:
@@ -16,10 +17,10 @@ def __natural_sort_key(path: Path) -> tuple[int, int | str]:
     return 1, path.name
 
 
-def list_available_images() -> None:
-    """List all available PNG images in the IMAGE_PATH folder."""
+def list_available_images(image_folder: Path) -> None:
+    """List all available PNG images in the specified folder."""
     print("Available images in the folder:")
-    png_files = list(IMAGE_PATH.glob("*.png"))
+    png_files = list(image_folder.glob("*.png"))
 
     if png_files:
         for image_file in sorted(png_files, key=__natural_sort_key):
@@ -27,10 +28,10 @@ def list_available_images() -> None:
         print(f"\nTotal: {len(png_files)} image(s) found")
     else:
         print("  No PNG images found in the folder.")
-    print(f"Image folder path: {IMAGE_PATH}")
+    print(f"Image folder path: {image_folder}")
 
 
-def main() -> None:
+def main() -> None:  # noqa: C901
     """Run the calibration visualization demo."""
     parser = argparse.ArgumentParser(description="Run Dart Board Calibration Visualization demo.")
     parser.add_argument(
@@ -39,10 +40,15 @@ def main() -> None:
         help="Path to a specific image file for calibration visualization. If not provided, runs in interactive mode.",
     )
     parser.add_argument("--list", action="store_true", help="List all available PNG images in the images folder and exit.")
+    parser.add_argument("--config_path", type=str, default=None, help="Path to JSON config file for dart detection")
+    parser.add_argument("--image_folder", type=str, default=str(IMAGE_PATH), help="Path to the folder containing dart images")
     args = parser.parse_args()
 
+    image_folder = Path(args.image_folder)
+    config_path = Path(args.config_path) if args.config_path else None
+
     if args.list:
-        list_available_images()
+        list_available_images(image_folder)
         return
 
     image_path = Path(args.image_path) if args.image_path else None
@@ -57,18 +63,23 @@ def main() -> None:
     print("This demo shows how the image looks after calibration and homography transformations.")
     print()
 
-    visualizer = CalibrationVisualizer()
+    visualizer = CalibrationVisualizer(ProcessingConfig.from_json(config_path) if config_path else None)
 
     if image_path:
-        if not image_path.exists():
-            print(f"Error: Image file '{image_path}' not found!")
+        if image_path.exists():
+            print(f"Processing image: {image_path}")
+            visualizer.visualize(image_path)
             return
-        print(f"Processing image: {image_path}")
-        visualizer.visualize(image_path)
+        fallback_path = image_folder / image_path.name
+        if fallback_path.exists():
+            print(f"Processing image with fallback: {fallback_path}")
+            visualizer.visualize(fallback_path)
+            return
+        print(f"Error: Image file '{image_path}' not found, and fallback '{fallback_path}' also not found!")
         return
 
     while True:
-        print("\nEnter an image number (e.g. 1, 2, 7), or press Enter for the default image (img_3.png):")
+        print("\nEnter an image number (e.g. 1, 2, 7), with img scheme (img_x.png) or enter the full file name:")
         print("Enter 'list' to see all available images.")
         print("To exit enter 'q', 'exit' or 'quit':")
 
@@ -78,18 +89,17 @@ def main() -> None:
             break
 
         if choice == "list":
-            list_available_images()
+            list_available_images(image_folder)
             continue
 
         if choice == "":
-            selected_image = IMAGE_PATH / default_image
+            selected_image = image_folder / default_image
         else:
             try:
                 img_num = int(choice)
-                selected_image = IMAGE_PATH / f"img_{img_num}.png"
+                selected_image = image_folder / f"img_{img_num}.png"
             except ValueError:
-                print("Error: Please enter a valid number, 'list', or press Enter for default.")
-                continue
+                selected_image = image_folder / choice
 
         if not selected_image.exists():
             print(f"Error: Image file '{selected_image}' not found!")

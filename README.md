@@ -88,16 +88,7 @@ Visualize dartboard calibration and detection results:
 ```bash
 calibration-visualizer --help
 ```
-
 An example can be seen below.
-
-## 📁 Package Structure
-
-The package is organized into several key components:
-
-- **dart_detection** - Contains executable scripts
-- **detector** - Core detection logic and models
--
 
 ## 🎯 How It Works
 

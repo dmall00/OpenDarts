@@ -7,8 +7,8 @@ packages = ["detector"]
 
 [project]
 name = "dart-detection"
-version = "0.1.1"
-description = "A Python package for dart detection and scoring using computer vision"
+version = "0.1.2"
+description = "A Python package for automatic dart detection and scoring using computer vision "
 readme = "README.md"
 license = { file = "LICENSE" }
 requires-python = ">=3.10"
@@ -32,11 +32,10 @@ dependencies = [
 ]
 
 [project.scripts]
-dart-scorer = "dart_detection.demo.image_scorer_demo:main"
-calibration-visualizer = "dart_detection.demo.visualizer_demo:main"
+dart-scorer = "detector.script.image_scorer_demo:main"
+calibration-visualizer = "detector.script.visualizer_demo:main"
 
 [project.urls]
-Homepage = "https://github.com/dmall00/dart-detection"
 Repository = "https://github.com/dmall00/dart-detection"
 Issues = "https://github.com/dmall00/dart-detection/issues"
 Documentation = "https://github.com/dmall00/dart-detection#readme"

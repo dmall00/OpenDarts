@@ -13,6 +13,7 @@ import cv2
 import numpy as np
 from numpy import ndarray
 
+from detector.entrypoint.detection_service import DartDetectionService
 from detector.geometry.board import DartBoard
 from detector.model.configuration import ProcessingConfig
 from detector.model.detection_models import DartScore, DetectionResult, HomoGraphyMatrix, XYToArray
@@ -26,7 +27,6 @@ from detector.model.geometry_models import (
     VISUALIZATION_TEXT_OFFSET,
     VISUALIZATION_TEXT_RADIUS_RATIO,
 )
-from detector.service.detection_service import DartDetectionService
 from detector.service.image_preprocessor import ImagePreprocessor
 from detector.util.file_utils import load_image
 

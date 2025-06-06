@@ -1,6 +1,8 @@
 """Contains Configurations for dart detection and scoring."""
 
+import json
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Tuple
 
 from pydantic import BaseModel, Field
@@ -48,3 +50,10 @@ class ProcessingConfig(BaseModel):
         default=False,
         description="Enable cropping model for dart detection",
     )
+
+    @classmethod
+    def from_json(cls, json_path: Path) -> "ProcessingConfig":
+        """Load configuration from a JSON file."""
+        with open(json_path, encoding="utf-8") as f:  # noqa: PTH123
+            data = json.load(f)
+        return cls(**data)

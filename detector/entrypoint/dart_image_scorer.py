@@ -4,9 +4,9 @@ import logging
 from pathlib import Path
 from typing import Optional, Union
 
+from detector.entrypoint.detection_service import DartDetectionService
 from detector.model.configuration import ProcessingConfig
 from detector.model.detection_models import DetectionResult
-from detector.service.detection_service import DartDetectionService
 from detector.service.image_preprocessor import ImagePreprocessor
 from detector.util.file_utils import load_image
 

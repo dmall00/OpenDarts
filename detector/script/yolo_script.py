@@ -6,8 +6,8 @@ import cv2
 from ultralytics import YOLO
 from ultralytics.engine.results import Results
 
-from dart_detection import IMAGE_PATH
 from detector.model import MODEL_PATH
+from detector.script import IMAGE_PATH
 from detector.util.file_utils import resize_image
 
 

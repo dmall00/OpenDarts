@@ -19,3 +19,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Scoring system for detected darts
 - Image preprocessing capabilities
 - CLI tools: `dart-scorer` and `calibration-visualizer`
+
+## [0.1.2] - 06.07.2025
+
+### Fixed
+
+- Fixed the two scripts `dart-scorer` and `calibration-visualizer` by moving them to the `dart_detection` package
+  directory

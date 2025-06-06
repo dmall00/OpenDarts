@@ -5,8 +5,8 @@ import logging
 from pathlib import Path
 from typing import Dict, List
 
-from dart_detection import IMAGE_PATH
 from detector.entrypoint.dart_image_scorer import DartImageScorer
+from detector.script import IMAGE_PATH
 
 MINIMUM_MATCH_PERCENTAGE = 0.7
 
