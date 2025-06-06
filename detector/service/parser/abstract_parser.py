@@ -4,7 +4,7 @@ from abc import ABC
 from typing import Generic, List
 
 from detector.model.configuration import ProcessingConfig
-from detector.model.detection_models import P, YoloDetection, YoloPoint
+from detector.model.detection_models import P, YoloDetection
 
 
 class AbstractYoloParser(Generic[P], ABC):

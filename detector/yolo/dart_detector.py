@@ -1,7 +1,6 @@
 """Contains a  class for YOLO-based dart detection."""
 
 import logging
-from typing import List
 
 import numpy as np
 import torch
@@ -9,10 +8,6 @@ from ultralytics import YOLO
 from ultralytics.engine.results import Results
 
 from detector.model.configuration import ImmutableConfig, ProcessingConfig
-from detector.model.detection_models import (
-    YoloDartParseResult,
-    YoloDetection,
-)
 from detector.model.detection_result_code import DetectionResultCode
 from detector.model.exception import DartDetectionError
 

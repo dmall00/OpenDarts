@@ -4,7 +4,7 @@ import logging
 from typing import List
 
 from detector.model.configuration import ProcessingConfig
-from detector.model.detection_models import DartDetection, DartPosition, YoloDetection, YoloPoint
+from detector.model.detection_models import DartDetection, DartPosition, YoloDetection
 from detector.service.parser.abstract_parser import AbstractYoloParser
 
 logger = logging.getLogger(__name__)

@@ -59,12 +59,10 @@ class ProcessingConfig(BaseModel):
         default=True,
         description="Enable cropping model for dart detection",
     )
-
-    enable_smart_calibration_filtering: bool = Field(
-        default=True,
-        description="Enable smart filtering of calibration points based on confidence and distance.",
+    calibration_detection_mode: CalibrationPointDetectionMode = Field(
+        default=CalibrationPointDetectionMode.SMART,
+        description="Mode for calibration point detection",
     )
-
     calibration_position_tolerance: float = Field(
         default=0.15,
         description="Tolerance for calibration point position matching, in pixels.",
