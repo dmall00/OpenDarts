@@ -23,7 +23,7 @@ class CalibrationPointParserService(AbstractYoloParser):
 
     @override
     def _get_threshold(self) -> float:
-        return self._config.calibration_confidence_threshold
+        return self.__config.calibration_confidence_threshold
 
     @override
     def _is_correct_class(self, detection: YoloDetection) -> bool:
@@ -43,7 +43,7 @@ class CalibrationPointParserService(AbstractYoloParser):
                 continue
 
             detections = detections_by_index[calib_index]
-            selected_detection = self._strategy.select_calibration_point(calib_index, detections, self._config)
+            selected_detection = self._strategy.select_calibration_point(calib_index, detections, self.__config)
 
             if selected_detection is None:
                 calibration_points.append(self.__create_invalid_calibration_point(calib_index, "duplicate"))
