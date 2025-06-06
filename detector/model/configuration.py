@@ -23,7 +23,7 @@ class CalibrationPointDetectionMode(Enum):
     """Enum for calibration point detection modes."""
 
     HIGHEST_CONFIDENCE = 1  # Detect points with the highest confidence
-    SMART = 2  # Smart detection with filtering based on confidence and distance
+    GEOMETRIC = 2  # Smart detection with filtering based on confidence and distance
     FILTER_DUPLICATES = 3  # Discard duplicate calibration points
 
 
@@ -60,7 +60,7 @@ class ProcessingConfig(BaseModel):
         description="Enable cropping model for dart detection",
     )
     calibration_detection_mode: CalibrationPointDetectionMode = Field(
-        default=CalibrationPointDetectionMode.SMART,
+        default=CalibrationPointDetectionMode.GEOMETRIC,
         description="Mode for calibration point detection",
     )
     calibration_position_tolerance: float = Field(

@@ -22,7 +22,6 @@ class CalibrationService:
         self.__config = config
         self._dartboard = DartBoard()
         self._reference_coordinates = self._dartboard.get_calibration_reference_coordinates()
-        self._user_calibration = -np.ones((6, 2))  # User manual calibration override
 
     def calculate_homography(
         self,

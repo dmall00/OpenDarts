@@ -4,6 +4,7 @@ import argparse
 import logging
 import re
 from pathlib import Path
+from typing import List
 
 from detector.entrypoint.calibration_visualizer import CalibrationVisualizer
 from detector.model.configuration import ProcessingConfig
@@ -20,7 +21,7 @@ def list_available_images(image_folder: Path) -> None:
     """List all available images in the specified folder."""
     print("Available images in the folder:")
     image_extensions = ["*.png", "*.jpg", "*.jpeg", "*.bmp", "*.tiff"]
-    image_files = []
+    image_files: List[Path] = []
 
     for ext in image_extensions:
         image_files.extend(image_folder.glob(ext))

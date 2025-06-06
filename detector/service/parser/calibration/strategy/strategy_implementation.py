@@ -6,7 +6,7 @@ from typing import List, Optional, Tuple, override
 
 from detector.model.configuration import ProcessingConfig
 from detector.model.detection_models import YoloDetection
-from detector.model.yolo_dart_class_mapping import YoloDartClassMapping
+from detector.model.geometry_models import BOARD_CENTER_COORDINATE
 from detector.service.parser.calibration.strategy.calibration_detection_strategy import CalibrationDetectionStrategy
 
 
@@ -22,8 +22,8 @@ class HighestConfidenceStrategy(CalibrationDetectionStrategy):
         return max(detections, key=lambda d: d.confidence)
 
 
-class SmartDetectionStrategy(CalibrationDetectionStrategy):
-    """Strategy that uses smart filtering based on confidence and geometric position."""
+class GeometricDetectionStrategy(CalibrationDetectionStrategy):
+    """Strategy that uses geometric constraints and confidence to select the best calibration point."""
 
     logger = logging.getLogger(__name__)
 
@@ -31,25 +31,27 @@ class SmartDetectionStrategy(CalibrationDetectionStrategy):
     def select_calibration_point(
         self, calib_index: int, detections: List[YoloDetection], config: ProcessingConfig
     ) -> Optional[YoloDetection]:
+        """
+        Filter multiple detections for a calibration point using geometric validation,.
+
+        Select the most likely calibration point from multiple detections using a geometric validation approach.
+        First filters detections based on expected angular positions on the dartboard, then scores remaining
+        candidates using a weighted combination (70% position accuracy, 30% detection confidence).
+        """
         if not detections:
             return None
 
-        expected_pos = self._get_expected_calibration_position(calib_index)
-        if not expected_pos:
+        valid_detections = self._filter_geometrically_valid_detections(calib_index, detections)
+
+        if not valid_detections:
+            self.logger.warning("No geometrically valid detections for calibration point %s, using highest confidence", calib_index)
             return max(detections, key=lambda d: d.confidence)
 
-        scored_detections = []
-        for detection in detections:
-            score = self._calculate_calibration_score(detection, expected_pos, calib_index, config)
-            scored_detections.append((detection, score))
-            self.logger.debug(
-                "Calibration point %s at (%.3f, %.3f) scored %.3f", calib_index, detection.center_x, detection.center_y, score
-            )
+        # Score remaining valid detections
+        best_detection = self._select_best_detection(calib_index, valid_detections)
 
-        best_detection = max(scored_detections, key=lambda x: x[1])[0]
         self.logger.info(
-            "Selected calibration point %s (ID %s) at (%.3f, %.3f) with confidence %.3f",
-            YoloDartClassMapping.get_class_name(best_detection.class_id),
+            "Selected calibration point %s at (%.3f, %.3f) with confidence %.3f",
             calib_index,
             best_detection.center_x,
             best_detection.center_y,
@@ -58,86 +60,125 @@ class SmartDetectionStrategy(CalibrationDetectionStrategy):
 
         return best_detection
 
+    def _filter_geometrically_valid_detections(self, calib_index: int, detections: List[YoloDetection]) -> List[YoloDetection]:
+        """Filter out detections that are in geometrically impossible positions."""
+        valid_detections = []
+
+        for detection in detections:
+            if self._is_geometrically_valid(calib_index, detection):
+                valid_detections.append(detection)
+            else:
+                self.logger.info(
+                    "Filtered out geometrically invalid detection for point %s at (%.3f, %.3f)",
+                    calib_index,
+                    detection.center_x,
+                    detection.center_y,
+                )
+
+        return valid_detections
+
+    def _is_geometrically_valid(self, calib_index: int, detection: YoloDetection) -> bool:
+        """Check if a detection is in a geometrically plausible position for the calibration point."""
+        angle = self._calculate_angle_from_center(detection)
+        expected_angle_range = self._get_expected_angle_range(calib_index)
+
+        if not expected_angle_range:
+            return True  # No constraints for unknown calibration points
+
+        return self._is_angle_in_range(angle, expected_angle_range)
+
+    def _select_best_detection(self, calib_index: int, detections: List[YoloDetection]) -> YoloDetection:
+        """Select the best detection from geometrically valid candidates."""
+        expected_position = self._get_expected_position(calib_index)
+
+        if not expected_position:
+            # No position constraints, use the highest confidence
+            return max(detections, key=lambda d: d.confidence)
+
+        # Score based on distance to expected position and confidence
+        scored_detections = []
+        for detection in detections:
+            distance_score = self._calculate_distance_score(detection, expected_position)
+            confidence_score = detection.confidence
+
+            # Simple weighted average: 70% distance, 30% confidence
+            total_score = 0.7 * distance_score + 0.3 * confidence_score
+            scored_detections.append((detection, total_score))
+
+            self.logger.debug(
+                "Calibration point %s at (%.3f, %.3f): distance_score=%.3f, confidence=%.3f, total=%.3f",
+                calib_index,
+                detection.center_x,
+                detection.center_y,
+                distance_score,
+                confidence_score,
+                total_score,
+            )
+
+        return max(scored_detections, key=lambda x: x[1])[0]
+
     @staticmethod
-    def _get_expected_calibration_position(calib_index: int) -> Optional[Tuple[float, float]]:
-        """Get the expected normalized position for a calibration point on a standard dartboard."""
-        calibration_mapping = {
-            0: (20, 0),
-            1: (6, 90),
-            2: (3, 180),
-            3: (11, 270),
-            4: (14, 315),
-            5: (9, 45),
+    def _calculate_angle_from_center(detection: YoloDetection) -> float:
+        """Calculate angle in degrees from dartboard center (0° = right, 90° = up)."""
+        dx = detection.center_x - BOARD_CENTER_COORDINATE
+        dy = detection.center_y - BOARD_CENTER_COORDINATE
+
+        angle_rad = math.atan2(dy, dx)
+        angle_deg = math.degrees(angle_rad)
+
+        # Normalize to 0-360 range
+        return (angle_deg + 360) % 360
+
+    @staticmethod
+    def _get_expected_angle_range(calib_index: int) -> Optional[Tuple[float, float]]:
+        """Get the expected angle range (min, max) for a calibration point in degrees."""
+        # Based on standard dartboard layout with some tolerance
+        angle_ranges = {
+            0: (350, 30),  # 20: top area, crosses 0°
+            1: (75, 105),  # 6: right side
+            2: (165, 195),  # 3: bottom
+            3: (255, 285),  # 11: left side
+            4: (300, 330),  # 14: top-left
+            5: (30, 60),  # 9: top-right
         }
+        return angle_ranges.get(calib_index)
 
-        if calib_index not in calibration_mapping:
-            return None
+    @staticmethod
+    def _is_angle_in_range(angle: float, angle_range: Tuple[float, float]) -> bool:
+        """Check if angle is within the expected range, handling wraparound at 0°/360°."""
+        min_angle, max_angle = angle_range
 
-        number, angle_deg = calibration_mapping[calib_index]
-        angle_rad = math.radians(angle_deg)
-        radius = 0.35
+        if min_angle > max_angle:  # Range crosses 0° (e.g., 350° to 30°)
+            return angle >= min_angle or angle <= max_angle
+        # Normal range
+        return min_angle <= angle <= max_angle
 
-        center_x, center_y = 0.5, 0.5
-        expected_x = center_x + radius * math.cos(angle_rad)
-        expected_y = center_y + radius * math.sin(angle_rad)
+    @staticmethod
+    def _get_expected_position(calib_index: int) -> Optional[Tuple[float, float]]:
+        """Get the expected normalized (x, y) position for a calibration point."""
+        # Positions based on standard dartboard layout
+        positions = {
+            0: (0.5, 0.15),  # 20: top
+            1: (0.85, 0.5),  # 6: right
+            2: (0.5, 0.85),  # 3: bottom
+            3: (0.15, 0.5),  # 11: left
+            4: (0.25, 0.25),  # 14: top-left
+            5: (0.75, 0.25),  # 9: top-right
+        }
+        return positions.get(calib_index)
 
-        return (expected_x, expected_y)
-
-    def _calculate_calibration_score(
-        self, detection: YoloDetection, expected_pos: Tuple[float, float], calib_index: int, config: ProcessingConfig
-    ) -> float:
-        """Calculate a score for how likely this detection is the correct calibration point."""
+    @staticmethod
+    def _calculate_distance_score(detection: YoloDetection, expected_pos: Tuple[float, float]) -> float:
+        """Calculate a score (0-1) based on distance to expected position. Closer = higher score."""
         expected_x, expected_y = expected_pos
 
         distance = math.sqrt((detection.center_x - expected_x) ** 2 + (detection.center_y - expected_y) ** 2)
-        max_distance = config.calibration_position_tolerance
-        distance_score = max(0.0, 1 - (distance / max_distance))
 
-        confidence_score = detection.confidence
-        geometric_score = self._apply_geometric_constraints(detection, calib_index)
+        # Maximum reasonable distance for a calibration point to still be valid
+        max_distance = 0.3  # 30% of image width/height
 
-        return 0.5 * distance_score + 0.3 * confidence_score + 0.2 * geometric_score
-
-    @staticmethod
-    def _apply_geometric_constraints(detection: YoloDetection, calib_index: int) -> float:
-        """Apply specific geometric constraints based on dartboard knowledge."""
-        x, y = detection.center_x, detection.center_y
-        center_x, center_y = 0.5, 0.5
-
-        angle = math.atan2(y - center_y, x - center_x)
-        angle_deg = math.degrees(angle) % 360
-
-        expected_angles = {
-            0: (350, 10),
-            1: (80, 100),
-            2: (170, 190),
-            3: (260, 280),
-            4: (305, 325),
-            5: (35, 55),
-        }
-
-        if calib_index not in expected_angles:
-            return 0.5
-
-        min_angle, max_angle = expected_angles[calib_index]
-
-        if min_angle > max_angle:
-            if angle_deg >= min_angle or angle_deg <= max_angle:
-                return 1.0
-        elif min_angle <= angle_deg <= max_angle:
-            return 1.0
-
-        if min_angle > max_angle:
-            dist_to_range = min(
-                abs(angle_deg - min_angle) if angle_deg > 180 else abs(angle_deg + 360 - min_angle),  # noqa: PLR2004
-                abs(angle_deg - max_angle) if angle_deg < 180 else abs(angle_deg - 360 - max_angle),  # noqa: PLR2004
-            )
-        else:
-            dist_to_range = min(abs(angle_deg - min_angle), abs(angle_deg - max_angle))
-            if min_angle < angle_deg < max_angle:
-                dist_to_range = 0
-
-        return max(0.0, 1 - (dist_to_range / 45))
+        # Convert distance to score (closer = higher score)
+        return max(0.0, 1.0 - (distance / max_distance))
 
 
 class FilterDuplicatesStrategy(CalibrationDetectionStrategy):

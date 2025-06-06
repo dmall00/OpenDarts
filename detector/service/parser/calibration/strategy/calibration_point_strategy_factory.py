@@ -4,8 +4,8 @@ from detector.model.configuration import CalibrationPointDetectionMode
 from detector.service.parser.calibration.strategy.calibration_detection_strategy import CalibrationDetectionStrategy
 from detector.service.parser.calibration.strategy.strategy_implementation import (
     FilterDuplicatesStrategy,
+    GeometricDetectionStrategy,
     HighestConfidenceStrategy,
-    SmartDetectionStrategy,
 )
 
 
@@ -17,7 +17,7 @@ class CalibrationStrategyFactory:
         """Create a strategy based on the detection mode."""
         strategy_map = {
             CalibrationPointDetectionMode.HIGHEST_CONFIDENCE: HighestConfidenceStrategy(),
-            CalibrationPointDetectionMode.SMART: SmartDetectionStrategy(),
+            CalibrationPointDetectionMode.GEOMETRIC: GeometricDetectionStrategy(),
             CalibrationPointDetectionMode.FILTER_DUPLICATES: FilterDuplicatesStrategy(),
         }
 

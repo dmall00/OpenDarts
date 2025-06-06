@@ -62,7 +62,8 @@ class CalibrationPointParserService(AbstractYoloParser):
             point_type=f"{reason}_{calib_index}",
         )
 
-    def __create_calibration_point_from_detection(self, detection: YoloDetection) -> CalibrationPoint:
+    @staticmethod
+    def __create_calibration_point_from_detection(detection: YoloDetection) -> CalibrationPoint:
         """Create a calibration point from a YOLO detection."""
         point_type = YoloDartClassMapping.get_class_name(detection.class_id)
 
