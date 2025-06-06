@@ -2,6 +2,7 @@
 
 import json
 from dataclasses import dataclass
+from enum import Enum
 from pathlib import Path
 from typing import Tuple
 
@@ -16,6 +17,14 @@ class ImmutableConfig:
 
     dart_scorer_model_path: str = str(MODEL_PATH / "dart_scorer.pt")  # Path to the dart scorer model, immutable
     dartboard_model_path: str = str(MODEL_PATH / "dartboard_detection.pt")  # Path to the dartboard detection model, immutable
+
+
+class CalibrationPointDetectionMode(Enum):
+    """Enum for calibration point detection modes."""
+
+    HIGHEST_CONFIDENCE = 1  # Detect points with the highest confidence
+    SMART = 2  # Smart detection with filtering based on confidence and distance
+    FILTER_DUPLICATES = 3  # Discard duplicate calibration points
 
 
 class ProcessingConfig(BaseModel):

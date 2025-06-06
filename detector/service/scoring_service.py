@@ -6,7 +6,7 @@ from typing import List, Tuple
 import numpy as np
 
 from detector.geometry.board import DartBoard
-from detector.model.detection_models import Dart2dPosition, DartDetection, DartScore
+from detector.model.detection_models import DartDetection, DartPosition, DartScore
 from detector.model.geometry_models import (
     ANGLE_CALCULATION_EPSILON,
     BOARD_CENTER_COORDINATE,
@@ -47,7 +47,7 @@ class ScoringService:
 
         logger.info("Final scoring: Total %s points", total_score)
 
-    def __calculate_single_dart_score(self, position: Dart2dPosition) -> DartScore:
+    def __calculate_single_dart_score(self, position: DartPosition) -> DartScore:
         """Calculate score for a single dart."""
         position_array = self.__adjust_center_position(position.to_array())
         angle = self.__calculate_angle(position_array)

@@ -6,7 +6,7 @@ from typing import List
 import numpy as np
 
 from detector.model.configuration import ProcessingConfig
-from detector.model.detection_models import Dart2dPosition, DartDetection, HomoGraphyMatrix
+from detector.model.detection_models import DartDetection, DartPosition, HomoGraphyMatrix
 
 logger = logging.getLogger(__name__)
 
@@ -38,7 +38,7 @@ class TransformationService:
             # Normalize to image shape (remove homogeneous coordinate)
             final_coords = normalized_coords[:-1] / image_shape
 
-            new_position = Dart2dPosition(x=float(final_coords[0]), y=float(final_coords[1]))
+            new_position = DartPosition(x=float(final_coords[0]), y=float(final_coords[1]))
 
             detection.dart_position = new_position
 

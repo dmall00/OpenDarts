@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import TYPE_CHECKING, List, Optional, Sequence
+from typing import TYPE_CHECKING, List, Optional, Sequence, TypeVar
 
 import numpy as np
 
@@ -13,8 +13,12 @@ if TYPE_CHECKING:
     from detector.model.configuration import ProcessingConfig
 
 
-class XYToArray:
+@dataclass
+class Point2D:
     """Mixin that automatically implements to_array() for classes with x, y attributes."""
+
+    x: float
+    y: float
 
     def to_array(self) -> np.ndarray:
         """Automatically convert x, y attributes to a NumPy array."""
@@ -24,11 +28,18 @@ class XYToArray:
         return np.array([self.x, self.y])
 
     @staticmethod
-    def to_ndarray(xy_objects: Sequence["XYToArray"]) -> np.ndarray:
+    def to_ndarray(xy_objects: Sequence["Point2D"]) -> np.ndarray:
         """Convert a sequence of XYToArray objects to a single NumPy array."""
         if not xy_objects:
             return np.empty((0, 2))
         return np.array([obj.to_array() for obj in xy_objects])
+
+
+@dataclass
+class YoloPoint(Point2D):
+    """Represents a point from a yolo object with confidence."""
+
+    confidence: float
 
 
 @dataclass
@@ -39,6 +50,11 @@ class YoloDetection:
     confidence: float
     center_x: float
     center_y: float
+
+    @property
+    def get_dart_class(self) -> str:
+        """Get the class name of the detection."""
+        return YoloDartClassMapping.get_class_name(self.class_id)
 
     @property
     def is_dart(self) -> bool:
@@ -59,20 +75,14 @@ class HomoGraphyMatrix:
 
 
 @dataclass
-class Dart2dPosition(XYToArray):
+class DartPosition(Point2D):
     """Represents the position of a dart on the dartboard."""
-
-    x: float
-    y: float
 
 
 @dataclass
-class CalibrationPoint(XYToArray):
+class CalibrationPoint(YoloPoint):
     """Represents a calibration point for the dartboard."""
 
-    x: float
-    y: float
-    confidence: float
     point_type: str
 
 
@@ -88,9 +98,9 @@ class DartScore:
 class DartDetection:
     """Dart detection and scoring result of a single dart."""
 
-    original_dart_position: Dart2dPosition
+    original_dart_position: DartPosition
     confidence: float
-    dart_position: Optional[Dart2dPosition] = None
+    dart_position: Optional[DartPosition] = None
     dart_score: Optional[DartScore] = None
 
 
@@ -121,3 +131,6 @@ class DetectionResult:
     def is_success(self) -> bool:
         """Check if the detection result is successful."""
         return self is not None and self.result_code is DetectionResultCode.SUCCESS
+
+
+P = TypeVar("P", bound=YoloPoint)

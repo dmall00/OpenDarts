@@ -8,7 +8,7 @@ import numpy as np
 
 from detector.geometry.board import DartBoard
 from detector.model.configuration import ProcessingConfig
-from detector.model.detection_models import CalibrationPoint, HomoGraphyMatrix, XYToArray
+from detector.model.detection_models import CalibrationPoint, HomoGraphyMatrix, Point2D
 from detector.model.detection_result_code import DetectionResultCode
 from detector.model.exception import DartDetectionError
 
@@ -30,7 +30,7 @@ class CalibrationService:
     ) -> HomoGraphyMatrix:
         """Calculate homography transformation matrix from calibration points."""
         logger.debug("Calculating homography transformation matrix")
-        calibration_coords = XYToArray.to_ndarray(calibration_points)
+        calibration_coords = Point2D.to_ndarray(calibration_points)
 
         valid_points_info = self.__get_valid_points_info(calibration_coords)
         self.__ensure_minimum_points(valid_points_info["count"])  # type: ignore
