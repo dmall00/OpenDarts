@@ -22,10 +22,10 @@ class ProcessingConfig(BaseModel):
     """Configurations for dart detection and scoring."""
 
     calibration_confidence_threshold: float = Field(
-        default=0.6,
+        default=0.0,
         ge=0.0,
         le=1.0,
-        description="Confidence threshold for calibration point detections. Must be between 0.0 and 1.0.",
+        description="Confidence threshold for calibration point detections, 0.0 disables filtering. Must be between 0.0 and 1.0.",
     )
     dart_confidence_threshold: float = Field(
         default=0.0,
@@ -47,8 +47,18 @@ class ProcessingConfig(BaseModel):
         description="Maximum number of darts allowed in detection",
     )
     enable_cropping_model: bool = Field(
-        default=False,
+        default=True,
         description="Enable cropping model for dart detection",
+    )
+
+    enable_smart_calibration_filtering: bool = Field(
+        default=True,
+        description="Enable smart filtering of calibration points based on confidence and distance.",
+    )
+
+    calibration_position_tolerance: float = Field(
+        default=0.15,
+        description="Tolerance for calibration point position matching, in pixels.",
     )
 
     @classmethod

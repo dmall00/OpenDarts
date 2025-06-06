@@ -25,7 +25,7 @@ class YoloScript:
     def detect(self, image_path: Optional[str] = None) -> List[Results]:
         """Detect dartboards in an image.an image."""
         if image_path is None:
-            image_path = str(IMAGE_PATH / "img_27.png")
+            image_path = str(IMAGE_PATH / "img_28.png")
 
         image = cv2.imread(image_path)
         return self.model(resize_image(image=self.preprocessor.preprocess_image(image)))
