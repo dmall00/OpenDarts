@@ -7,7 +7,6 @@ from typing import TYPE_CHECKING
 
 from detector.entrypoint.dart_image_scorer import DartImageScorer
 from detector.model.configuration import ProcessingConfig
-from detector.script import IMAGE_PATH
 
 if TYPE_CHECKING:
     from detector.model.detection_models import DetectionResult
@@ -25,7 +24,7 @@ def setup_logging() -> None:  # noqa: D103
 def main() -> None:
     """Run the Dart Detection demo with a single image."""
     parser = argparse.ArgumentParser(description="Run Dart Detection with an image scorer.")
-    parser.add_argument("--image_path", type=str, default=str(IMAGE_PATH / "img_28.png"), help="Path to the image file for dart detection")
+    parser.add_argument("image_path", type=str, help="Path to the image file for dart detection")
     parser.add_argument("--config_path", type=str, default=None, help="Path to JSON config file for dart detection")
     args = parser.parse_args()
     image_path = Path(args.image_path)

@@ -32,8 +32,8 @@ dependencies = [
 ]
 
 [project.scripts]
-dart-scorer = "detector.script.image_scorer_demo:main"
-calibration-visualizer = "detector.script.visualizer_demo:main"
+dart-image-scorer = "detector.script.image_scorer_demo:main"
+dart-calibration-visualizer = "detector.script.visualizer_demo:main"
 
 [project.urls]
 Repository = "https://github.com/dmall00/dart-detection"

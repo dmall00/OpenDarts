@@ -1,4 +1,5 @@
 """Abstract class for Calibration Detection Strategy."""
+
 from abc import ABC, abstractmethod
 from typing import List, Optional
 

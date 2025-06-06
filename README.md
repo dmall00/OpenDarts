@@ -78,7 +78,7 @@ The package includes two convenient command-line tools:
 Score darts in images directly from the command line:
 
 ```bash
-dart-scorer --help
+dart-image-scorer --help
 ```
 
 ### **Calibration Visualizer**
@@ -86,7 +86,7 @@ dart-scorer --help
 Visualize dartboard calibration and detection results:
 
 ```bash
-calibration-visualizer --help
+dart-calibration-visualizer --help
 ```
 An example can be seen below.
 

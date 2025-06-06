@@ -1,4 +1,5 @@
 """Implementations of calibration detection strategies."""
+
 import logging
 import math
 from typing import List, Optional, Tuple, override
@@ -80,8 +81,9 @@ class SmartDetectionStrategy(CalibrationDetectionStrategy):
 
         return (expected_x, expected_y)
 
-    def _calculate_calibration_score(self, detection: YoloDetection, expected_pos: Tuple[float, float],
-                                     calib_index: int, config: ProcessingConfig) -> float:
+    def _calculate_calibration_score(
+        self, detection: YoloDetection, expected_pos: Tuple[float, float], calib_index: int, config: ProcessingConfig
+    ) -> float:
         """Calculate a score for how likely this detection is the correct calibration point."""
         expected_x, expected_y = expected_pos
 

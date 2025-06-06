@@ -18,11 +18,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Dartboard detection and cropping functionality
 - Scoring system for detected darts
 - Image preprocessing capabilities
-- CLI tools: `dart-scorer` and `calibration-visualizer`
+- CLI tools: `dart-image-scorer` and `dart-calibration-visualizer`
 
 ## [0.1.2] - 06.07.2025
 
 ### Fixed
 
-- Fixed the two scripts `dart-scorer` and `calibration-visualizer` by moving them to the `dart_detection` package
+- Fixed the two scripts `dart-image-scorer` and `dart-calibration-visualizer` by moving them to the `dart_detection`
+  package
   directory

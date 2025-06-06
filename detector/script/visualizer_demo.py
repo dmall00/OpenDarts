@@ -7,7 +7,6 @@ from pathlib import Path
 
 from detector.entrypoint.calibration_visualizer import CalibrationVisualizer
 from detector.model.configuration import ProcessingConfig
-from detector.script import IMAGE_PATH
 
 
 def __natural_sort_key(path: Path) -> tuple[int, int | str]:
@@ -18,16 +17,20 @@ def __natural_sort_key(path: Path) -> tuple[int, int | str]:
 
 
 def list_available_images(image_folder: Path) -> None:
-    """List all available PNG images in the specified folder."""
+    """List all available images in the specified folder."""
     print("Available images in the folder:")
-    png_files = list(image_folder.glob("*.png"))
+    image_extensions = ["*.png", "*.jpg", "*.jpeg", "*.bmp", "*.tiff"]
+    image_files = []
 
-    if png_files:
-        for image_file in sorted(png_files, key=__natural_sort_key):
+    for ext in image_extensions:
+        image_files.extend(image_folder.glob(ext))
+
+    if image_files:
+        for image_file in sorted(image_files, key=__natural_sort_key):
             print(f"  - {image_file.name}")
-        print(f"\nTotal: {len(png_files)} image(s) found")
+        print(f"\nTotal: {len(image_files)} image(s) found")
     else:
-        print("  No PNG images found in the folder.")
+        print("  No image files found in the folder.")
     print(f"Image folder path: {image_folder}")
 
 
@@ -41,7 +44,7 @@ def main() -> None:  # noqa: C901
     )
     parser.add_argument("--list", action="store_true", help="List all available PNG images in the images folder and exit.")
     parser.add_argument("--config_path", type=str, default=None, help="Path to JSON config file for dart detection")
-    parser.add_argument("--image_folder", type=str, default=str(IMAGE_PATH), help="Path to the folder containing dart images")
+    parser.add_argument("--image_folder", type=str, default=".", help="Path to the folder containing dart images")
     args = parser.parse_args()
 
     image_folder = Path(args.image_folder)
