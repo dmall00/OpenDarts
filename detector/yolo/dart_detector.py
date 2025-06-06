@@ -87,7 +87,7 @@ class YoloDartImageProcessor:
         if len(dart_detections) > self.__config.max_allowed_darts:
             logger.warning("Found %s darts, but only using the first %s", len(dart_detections), self.__config.max_allowed_darts)
         if len(dart_detections) == 0:
-            raise DartDetectionError(DetectionResultCode.NO_DARTS, details="No dart detections found")
+            logger.warning("No dart detections found in YOLO results")
 
         for detection in dart_detections[: self.__config.max_allowed_darts]:
             if self.__config.dart_confidence_threshold > 0.0 and detection.confidence < self.__config.dart_confidence_threshold:
