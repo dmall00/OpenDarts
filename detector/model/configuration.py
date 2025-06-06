@@ -63,10 +63,6 @@ class ProcessingConfig(BaseModel):
         default=CalibrationPointDetectionMode.GEOMETRIC,
         description="Mode for calibration point detection",
     )
-    calibration_position_tolerance: float = Field(
-        default=0.15,
-        description="Tolerance for calibration point position matching, in pixels.",
-    )
 
     @classmethod
     def from_json(cls, json_path: Path) -> "ProcessingConfig":

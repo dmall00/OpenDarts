@@ -7,6 +7,7 @@ from typing import List, Optional, Tuple, override
 from detector.model.configuration import ProcessingConfig
 from detector.model.detection_models import YoloDetection
 from detector.model.geometry_models import BOARD_CENTER_COORDINATE
+from detector.model.yolo_dart_class_mapping import YoloDartClassMapping
 from detector.service.parser.calibration.strategy.calibration_detection_strategy import CalibrationDetectionStrategy
 
 
@@ -51,7 +52,8 @@ class GeometricDetectionStrategy(CalibrationDetectionStrategy):
         best_detection = self._select_best_detection(calib_index, valid_detections)
 
         self.logger.info(
-            "Selected calibration point %s at (%.3f, %.3f) with confidence %.3f",
+            "Selected calibration point %s ID(%s) at (%.3f, %.3f) with confidence %.3f",
+            YoloDartClassMapping.get_class_name(calib_index),
             calib_index,
             best_detection.center_x,
             best_detection.center_y,
@@ -69,7 +71,8 @@ class GeometricDetectionStrategy(CalibrationDetectionStrategy):
                 valid_detections.append(detection)
             else:
                 self.logger.info(
-                    "Filtered out geometrically invalid detection for point %s at (%.3f, %.3f)",
+                    "Filtered out geometrically invalid detection for point %s (ID %s) at (%.3f, %.3f)",
+                    YoloDartClassMapping.get_class_name(calib_index),
                     calib_index,
                     detection.center_x,
                     detection.center_y,
