@@ -6,6 +6,7 @@ from typing import List, Optional, Tuple, override
 
 from detector.model.configuration import ProcessingConfig
 from detector.model.detection_models import YoloDetection
+from detector.model.yolo_dart_class_mapping import YoloDartClassMapping
 from detector.service.parser.calibration.strategy.calibration_detection_strategy import CalibrationDetectionStrategy
 
 
@@ -47,7 +48,8 @@ class SmartDetectionStrategy(CalibrationDetectionStrategy):
 
         best_detection = max(scored_detections, key=lambda x: x[1])[0]
         self.logger.info(
-            "Selected calibration point %s at (%.3f, %.3f) with confidence %.3f",
+            "Selected calibration point %s (ID %s) at (%.3f, %.3f) with confidence %.3f",
+            YoloDartClassMapping.get_class_name(best_detection.class_id),
             calib_index,
             best_detection.center_x,
             best_detection.center_y,

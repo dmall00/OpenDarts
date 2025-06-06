@@ -11,7 +11,7 @@ class AbstractYoloParser(Generic[P], ABC):
     """Abstract class for YOLO parser."""
 
     def __init__(self, config: ProcessingConfig) -> None:
-        self.__config = config
+        self._config = config
 
     def parse(self, detections: List[YoloDetection]) -> List[P]:
         """Extract detections from YOLO results."""

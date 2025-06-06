@@ -15,7 +15,7 @@ class YoloDartClassMapping:
         2: "11",
         3: "6",
         dart_class: "dart",
-        5: "11",
+        5: "9",
         6: "15",
     }
 
