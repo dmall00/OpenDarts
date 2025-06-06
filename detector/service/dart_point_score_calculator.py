@@ -18,7 +18,7 @@ from detector.model.geometry_models import (
 logger = logging.getLogger(__name__)
 
 
-class ScoringService:
+class DartPointScoreCalculator:
     """Domain service for calculating dart scores."""
 
     def __init__(self) -> None:

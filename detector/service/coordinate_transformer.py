@@ -11,7 +11,7 @@ from detector.model.detection_models import DartDetection, DartPosition, HomoGra
 logger = logging.getLogger(__name__)
 
 
-class TransformationService:
+class CoordinateTransformer:
     """Service for coordinate transformations and adjustments."""
 
     def __init__(self, config: ProcessingConfig) -> None:

@@ -13,7 +13,7 @@ import cv2
 import numpy as np
 from numpy import ndarray
 
-from detector.entrypoint.detection_service import DartDetectionService
+from detector.entrypoint.service.complete_dart_scoring_service import CompleteDartScoringService
 from detector.geometry.board import DartBoard
 from detector.model.configuration import ProcessingConfig
 from detector.model.detection_models import DartScore, DetectionResult, HomoGraphyMatrix, Point2D
@@ -40,7 +40,7 @@ class CalibrationVisualizer:
         self.__config = config or ProcessingConfig()
         self.window_name: str = "Calibration Visualization"
         self.dart_board: DartBoard = DartBoard()
-        self.detection_service: DartDetectionService = DartDetectionService(self.__config)
+        self.detection_service: CompleteDartScoringService = CompleteDartScoringService(self.__config)
         self.preprocessor = ImagePreprocessor(self.__config)
 
     def visualize(self, image_path: Path) -> None:

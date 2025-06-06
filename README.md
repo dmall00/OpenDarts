@@ -3,6 +3,13 @@
 A Python package for dart detection and scoring using computer vision and YOLO models. This package provides both
 programmatic APIs and command-line tools for detecting darts in images and calculating scores with high accuracy.
 
+Unlike other dart detection solutions on GitHub, this package is not designed to be a full-fledged dart game detection
+service.
+Instead, it focuses on providing interfaces for detecting darts in images and calculating scores, which can be
+integrated into larger applications.
+It is built with simplicity and ease of use in mind, allowing developers to quickly implement dart detection features
+without needing to understand the underlying complexities of computer vision.
+
 ## ✨ Features
 
 - **🎯 High-accuracy dart detection** using YOLO-based computer vision models
@@ -27,45 +34,35 @@ uv add dart-detection
 
 ## 📖 Quick Start
 
-### **Basic Dart Detection from Image Path**
+### **Basic Dart Detection from Image Path With Image Preprocessing**
 
 ```python
 from dart_detection.model.configuration import ProcessingConfig
-from dart_detection.entrypoint.dart_image_scorer import DartImageScorer
+from dart_detection.entrypoint.dart_image_scorer import DartImageScorerPipeline
 
-# Use default configuration
-scorer = DartImageScorer()
-result = scorer.detect_darts("path/to/your/dart_image.jpg")
-
-# Or with custom configuration
 config = ProcessingConfig(
-    # Add your custom settings here
-    confidence_threshold=0.7,
-    image_size=(640, 640)
+  confidence_threshold=0.7
 )
 
-scorer = DartImageScorer(config)
+scorer = DartImageScorerPipeline(config)
 result = scorer.detect_darts("image.jpg")
 print(f"Detected {len(result.detections)} darts with total score: {result.total_score}")
 ```
 
-### **Advanced Usage with Raw Images**
+### **Usage with Raw Images**
 
 For more control over the detection pipeline, use the `DartDetectionService` directly:
 
 ```python
-import numpy as np
-from dart_detection.service.dart_detection_service import DartDetectionService
+import cv2
+from detector.entrypoint.service.complete_dart_scoring_service import CompleteDartScoringService
 from dart_detection.model.configuration import ProcessingConfig
 
-# Load your image as numpy array
-image = np.array(...)  # Your image data
+image = cv2.imread("my_dart_image.jpg")
 
-# Initialize service
 config = ProcessingConfig()
-detection_service = DartDetectionService(config)
+detection_service = CompleteDartScoringService(config)
 
-# Detect and score darts
 result = detection_service.detect_and_score(image)
 ```
 

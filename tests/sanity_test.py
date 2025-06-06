@@ -5,7 +5,7 @@ import logging
 from pathlib import Path
 from typing import Dict, List
 
-from detector.entrypoint.dart_image_scorer import DartImageScorer
+from detector.entrypoint.dart_image_scorer_pipeline import DartImageScorerPipeline
 from detector.script import IMAGE_PATH
 
 MINIMUM_MATCH_PERCENTAGE = 0.7
@@ -56,7 +56,7 @@ def compare_dart_scores(predicted_scores: List[str], ground_truth_scores: List[s
 
 def test_dart_detection_sanity() -> None:
     """Sanity test for dart detection system.Tests all images against ground truth and asserts minimum match percentage."""
-    scorer = DartImageScorer()
+    scorer = DartImageScorerPipeline()
     logger = logging.getLogger(__name__)
     ground_truth = load_ground_truth()
 

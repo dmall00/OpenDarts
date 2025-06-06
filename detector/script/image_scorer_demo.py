@@ -5,7 +5,7 @@ import logging
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from detector.entrypoint.dart_image_scorer import DartImageScorer
+from detector.entrypoint.dart_image_scorer_pipeline import DartImageScorerPipeline
 from detector.model.configuration import ProcessingConfig
 
 if TYPE_CHECKING:
@@ -31,7 +31,7 @@ def main() -> None:
     config_path = Path(args.config_path) if args.config_path else None
 
     setup_logging()
-    detector = DartImageScorer(ProcessingConfig.from_json(config_path) if config_path else None)
+    detector = DartImageScorerPipeline(ProcessingConfig.from_json(config_path) if config_path else None)
     result: DetectionResult = detector.detect_darts(image_path)
 
     if result.is_success():

@@ -1,4 +1,4 @@
-"""Service to detect and score darts in images using YOLO and custom processing."""
+"""Service to calibrate, detect and score darts in images using YOLO and custom processing."""
 
 import logging
 import time
@@ -16,10 +16,10 @@ from detector.model.detection_models import (
 )
 from detector.model.detection_result_code import DetectionResultCode
 from detector.model.exception import DartDetectionError
-from detector.service.calibration_service import CalibrationService
+from detector.service.calibration_matrix_calculator import CalibrationMatrixCalculator
+from detector.service.coordinate_transformer import CoordinateTransformer
+from detector.service.dart_point_score_calculator import DartPointScoreCalculator
 from detector.service.parser.yolo_result_parser import YoloResultParser
-from detector.service.scoring_service import ScoringService
-from detector.service.transformation_service import TransformationService
 from detector.yolo.dart_detector import YoloDartImageProcessor
 
 if TYPE_CHECKING:
@@ -28,16 +28,16 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class DartDetectionService:
-    """Service responsible for orchestrating the dart detection pipeline."""
+class CompleteDartScoringService:
+    """Service responsible for orchestrating the dart detection pipeline with calibration and scoring."""
 
     def __init__(self, config: Optional[ProcessingConfig] = None) -> None:
         self.__config = config or ProcessingConfig()
         self.__yolo_image_processor = YoloDartImageProcessor(self.__config)
         self.__yolo_result_parser = YoloResultParser(self.__config)
-        self.__calibration_service = CalibrationService(self.__config)
-        self.__coordinate_service = TransformationService(self.__config)
-        self.__scoring_service = ScoringService()
+        self.__calibration_service = CalibrationMatrixCalculator(self.__config)
+        self.__coordinate_service = CoordinateTransformer(self.__config)
+        self.__scoring_service = DartPointScoreCalculator()
 
     def detect_and_score(self, image: np.ndarray) -> DetectionResult:
         """Execute the complete detection and scoring pipeline."""

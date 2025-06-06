@@ -15,7 +15,7 @@ from detector.model.exception import DartDetectionError
 logger = logging.getLogger(__name__)
 
 
-class CalibrationService:
+class CalibrationMatrixCalculator:
     """Service for dartboard calibration and homography calculation."""
 
     def __init__(self, config: ProcessingConfig) -> None:
