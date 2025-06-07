@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+## [0.1.4] - 07.15.2025
+
+### Added
+
+- Added a cropping padding to significantly improve dart detection accuracy
+- Introduced new services for calibration and scoring
+
+### Changed
+
+- Refactored calibration and scoring service for reusability and maintainability
+
 ## [0.1.3] - 06.15.2025
 
 ### Improved

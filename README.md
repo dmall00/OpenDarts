@@ -34,7 +34,7 @@ uv add dart-detection
 
 ## 📖 Quick Start
 
-### Classes
+### 🚧 Classes 🚧
 
 Under construction 🚧
 
