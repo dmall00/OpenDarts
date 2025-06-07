@@ -22,7 +22,7 @@ from detector.yolo.dart_detector import YoloDartImageProcessor
 class DartInImageScoringService:
     """Service responsible for orchestrating the dart detection pipeline with calibration and scoring."""
 
-    logger = logging.getLogger(__name__)
+    logger = logging.getLogger(__qualname__)
 
     def __init__(
         self,

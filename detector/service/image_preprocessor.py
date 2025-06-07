@@ -13,7 +13,7 @@ from detector.yolo.dartboard_cropper import YoloDartBoardImageCropper
 class ImagePreprocessor:
     """Service to preprocess images for further processing."""
 
-    logger = logging.getLogger(__name__)
+    logger = logging.getLogger(__qualname__)
 
     def __init__(self, config: ProcessingConfig) -> None:
         self.__config = config

@@ -16,7 +16,7 @@ from detector.model.image_models import DartImage
 class YoloDartImageProcessor:
     """Processor for running YOLO inference and extracting dart positions and calibration points."""
 
-    logger = logging.getLogger(__name__)
+    logger = logging.getLogger(__qualname__)
 
     def __init__(self, config: ProcessingConfig) -> None:
         self.__config = config

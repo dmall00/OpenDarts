@@ -18,7 +18,7 @@ from detector.model.image_models import CropInformation, DartImage
 class YoloDartBoardImageCropper:
     """Crops dartboard images using YOLO object detection."""
 
-    logger = logging.getLogger(__name__)
+    logger = logging.getLogger(__qualname__)
 
     def __init__(self, config: ProcessingConfig = None) -> None:
         device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -69,7 +69,7 @@ class YoloDartBoardImageCropper:
         return self.__calculate_bounding_box_corners(pixel_coords, img_width, img_height)
 
     @staticmethod
-    def __normalize_to_pixel_coordinates(
+    def __normalize_to_pixel_coordinates(  # noqa: PLR0913
         x_center_norm: float,
         y_center_norm: float,
         width_norm: float,

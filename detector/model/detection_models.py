@@ -24,7 +24,7 @@ class Point2D(ABC):
     def to_array(self) -> np.ndarray:
         """Automatically convert x, y attributes to a NumPy array."""
         if not (hasattr(self, "x") and hasattr(self, "y")):
-            msg = f"{self.__class__.__name__} must have 'x' and 'y' attributes"
+            msg = f"{self.__class__.__qualname__} must have 'x' and 'y' attributes"
             raise AttributeError(msg)
         return np.array([self.x, self.y])
 

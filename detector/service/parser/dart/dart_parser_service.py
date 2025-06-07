@@ -11,7 +11,7 @@ from detector.service.parser.abstract_parser import AbstractYoloParser
 class DartParserService(AbstractYoloParser):
     """Service for parsing dart detections from YOLO results."""
 
-    logger = logging.getLogger(__name__)
+    logger = logging.getLogger(__qualname__)
 
     def __init__(self, config: ProcessingConfig) -> None:
         super().__init__(config)

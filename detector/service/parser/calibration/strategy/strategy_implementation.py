@@ -26,7 +26,7 @@ class HighestConfidenceStrategy(CalibrationDetectionStrategy):
 class GeometricDetectionStrategy(CalibrationDetectionStrategy):
     """Strategy that uses geometric constraints and confidence to select the best calibration point."""
 
-    logger = logging.getLogger("GeometricDetectionStrategy")
+    logger = logging.getLogger(__qualname__)
 
     @override
     def select_calibration_point(
@@ -45,7 +45,7 @@ class GeometricDetectionStrategy(CalibrationDetectionStrategy):
         valid_detections = self._filter_geometrically_valid_detections(calib_index, detections)
 
         if not valid_detections:
-            self.logger.warning("No geometrically valid detections for calibration point %s, using highest confidence", calib_index)
+            self.logger.info("No geometrically valid detections for calibration point %s, using highest confidence", calib_index)
             return max(detections, key=lambda d: d.confidence)
 
         # Score remaining valid detections

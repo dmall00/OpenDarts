@@ -15,7 +15,7 @@ from detector.service.parser.calibration.strategy.calibration_point_strategy_fac
 class CalibrationPointParserService(AbstractYoloParser):
     """Service for parsing calibration points from YOLO detections."""
 
-    logger = logging.getLogger(__name__)
+    logger = logging.getLogger(__qualname__)
 
     def __init__(self, config: ProcessingConfig) -> None:
         super().__init__(config)

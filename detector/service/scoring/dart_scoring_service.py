@@ -26,7 +26,7 @@ from detector.yolo.dart_detector import YoloDartImageProcessor
 class DartScoringService:
     """Service that takes in existing homography matrix and dart detections, to calculate scores for the darts."""
 
-    logger = logging.getLogger(__name__)
+    logger = logging.getLogger(__qualname__)
 
     def __init__(
         self,

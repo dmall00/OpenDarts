@@ -35,7 +35,7 @@ from detector.util.file_utils import load_image
 class CalibrationVisualizer:
     """Class for visualizing the calibration transformation results."""
 
-    logger = logging.getLogger(__name__)
+    logger = logging.getLogger(__qualname__)
 
     def __init__(self, config: Optional[ProcessingConfig] = None) -> None:
         self.__config = config or ProcessingConfig()

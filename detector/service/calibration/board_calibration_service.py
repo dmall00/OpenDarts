@@ -17,7 +17,7 @@ from detector.yolo.dart_detector import YoloDartImageProcessor
 class DartBoardCalibrationService:
     """Service to receive an image and return the homography matrix for dartboard calibration."""
 
-    logger = logging.getLogger(__name__)
+    logger = logging.getLogger(__qualname__)
 
     def __init__(
         self,

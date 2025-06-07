@@ -14,7 +14,7 @@ from detector.util.file_utils import load_image
 class DartBoardImageToScorePipeline:
     """Entrypoint for dart detection and scoring from a given image path."""
 
-    logger = logging.getLogger(__name__)
+    logger = logging.getLogger(__qualname__)
 
     def __init__(self, config: Optional[ProcessingConfig] = None) -> None:
         self.__config = config or ProcessingConfig()

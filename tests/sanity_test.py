@@ -58,7 +58,7 @@ def compare_dart_scores(predicted_scores: List[str], ground_truth_scores: List[s
 def test_dart_detection_sanity() -> None:
     """Sanity test for dart detection system.Tests all images against ground truth and asserts minimum match percentage."""
     scorer = DartBoardImageToScorePipeline()
-    logger = logging.getLogger(__name__)
+    logger = logging.getLogger("SanityTest")
     ground_truth = load_ground_truth()
 
     total_images = 0

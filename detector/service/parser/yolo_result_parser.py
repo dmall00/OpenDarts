@@ -14,7 +14,7 @@ from detector.service.parser.dart.dart_parser_service import DartParserService
 class YoloResultParser:
     """A parser for YOLO detection results."""
 
-    logger = logging.getLogger(__name__)
+    logger = logging.getLogger(__qualname__)
 
     def __init__(self, config: ProcessingConfig) -> None:
         self.__config = config

@@ -12,7 +12,7 @@ from detector.model.detection_models import HomoGraphyMatrix, OriginalDartPositi
 class CoordinateTransformer:
     """Service for coordinate transformations and adjustments."""
 
-    logger = logging.getLogger(__name__)
+    logger = logging.getLogger(__qualname__)
 
     def __init__(self, config: ProcessingConfig) -> None:
         self.__config = config
