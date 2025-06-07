@@ -5,13 +5,13 @@ import logging
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from detector.entrypoint.dart_image_scorer_pipeline import DartImageScorerPipeline
+from detector.entrypoint.image_score_pipeline import DartBoardImageToScorePipeline
 from detector.model.configuration import ProcessingConfig
 
 if TYPE_CHECKING:
     from detector.model.detection_models import DetectionResult
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("DartImageScorerDemo")
 
 
 def setup_logging() -> None:  # noqa: D103
@@ -31,21 +31,21 @@ def main() -> None:
     config_path = Path(args.config_path) if args.config_path else None
 
     setup_logging()
-    detector = DartImageScorerPipeline(ProcessingConfig.from_json(config_path) if config_path else None)
+    detector = DartBoardImageToScorePipeline(ProcessingConfig.from_json(config_path) if config_path else None)
     result: DetectionResult = detector.detect_darts(image_path)
 
-    if result.is_success():
+    if result.success:
         logger.info("🎯 Dart Detection Results")
         logger.info("⏱️  Processing time: %.2fs", result.processing_time)
         logger.info("-" * 50)
 
-        if result.dart_detections:
-            logger.info("🎯 Darts detected: %d", len(result.dart_detections))
+        if result.scoring_result:
+            logger.info("🎯 Darts detected: %d", len(result.scoring_result.dart_detections))
 
             total_score = 0
-            for i, detection in enumerate(result.dart_detections):
+            for i, detection in enumerate(result.scoring_result.dart_detections):
                 if detection.dart_score:
-                    pos = detection.dart_position or detection.original_dart_position
+                    pos = detection.transformed_position or detection.original_position
                     logger.info(
                         "  🎯 Dart %d: %s (%d pts) at (%.2f, %.2f) [Confidence: %.1f%%]",
                         i + 1,
@@ -57,7 +57,7 @@ def main() -> None:
                     )
                     total_score += detection.dart_score.score_value
                 else:
-                    pos = detection.dart_position or detection.original_dart_position
+                    pos = detection.transformed_position or detection.original_position
                     logger.info(
                         "  ❓ Dart %d: Score pending at (%.2f, %.2f) [Confidence: %.1f%%]", i + 1, pos.x, pos.y, detection.confidence * 100
                     )
@@ -67,8 +67,8 @@ def main() -> None:
         else:
             logger.info("❌ No darts detected")
 
-        if result.calibration_points:
-            logger.info("🔧 Calibration points detected: %d", len(result.calibration_points))
+        if result.calibration_result.calibration_points:
+            logger.info("🔧 Calibration points detected: %d", len(result.calibration_result.calibration_points))
 
     else:
         error_msg = result.result_code.message

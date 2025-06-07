@@ -11,11 +11,11 @@ from detector.model.yolo_dart_class_mapping import YoloDartClassMapping
 from detector.service.parser.abstract_parser import AbstractYoloParser
 from detector.service.parser.calibration.strategy.calibration_point_strategy_factory import CalibrationStrategyFactory
 
-logger = logging.getLogger(__name__)
-
 
 class CalibrationPointParserService(AbstractYoloParser):
     """Service for parsing calibration points from YOLO detections."""
+
+    logger = logging.getLogger(__name__)
 
     def __init__(self, config: ProcessingConfig) -> None:
         super().__init__(config)
@@ -59,22 +59,20 @@ class CalibrationPointParserService(AbstractYoloParser):
             x=-1.0,
             y=-1.0,
             confidence=0.0,
-            point_type=f"{reason}_{calib_index}",
+            class_id=calib_index,
+            message=f"{reason}_{calib_index}",
         )
 
     @staticmethod
     def __create_calibration_point_from_detection(detection: YoloDetection) -> CalibrationPoint:
         """Create a calibration point from a YOLO detection."""
-        point_type = YoloDartClassMapping.get_class_name(detection.class_id)
-
         calibration_point = CalibrationPoint(
-            x=detection.center_x,
-            y=detection.center_y,
-            confidence=detection.confidence,
-            point_type=point_type,
+            x=detection.center_x, y=detection.center_y, confidence=detection.confidence, class_id=detection.class_id, message="valid"
         )
 
-        logger.debug("Created calibration point %s with confidence %s", point_type, f"{detection.confidence:.2f}")
+        CalibrationPointParserService.logger.debug(
+            "Created calibration point %s with confidence %s", calibration_point.point_type, f"{detection.confidence:.2f}"
+        )
         return calibration_point
 
     @staticmethod

@@ -2,13 +2,13 @@
 
 from typing import Optional
 
-from detector.model.detection_result_code import DetectionResultCode
+from detector.model.detection_result_code import ResultCode
 
 
 class DartDetectionError(Exception):
     """Exception raised when dart detection fails."""
 
-    def __init__(self, error_code: DetectionResultCode, cause: Optional[BaseException] = None, details: Optional[str] = None) -> None:
+    def __init__(self, error_code: ResultCode, cause: Optional[BaseException] = None, details: Optional[str] = None) -> None:
         self.error_code = error_code
         self.message = error_code.message
         self.details = details

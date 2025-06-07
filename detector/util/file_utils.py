@@ -7,7 +7,7 @@ from typing import Tuple, Union
 import cv2
 import numpy as np
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("FileUtils")
 
 
 def load_image(image_path: Union[str, Path]) -> np.ndarray:

@@ -10,18 +10,18 @@ from ultralytics import YOLO
 from ultralytics.engine.results import Results
 
 from detector.model.configuration import ImmutableConfig
-from detector.model.detection_result_code import DetectionResultCode
+from detector.model.detection_result_code import ResultCode
 from detector.model.exception import DartDetectionError
-
-logger = logging.getLogger(__name__)
 
 
 class YoloDartBoardImageCropper:
     """Crops dartboard images using YOLO object detection."""
 
+    logger = logging.getLogger(__name__)
+
     def __init__(self) -> None:
         device = "cuda" if torch.cuda.is_available() else "cpu"
-        logger.info("Loading YOLO model from: %s to device ", ImmutableConfig.dartboard_model_path)
+        self.logger.info("Loading YOLO model from: %s to device ", ImmutableConfig.dartboard_model_path)
         self._model = YOLO(ImmutableConfig.dartboard_model_path)
         self._model.to(device)
 
@@ -95,7 +95,7 @@ class YoloDartBoardImageCropper:
     ) -> None:
         end = time.time()
         x_start, y_start, x_end, y_end = bounding_box
-        logger.info(
+        YoloDartBoardImageCropper.logger.info(
             "Cropped dartboard in %s seconds from (%d,%d) with confidence %s to (%d,%d), size: %dx%d",
             round(end - start, 2),
             x_start,
@@ -110,6 +110,6 @@ class YoloDartBoardImageCropper:
     @staticmethod
     def __validate_dartboard_detection_output(result: Results) -> None:
         if not result:
-            raise DartDetectionError(DetectionResultCode.YOLO_ERROR, details="No result from YOLO dartboard model")
+            raise DartDetectionError(ResultCode.YOLO_ERROR, details="No result from YOLO dartboard model")
         if not result.boxes:
-            raise DartDetectionError(DetectionResultCode.YOLO_ERROR, details="No boxes detected by YOLO dartboard model")
+            raise DartDetectionError(ResultCode.YOLO_ERROR, details="No boxes detected by YOLO dartboard model")

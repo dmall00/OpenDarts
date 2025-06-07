@@ -1,12 +1,13 @@
 """Models for dart detection and scoring."""
 
+from abc import ABC
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import TYPE_CHECKING, List, Optional, Sequence, TypeVar
 
 import numpy as np
 
-from detector.model.detection_result_code import DetectionResultCode
+from detector.model.detection_result_code import ResultCode
 from detector.model.yolo_dart_class_mapping import YoloDartClassMapping
 
 if TYPE_CHECKING:
@@ -14,7 +15,7 @@ if TYPE_CHECKING:
 
 
 @dataclass
-class Point2D:
+class Point2D(ABC):
     """Mixin that automatically implements to_array() for classes with x, y attributes."""
 
     x: float
@@ -80,10 +81,28 @@ class DartPosition(Point2D):
 
 
 @dataclass
+class TransformedDartPosition(DartPosition):
+    """Represents a dart position transformed to the dartboard coordinate system."""
+
+
+@dataclass
+class OriginalDartPosition(DartPosition):
+    """Represents the original dart position in the image coordinate system before transformation."""
+
+    confidence: float
+
+
+@dataclass
 class CalibrationPoint(YoloPoint):
     """Represents a calibration point for the dartboard."""
 
-    point_type: str
+    class_id: int
+    message: str
+
+    @property
+    def point_type(self) -> str:
+        """Get the type of the calibration point based on its class ID."""
+        return YoloDartClassMapping.get_class_name(self.class_id)
 
 
 @dataclass
@@ -98,39 +117,87 @@ class DartScore:
 class DartDetection:
     """Dart detection and scoring result of a single dart."""
 
-    original_dart_position: DartPosition
-    confidence: float
-    dart_position: Optional[DartPosition] = None
-    dart_score: Optional[DartScore] = None
+    original_position: OriginalDartPosition
+    transformed_position: TransformedDartPosition
+    dart_score: DartScore
+
+    @property
+    def confidence(self) -> float:
+        """Get the confidence of the original dart position."""
+        return self.original_position.confidence
 
 
 @dataclass
 class YoloDartParseResult:
     """Result of YOLO model result parsing."""
 
-    dart_detections: List[DartDetection]
+    original_positions: List[OriginalDartPosition]
     calibration_points: List[CalibrationPoint]
 
 
 @dataclass
-class DetectionResult:
-    """Result of the dart detection process."""
+class AbstractResult(ABC):
+    """Abstract base class for results."""
 
-    dart_detections: List[DartDetection]
     processing_time: float
-    homography_matrix: Optional[HomoGraphyMatrix]
-    calibration_points: List[CalibrationPoint]
-    result_code: DetectionResultCode
-    message: str
+    result_code: ResultCode
+    message: Optional[str] = None
+    details: Optional[str] = None
     creation_time: datetime = field(default_factory=datetime.now)
 
-    def get_total_score(self) -> int:
+    @property
+    def success(self) -> bool:
+        """Check if the result is successful."""
+        return self.result_code is ResultCode.SUCCESS
+
+
+@dataclass
+class CalibrationResult(AbstractResult):
+    """Result of the calibration process."""
+
+    homography_matrix: HomoGraphyMatrix = None  # type: ignore
+    calibration_points: List[CalibrationPoint] = field(default_factory=list)
+
+
+@dataclass
+class ScoringResult(AbstractResult):
+    """Result of the scoring process."""
+
+    dart_detections: List[DartDetection] = field(default_factory=list)
+
+    @property
+    def total_score(self) -> int:
         """Calculate the total score from all dart scores."""
         return sum(dart_score.score_value for score in self.dart_detections if (dart_score := score.dart_score) is not None)
 
-    def is_success(self) -> bool:
+    def __str__(self) -> str:
+        darts_info = [
+            f"Dart {i + 1}: {dart.dart_score.score_string} ({dart.confidence:.2f})" for i, dart in enumerate(self.dart_detections)
+        ]
+        return f"Score: {self.total_score} | Darts: {', '.join(darts_info) if darts_info else 'None'}"
+
+
+@dataclass
+class DetectionResult(AbstractResult):
+    """Result of the dart detection process, including calibration and scoring."""
+
+    calibration_result: Optional[CalibrationResult] = None
+    scoring_result: Optional[ScoringResult] = None
+
+    @property
+    def total_score(self) -> int:
+        """Calculate the total score from all dart scores."""
+        return self.scoring_result.total_score if self.scoring_result else 0
+
+    @property
+    def success(self) -> bool:
         """Check if the detection result is successful."""
-        return self is not None and self.result_code is DetectionResultCode.SUCCESS
+        return (
+            self.calibration_result is not None
+            and self.calibration_result.success
+            and self.scoring_result is not None
+            and self.scoring_result.success
+        )
 
 
 P = TypeVar("P", bound=YoloPoint)

@@ -6,7 +6,7 @@ from typing import List, Tuple
 import numpy as np
 
 from detector.geometry.board import DartBoard
-from detector.model.detection_models import DartDetection, DartPosition, DartScore
+from detector.model.detection_models import DartPosition, DartScore, TransformedDartPosition
 from detector.model.geometry_models import (
     ANGLE_CALCULATION_EPSILON,
     BOARD_CENTER_COORDINATE,
@@ -15,37 +15,25 @@ from detector.model.geometry_models import (
     SINGLE_BULL_SCORE,
 )
 
-logger = logging.getLogger(__name__)
-
 
 class DartPointScoreCalculator:
     """Domain service for calculating dart scores."""
 
+    logger = logging.getLogger(__name__)
+
     def __init__(self) -> None:
         self._board = DartBoard()
 
-    def calculate_scores(self, dart_detections: List[DartDetection]) -> None:
+    def calculate_scores(self, dart_positions: List[TransformedDartPosition]) -> List[DartScore]:
         """Calculate scores for all darts."""
-        logger.debug("Calculating scores for %s darts", len(dart_detections))
+        self.logger.debug("Calculating scores for %s darts", len(dart_positions))
 
-        total_score = 0
+        dart_score_result = []
 
-        for i, detection in enumerate(dart_detections):
-            position = detection.dart_position
+        for position in dart_positions:
             score = self.__calculate_single_dart_score(position)  # type: ignore
-            detection.dart_score = score
-            total_score += score.score_value
-
-            logger.info(
-                "Dart %s: Position %s -> %s (%s points) Confidence: %s",
-                i,
-                position,
-                score.score_string,
-                score.score_value,
-                round(detection.confidence, 3),
-            )
-
-        logger.info("Final scoring: Total %s points", total_score)
+            dart_score_result.append(score)
+        return dart_score_result
 
     def __calculate_single_dart_score(self, position: DartPosition) -> DartScore:
         """Calculate score for a single dart."""

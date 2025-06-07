@@ -10,11 +10,11 @@ from detector.model.detection_models import YoloDartParseResult, YoloDetection
 from detector.service.parser.calibration.calibration_point_parser_service import CalibrationPointParserService
 from detector.service.parser.dart.dart_parser_service import DartParserService
 
-logger = logging.getLogger(__name__)
-
 
 class YoloResultParser:
     """A parser for YOLO detection results."""
+
+    logger = logging.getLogger(__name__)
 
     def __init__(self, config: ProcessingConfig) -> None:
         self.__config = config
@@ -23,13 +23,13 @@ class YoloResultParser:
 
     def extract_detections(self, yolo_result: Results) -> YoloDartParseResult:
         """Extract calibration points and dart coordinates from YOLO results."""
-        logger.debug("Processing YOLO detection output")
+        self.logger.debug("Processing YOLO detection output")
 
         detections = self.__parse_yolo_results(yolo_result)
-        dart_detection_results = self.__dart_parser_service.parse(detections)
+        dart_positions = self.__dart_parser_service.parse(detections)
         calibration_points = self.__calibration_parser_service.parse(detections)
-        logger.info("Extracted %s calibration points and %s darts", len(calibration_points), len(dart_detection_results))
-        return YoloDartParseResult(calibration_points=calibration_points, dart_detections=dart_detection_results)
+        self.logger.info("Extracted %s calibration points and %s darts", len(calibration_points), len(dart_positions))
+        return YoloDartParseResult(calibration_points=calibration_points, original_positions=dart_positions)
 
     @staticmethod
     def __parse_yolo_results(yolo_result: Results) -> List[YoloDetection]:

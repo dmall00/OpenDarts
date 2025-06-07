@@ -13,7 +13,6 @@ import cv2
 import numpy as np
 from numpy import ndarray
 
-from detector.entrypoint.service.complete_dart_scoring_service import CompleteDartScoringService
 from detector.geometry.board import DartBoard
 from detector.model.configuration import ProcessingConfig
 from detector.model.detection_models import DartScore, DetectionResult, HomoGraphyMatrix, Point2D
@@ -27,20 +26,21 @@ from detector.model.geometry_models import (
     VISUALIZATION_TEXT_OFFSET,
     VISUALIZATION_TEXT_RADIUS_RATIO,
 )
+from detector.service.dart_image_scoring_service import DartInImageScoringService
 from detector.service.image_preprocessor import ImagePreprocessor
 from detector.util.file_utils import load_image
-
-logger = logging.getLogger(__name__)
 
 
 class CalibrationVisualizer:
     """Class for visualizing the calibration transformation results."""
 
+    logger = logging.getLogger(__name__)
+
     def __init__(self, config: Optional[ProcessingConfig] = None) -> None:
         self.__config = config or ProcessingConfig()
         self.window_name: str = "Calibration Visualization"
         self.dart_board: DartBoard = DartBoard()
-        self.detection_service: CompleteDartScoringService = CompleteDartScoringService(self.__config)
+        self.detection_service: DartInImageScoringService = DartInImageScoringService(self.__config)
         self.preprocessor = ImagePreprocessor(self.__config)
 
     def visualize(self, image_path: Path) -> None:
@@ -52,27 +52,27 @@ class CalibrationVisualizer:
 
             result = self.detection_service.detect_and_score(image)
 
-            if not result.is_success():
+            if not result.success:
                 print(f"Detection failed: {result.result_code.message}")
                 return
 
             self.__show_transformation_result(image, result)
 
-            print(f"Detected darts: {len(result.dart_detections)}")
-            print(f"Total score: {result.get_total_score()}")
+            print(f"Detected darts: {len(result.scoring_result.dart_detections)}")
+            print(f"Total score: {result.total_score}")
 
         except Exception as e:
-            logger.exception("Error in visualization")
+            self.logger.exception("Error in visualization")
             print(f"Visualization error: {e!s}")
 
     def __show_transformation_result(self, original_image: np.ndarray, result: DetectionResult) -> None:
-        h_matrix: HomoGraphyMatrix = result.homography_matrix.matrix  # type: ignore
-        calibration_coords: np.ndarray = Point2D.to_ndarray(result.calibration_points)
-        dart_coords: np.ndarray = Point2D.to_ndarray([d.original_dart_position for d in result.dart_detections])
-        dart_scores: List[DartScore] = [d.dart_score for d in result.dart_detections]  # type: ignore
+        h_matrix: HomoGraphyMatrix = result.calibration_result.homography_matrix.matrix  # type: ignore
+        calibration_coords: np.ndarray = Point2D.to_ndarray(result.calibration_result.calibration_points)  # type: ignore
+        dart_coords: np.ndarray = Point2D.to_ndarray([detection.original_position for detection in result.scoring_result.dart_detections])  # type: ignore
+        dart_scores: List[DartScore] = [d.dart_score for d in result.scoring_result.dart_detections]  # type: ignore
 
         original_viz = self.__create_original_visualization(original_image, calibration_coords, dart_coords)
-        transformed_image = self.__apply_transformation(original_image, h_matrix)  # type: ignore
+        transformed_image = self.__apply_transformation(original_image, h_matrix)
 
         if transformed_image is None:
             return
@@ -108,7 +108,7 @@ class CalibrationVisualizer:
                 (original_image.shape[1], original_image.shape[0]),
             )
         except cv2.error as e:  # noqa: F841
-            logger.exception("Error applying homography transformation")
+            CalibrationVisualizer.logger.exception("Error applying homography transformation")
             return None
 
     def __create_transformed_visualization(
@@ -324,6 +324,6 @@ class CalibrationVisualizer:
     def __load_and_prepare_image(self, image_path: Path) -> ndarray | None:
         image = load_image(image_path)
         if image is None:
-            logger.error("Could not load image: %s", image_path)
+            self.logger.error("Could not load image: %s", image_path)
             return None
         return self.preprocessor.preprocess_image(image)
