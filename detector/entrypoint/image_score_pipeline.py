@@ -25,7 +25,7 @@ class DartBoardImageToScorePipeline:
         """Detect darts in the image at the given path and return detection results."""
         self.logger.info("Scoring image: %s", image_path)
         loaded_image = load_image(image_path)
-        preprocess_image = self.preprocessor.preprocess_image(loaded_image)
+        preprocess_image = self.preprocessor.preprocess_image(loaded_image).image
 
         return self._detection_service.detect_and_score(
             preprocess_image,

@@ -4,8 +4,6 @@ import logging
 import time
 from typing import Optional
 
-import numpy as np
-
 from detector.model.configuration import ProcessingConfig
 from detector.model.detection_models import (
     CalibrationResult,
@@ -14,6 +12,7 @@ from detector.model.detection_models import (
 )
 from detector.model.detection_result_code import ResultCode
 from detector.model.exception import DartDetectionError
+from detector.model.image_models import DartImage
 from detector.service.calibration.board_calibration_service import DartBoardCalibrationService
 from detector.service.parser.yolo_result_parser import YoloResultParser
 from detector.service.scoring.dart_scoring_service import DartScoringService
@@ -43,7 +42,7 @@ class DartInImageScoringService:
             self.__config, yolo_image_processor=self.__yolo_image_processor, yolo_result_parser=self.__yolo_result_parser
         )
 
-    def detect_and_score(self, image: np.ndarray) -> DetectionResult:
+    def detect_and_score(self, image: DartImage) -> DetectionResult:
         """Execute the complete detection and scoring pipeline."""
         try:
             start_time = time.time()

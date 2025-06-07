@@ -4,12 +4,11 @@ import logging
 import time
 from typing import List, Optional
 
-import numpy as np
-
 from detector.model.configuration import ProcessingConfig
 from detector.model.detection_models import CalibrationPoint, CalibrationResult, HomoGraphyMatrix
 from detector.model.detection_result_code import ResultCode
 from detector.model.exception import DartDetectionError
+from detector.model.image_models import DartImage
 from detector.service.calibration.calibration_matrix_calculator import CalibrationMatrixCalculator
 from detector.service.parser.yolo_result_parser import YoloResultParser
 from detector.yolo.dart_detector import YoloDartImageProcessor
@@ -31,7 +30,7 @@ class DartBoardCalibrationService:
         self.__yolo_image_processor = yolo_image_processor or YoloDartImageProcessor(self.__config)
         self.__yolo_result_parser = yolo_result_parser or YoloResultParser(self.__config)
 
-    def calibrate_board_from_image(self, image: np.ndarray) -> CalibrationResult:
+    def calibrate_board_from_image(self, image: DartImage) -> CalibrationResult:
         """Calculate the homography matrix based on provided calibration points."""
         try:
             start_time = time.time()
@@ -57,8 +56,8 @@ class DartBoardCalibrationService:
         return self.__create_calibration_result(homography, calibration_points, start_time)
 
     @staticmethod
-    def __validate_image(image: Optional[np.ndarray]) -> None:
-        if image is None:
+    def __validate_image(image: Optional[DartImage]) -> None:
+        if image is None or image.raw_image is None:
             raise DartDetectionError(ResultCode.INVALID_INPUT, details="Image cannot be None")
 
     @staticmethod

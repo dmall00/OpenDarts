@@ -12,6 +12,7 @@ from ultralytics.engine.results import Results
 from detector.model.configuration import ImmutableConfig
 from detector.model.detection_result_code import ResultCode
 from detector.model.exception import DartDetectionError
+from detector.model.image_models import CropInformation, DartImage
 
 
 class YoloDartBoardImageCropper:
@@ -25,8 +26,9 @@ class YoloDartBoardImageCropper:
         self._model = YOLO(ImmutableConfig.dartboard_model_path)
         self._model.to(device)
 
-    def crop_image(self, image: np.ndarray) -> np.ndarray:
+    def crop_image(self, dart_image: DartImage) -> Tuple[DartImage, CropInformation]:
         """Crop the image to focus on the detected dartboard."""
+        image = dart_image.raw_image
         start = time.time()
         detection_result = self.__detect_dartboard(image)
         bounding_box = self.__extract_bounding_box(detection_result, image.shape)
@@ -34,7 +36,19 @@ class YoloDartBoardImageCropper:
 
         self.__log_cropping_info(bounding_box, detection_result.boxes.conf[0], cropped_image.shape, start)
 
-        return cropped_image
+        x_start, y_start, x_end, y_end = bounding_box
+        crop_info = CropInformation(x_offset=x_start, y_offset=y_start, width=x_end - x_start, height=y_end - y_start)
+
+        return DartImage(cropped_image), crop_info
+
+    def apply_crop(self, dart_image: DartImage, crop_info: CropInformation) -> DartImage:
+        """Apply cropping information to a dart image."""
+        image = dart_image.raw_image
+        x_end = crop_info.x_offset + crop_info.width
+        y_end = crop_info.y_offset + crop_info.height
+
+        cropped_image = image[crop_info.y_offset : y_end, crop_info.x_offset : x_end]
+        return DartImage(cropped_image)
 
     def __detect_dartboard(self, image: np.ndarray) -> Results:
         results = self._model(image, verbose=False)
@@ -76,7 +90,6 @@ class YoloDartBoardImageCropper:
     ) -> Tuple[int, int, int, int]:
         x_center_px, y_center_px, width_px, height_px = pixel_coords
 
-        # Calculate corners from center point
         x_start = max(0, x_center_px - width_px // 2)
         y_start = max(0, y_center_px - height_px // 2)
         x_end = min(img_width, x_center_px + width_px // 2)
@@ -103,8 +116,8 @@ class YoloDartBoardImageCropper:
             f"{confidence:.3f}",
             x_end,
             y_end,
-            cropped_shape[1],  # width
-            cropped_shape[0],  # height
+            cropped_shape[1],
+            cropped_shape[0],
         )
 
     @staticmethod

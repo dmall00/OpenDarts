@@ -5,12 +5,13 @@ from pathlib import Path
 from typing import Tuple, Union
 
 import cv2
-import numpy as np
+
+from detector.model.image_models import DartImage
 
 logger = logging.getLogger("FileUtils")
 
 
-def load_image(image_path: Union[str, Path]) -> np.ndarray:
+def load_image(image_path: Union[str, Path]) -> DartImage:
     """Load an image from the specified path and return it as a NumPy array."""
     __validate_image_path(str(image_path))
 
@@ -20,13 +21,13 @@ def load_image(image_path: Union[str, Path]) -> np.ndarray:
         raise ValueError(msg)
 
     logger.debug("Image loaded successfully. Shape: %s", image.shape)
-    return image
+    return DartImage(image)
 
 
-def resize_image(image: np.ndarray, target_size: Tuple[int, int] = (800, 800)) -> np.ndarray:
+def resize_image(image: DartImage, target_size: Tuple[int, int] = (800, 800)) -> DartImage:
     """Resize the image to the target size."""
     logger.debug("Resizing image to target size: %s", target_size)
-    return cv2.resize(image, target_size, interpolation=cv2.INTER_AREA)
+    return DartImage(cv2.resize(image.raw_image, target_size, interpolation=cv2.INTER_AREA))
 
 
 def __validate_image_path(image_path: Union[str, Path]) -> None:

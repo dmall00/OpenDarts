@@ -34,37 +34,9 @@ uv add dart-detection
 
 ## 📖 Quick Start
 
-### **Basic Dart Detection from Image Path With Image Preprocessing**
+### Classes
 
-```python
-from dart_detection.model.configuration import ProcessingConfig
-from dart_detection.entrypoint.dart_image_scorer import DartBoardImageToScorePipeline
-
-config = ProcessingConfig(
-  confidence_threshold=0.7
-)
-
-scorer = DartBoardImageToScorePipeline(config)
-result = scorer.detect_darts("image.jpg")
-print(f"Detected {len(result.detections)} darts with total score: {result.total_score}")
-```
-
-### **Usage with Raw Images**
-
-For more control over the detection pipeline, use the `DartDetectionService` directly:
-
-```python
-import cv2
-from detector.service.dart_image_scoring_service import DartInImageScoringService
-from dart_detection.model.configuration import ProcessingConfig
-
-image = cv2.imread("my_dart_image.jpg")
-
-config = ProcessingConfig()
-detection_service = DartInImageScoringService(config)
-
-result = detection_service.detect_and_score(image)
-```
+Under construction 🚧
 
 ## 🛠️ Command Line Tools
 

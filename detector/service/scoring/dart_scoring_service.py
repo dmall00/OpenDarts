@@ -4,8 +4,6 @@ import logging
 import time
 from typing import List, Optional
 
-import numpy as np
-
 from detector.model.configuration import ProcessingConfig
 from detector.model.detection_models import (
     CalibrationResult,
@@ -18,6 +16,7 @@ from detector.model.detection_models import (
 )
 from detector.model.detection_result_code import ResultCode
 from detector.model.exception import DartDetectionError
+from detector.model.image_models import DartImage
 from detector.service.calibration.coordinate_transformer import CoordinateTransformer
 from detector.service.parser.yolo_result_parser import YoloResultParser
 from detector.service.scoring.dart_point_score_calculator import DartPointScoreCalculator
@@ -43,7 +42,7 @@ class DartScoringService:
         self.__yolo_image_processor = yolo_image_processor or YoloDartImageProcessor(self.__config)
         self.__yolo_result_parser = yolo_result_parser or YoloResultParser(self.__config)
 
-    def calculate_scores_from_image(self, image: np.ndarray, calibration_result: CalibrationResult) -> ScoringResult:
+    def calculate_scores_from_image(self, image: DartImage, calibration_result: CalibrationResult) -> ScoringResult:
         """Calculate scores for the darts based on the image and calibration result."""
         try:
             start_time = time.time()
@@ -65,8 +64,8 @@ class DartScoringService:
         return self.__calculate_scores(calibration_result.homography_matrix, original_positions, start_time)
 
     @staticmethod
-    def __validate_image(image: Optional[np.ndarray]) -> None:
-        if image is None:
+    def __validate_image(image: Optional[DartImage]) -> None:
+        if image is None or image.raw_image is None:
             raise DartDetectionError(ResultCode.INVALID_INPUT, details="Image cannot be None")
 
     def __calculate_scores(

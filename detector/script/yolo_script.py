@@ -28,7 +28,9 @@ class YoloScript:
             image_path = str(IMAGE_PATH / "img_28.png")
 
         image = cv2.imread(image_path)
-        return self.model(resize_image(image=self.preprocessor.preprocess_image(image)))
+        preprocessed_image = self.preprocessor.preprocess_image(image)
+        resized_image = resize_image(preprocessed_image.image)
+        return self.model(resized_image.raw_image)
 
     def show_results(self, results: List[Results]) -> None:
         """Display detection results."""

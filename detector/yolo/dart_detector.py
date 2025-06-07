@@ -3,7 +3,6 @@
 import logging
 import time
 
-import numpy as np
 import torch
 from ultralytics import YOLO
 from ultralytics.engine.results import Results
@@ -11,6 +10,7 @@ from ultralytics.engine.results import Results
 from detector.model.configuration import ImmutableConfig, ProcessingConfig
 from detector.model.detection_result_code import ResultCode
 from detector.model.exception import DartDetectionError
+from detector.model.image_models import DartImage
 
 
 class YoloDartImageProcessor:
@@ -25,11 +25,11 @@ class YoloDartImageProcessor:
         self._model = YOLO(ImmutableConfig.dart_scorer_model_path)
         self._model.to(device)
 
-    def detect(self, image: np.ndarray) -> Results:
+    def detect(self, image: DartImage) -> Results:
         """Run YOLO inference on image."""
         start_time = time.time()
         try:
-            results = list(self._model(image, verbose=False))
+            results = list(self._model(image.raw_image, verbose=False))
             result = results[0]
             self.logger.info(
                 "YOLO inference complete in %s seconds. Detected %s objects", round(time.time() - start_time, 3), len(result.boxes)

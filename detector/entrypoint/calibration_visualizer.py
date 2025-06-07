@@ -26,6 +26,7 @@ from detector.model.geometry_models import (
     VISUALIZATION_TEXT_OFFSET,
     VISUALIZATION_TEXT_RADIUS_RATIO,
 )
+from detector.model.image_models import DartImage
 from detector.service.dart_image_scoring_service import DartInImageScoringService
 from detector.service.image_preprocessor import ImagePreprocessor
 from detector.util.file_utils import load_image
@@ -321,9 +322,9 @@ class CalibrationVisualizer:
         cv2.waitKey(0)
         cv2.destroyAllWindows()
 
-    def __load_and_prepare_image(self, image_path: Path) -> ndarray | None:
+    def __load_and_prepare_image(self, image_path: Path) -> DartImage | None:
         image = load_image(image_path)
         if image is None:
             self.logger.error("Could not load image: %s", image_path)
             return None
-        return self.preprocessor.preprocess_image(image)
+        return self.preprocessor.preprocess_image(image).image
