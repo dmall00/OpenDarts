@@ -8,6 +8,7 @@ from ultralytics.engine.results import Results
 
 from detector.model import MODEL_PATH
 from detector.model.configuration import ProcessingConfig
+from detector.model.image_models import DartImage
 from detector.script import IMAGE_PATH
 from detector.service.image_preprocessor import ImagePreprocessor
 from detector.util.file_utils import resize_image
@@ -28,7 +29,7 @@ class YoloScript:
             image_path = str(IMAGE_PATH / "img_28.png")
 
         image = cv2.imread(image_path)
-        preprocessed_image = self.preprocessor.preprocess_image(image)
+        preprocessed_image = self.preprocessor.preprocess_image(DartImage(image))
         resized_image = resize_image(preprocessed_image.image)
         return self.model(resized_image.raw_image)
 

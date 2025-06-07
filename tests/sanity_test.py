@@ -33,7 +33,7 @@ def extract_dart_scores_from_result(detection_result: DetectionResult) -> List[s
 
     return [
         dart_detection.dart_score.score_string
-        for dart_detection in detection_result.scoring_result.dart_detections
+        for dart_detection in detection_result.scoring_result.dart_detections  # type: ignore
         if dart_detection.dart_score is not None
     ]
 

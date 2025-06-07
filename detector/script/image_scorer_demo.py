@@ -33,7 +33,9 @@ def main() -> None:
     setup_logging()
     detector = DartBoardImageToScorePipeline(ProcessingConfig.from_json(config_path) if config_path else None)
     result: DetectionResult = detector.detect_darts(image_path)
-
+    if not result:
+        logger.error("❌ No result returned from the detection service.")
+        return
     if result.success:
         logger.info("🎯 Dart Detection Results")
         logger.info("⏱️  Processing time: %.2fs", result.processing_time)
@@ -67,8 +69,8 @@ def main() -> None:
         else:
             logger.info("❌ No darts detected")
 
-        if result.calibration_result.calibration_points:
-            logger.info("🔧 Calibration points detected: %d", len(result.calibration_result.calibration_points))
+        if result.calibration_result.calibration_points:  # type: ignore
+            logger.info("🔧 Calibration points detected: %d", len(result.calibration_result.calibration_points))  # type: ignore
 
     else:
         error_msg = result.result_code.message

@@ -53,13 +53,11 @@ class CalibrationVisualizer:
 
             result = self.detection_service.detect_and_score(image)
 
-            if not result.success:
+            if not result or not result.success:
                 print(f"Detection failed: {result.result_code.message}")
                 return
-
             self.__show_transformation_result(image.raw_image, result)
-
-            print(f"Detected darts: {len(result.scoring_result.dart_detections)}")
+            print(f"Detected darts: {len(result.scoring_result.dart_detections)}")  # type: ignore
             print(f"Total score: {result.total_score}")
 
         except Exception as e:
@@ -67,13 +65,13 @@ class CalibrationVisualizer:
             print(f"Visualization error: {e!s}")
 
     def __show_transformation_result(self, original_image: np.ndarray, result: DetectionResult) -> None:
-        h_matrix: HomoGraphyMatrix = result.calibration_result.homography_matrix.matrix  # type: ignore
+        h_matrix = result.calibration_result.homography_matrix # type: ignore
         calibration_coords: np.ndarray = Point2D.to_ndarray(result.calibration_result.calibration_points)  # type: ignore
         dart_coords: np.ndarray = Point2D.to_ndarray([detection.original_position for detection in result.scoring_result.dart_detections])  # type: ignore
         dart_scores: List[DartScore] = [d.dart_score for d in result.scoring_result.dart_detections]  # type: ignore
 
         original_viz = self.__create_original_visualization(original_image, calibration_coords, dart_coords)
-        transformed_image = self.__apply_transformation(original_image, h_matrix)
+        transformed_image = self.__apply_transformation(original_image, h_matrix.matrix)
 
         if transformed_image is None:
             return
@@ -82,7 +80,7 @@ class CalibrationVisualizer:
             transformed_image,
             dart_coords,
             dart_scores,
-            h_matrix,  # type: ignore
+            h_matrix.matrix,
             original_image.shape,
         )
 

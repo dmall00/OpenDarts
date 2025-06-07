@@ -2,7 +2,7 @@
 
 import logging
 import time
-from typing import Tuple
+from typing import Optional, Tuple
 
 import numpy as np
 import torch
@@ -20,7 +20,7 @@ class YoloDartBoardImageCropper:
 
     logger = logging.getLogger(__qualname__)
 
-    def __init__(self, config: ProcessingConfig = None) -> None:
+    def __init__(self, config: Optional[ProcessingConfig] = None) -> None:
         device = "cuda" if torch.cuda.is_available() else "cpu"
         self.logger.info("Loading YOLO model from: %s to device ", ImmutableConfig.dartboard_model_path)
         self._model = YOLO(ImmutableConfig.dartboard_model_path)
