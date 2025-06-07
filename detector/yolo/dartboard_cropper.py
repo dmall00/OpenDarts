@@ -9,7 +9,7 @@ import torch
 from ultralytics import YOLO
 from ultralytics.engine.results import Results
 
-from detector.model.configuration import ImmutableConfig
+from detector.model.configuration import ImmutableConfig, ProcessingConfig
 from detector.model.detection_result_code import ResultCode
 from detector.model.exception import DartDetectionError
 from detector.model.image_models import CropInformation, DartImage
@@ -20,11 +20,12 @@ class YoloDartBoardImageCropper:
 
     logger = logging.getLogger(__name__)
 
-    def __init__(self) -> None:
+    def __init__(self, config: ProcessingConfig = None) -> None:
         device = "cuda" if torch.cuda.is_available() else "cpu"
         self.logger.info("Loading YOLO model from: %s to device ", ImmutableConfig.dartboard_model_path)
         self._model = YOLO(ImmutableConfig.dartboard_model_path)
         self._model.to(device)
+        self.__config = config or ProcessingConfig()
 
     def crop_image(self, dart_image: DartImage) -> Tuple[DartImage, CropInformation]:
         """Crop the image to focus on the detected dartboard."""
@@ -41,7 +42,8 @@ class YoloDartBoardImageCropper:
 
         return DartImage(cropped_image), crop_info
 
-    def apply_crop(self, dart_image: DartImage, crop_info: CropInformation) -> DartImage:
+    @staticmethod
+    def apply_crop(dart_image: DartImage, crop_info: CropInformation) -> DartImage:
         """Apply cropping information to a dart image."""
         image = dart_image.raw_image
         x_end = crop_info.x_offset + crop_info.width
@@ -67,7 +69,7 @@ class YoloDartBoardImageCropper:
         return self.__calculate_bounding_box_corners(pixel_coords, img_width, img_height)
 
     @staticmethod
-    def __normalize_to_pixel_coordinates(  # noqa: PLR0913
+    def __normalize_to_pixel_coordinates(
         x_center_norm: float,
         y_center_norm: float,
         width_norm: float,
@@ -82,18 +84,21 @@ class YoloDartBoardImageCropper:
 
         return x_center_px, y_center_px, width_px, height_px
 
-    @staticmethod
     def __calculate_bounding_box_corners(
+        self,
         pixel_coords: Tuple[int, int, int, int],
         img_width: int,
         img_height: int,
     ) -> Tuple[int, int, int, int]:
         x_center_px, y_center_px, width_px, height_px = pixel_coords
 
-        x_start = max(0, x_center_px - width_px // 2)
-        y_start = max(0, y_center_px - height_px // 2)
-        x_end = min(img_width, x_center_px + width_px // 2)
-        y_end = min(img_height, y_center_px + height_px // 2)
+        padding_x = int(width_px * self.__config.crop_padding_ratio)
+        padding_y = int(height_px * self.__config.crop_padding_ratio)
+
+        x_start = max(0, x_center_px - width_px // 2 - padding_x)
+        y_start = max(0, y_center_px - height_px // 2 - padding_y)
+        x_end = min(img_width, x_center_px + width_px // 2 + padding_x)
+        y_end = min(img_height, y_center_px + height_px // 2 + padding_y)
 
         return x_start, y_start, x_end, y_end
 

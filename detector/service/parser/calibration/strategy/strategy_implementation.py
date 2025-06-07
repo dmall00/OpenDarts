@@ -26,7 +26,7 @@ class HighestConfidenceStrategy(CalibrationDetectionStrategy):
 class GeometricDetectionStrategy(CalibrationDetectionStrategy):
     """Strategy that uses geometric constraints and confidence to select the best calibration point."""
 
-    logger = logging.getLogger(__name__)
+    logger = logging.getLogger("GeometricDetectionStrategy")
 
     @override
     def select_calibration_point(

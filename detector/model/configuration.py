@@ -59,6 +59,14 @@ class ProcessingConfig(BaseModel):
         default=True,
         description="Enable cropping model for dart detection",
     )
+
+    crop_padding_ratio: float = Field(
+        default=0.15,
+        ge=0.0,
+        le=1.0,
+        description="Padding ratio for cropping the dartboard area, relative to the image size. Only used if cropping model is enabled.",
+    )
+
     calibration_detection_mode: CalibrationPointDetectionMode = Field(
         default=CalibrationPointDetectionMode.GEOMETRIC,
         description="Mode for calibration point detection",

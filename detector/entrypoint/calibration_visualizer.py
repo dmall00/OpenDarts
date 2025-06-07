@@ -57,7 +57,7 @@ class CalibrationVisualizer:
                 print(f"Detection failed: {result.result_code.message}")
                 return
 
-            self.__show_transformation_result(image, result)
+            self.__show_transformation_result(image.raw_image, result)
 
             print(f"Detected darts: {len(result.scoring_result.dart_detections)}")
             print(f"Total score: {result.total_score}")
