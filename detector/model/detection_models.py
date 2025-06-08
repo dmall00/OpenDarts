@@ -1,8 +1,7 @@
 """Models for dart detection and scoring."""
-
+import time
 from abc import ABC
 from dataclasses import dataclass, field
-from datetime import datetime
 from typing import TYPE_CHECKING, List, Optional, Sequence, TypeVar
 
 import numpy as np
@@ -143,7 +142,7 @@ class AbstractResult(ABC):
     result_code: ResultCode
     message: Optional[str] = None
     details: Optional[str] = None
-    creation_time: datetime = field(default_factory=datetime.now)
+    creation_time: float = field(default_factory=time.time)
 
     @property
     def success(self) -> bool:
