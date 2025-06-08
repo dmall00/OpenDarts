@@ -2,10 +2,10 @@
 
 import time
 from abc import ABC
-from typing import TYPE_CHECKING, List, Optional, Sequence, TypeVar
+from typing import TYPE_CHECKING, Any, List, Optional, Sequence, TypeVar
 
 import numpy as np
-from pydantic import BaseModel, ConfigDict, Field, field_serializer
+from pydantic import BaseModel, ConfigDict, Field, field_serializer, field_validator
 
 from detector.model.detection_result_code import ResultCode
 from detector.model.image_models import PreprocessingResult
@@ -79,6 +79,14 @@ class HomoGraphyMatrix(BaseModel):
     def serialize_matrix(self, _: np.ndarray) -> list:
         """Convert the numpy matrix to a regular nested list for serialization."""
         return self.matrix.tolist()
+
+    @field_validator("matrix", mode="before")
+    @classmethod
+    def deserialize_matrix(cls, matrix) -> np.ndarray:  # noqa: ANN001
+        """Convert a nested list to numpy array during deserialization."""
+        if isinstance(matrix, list):
+            return np.array(matrix)
+        return matrix
 
 
 class DartPosition(Point2D):
