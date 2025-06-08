@@ -3,9 +3,9 @@ version: '3.8'
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: multidart-postgres
+    container_name: opendarts-postgres
     environment:
-      POSTGRES_DB: multidart_db
+      POSTGRES_DB: opendarts_db
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     ports:
@@ -13,11 +13,11 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
-      - multidart-network
+      - opendarts-network
     restart: unless-stopped
 
 networks:
-  multidart-network:
+  opendarts-network:
     driver: bridge
 
 volumes:

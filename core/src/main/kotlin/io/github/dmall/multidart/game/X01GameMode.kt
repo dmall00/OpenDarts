@@ -1,5 +1,0 @@
-package io.github.dmall.multidart.game
-
-class X01GameMode {
-
-}

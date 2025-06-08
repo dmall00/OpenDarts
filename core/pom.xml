@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>io.github.dmall</groupId>
-        <artifactId>multi-dart</artifactId>
+        <artifactId>open-darts</artifactId>
         <version>0.0.1-SNAPSHOT</version>
     </parent>
 

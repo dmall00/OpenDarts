@@ -1,4 +1,4 @@
-# Multi Dart
+# Open Darts
 
 
 ## Auth service

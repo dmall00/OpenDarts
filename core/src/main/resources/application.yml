@@ -6,7 +6,7 @@ spring:
     name: api-gateway
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/multidart_db
+    url: jdbc:postgresql://localhost:5432/opendarts_db
     username: postgres
     password: postgres
     driver-class-name: org.postgresql.Driver
