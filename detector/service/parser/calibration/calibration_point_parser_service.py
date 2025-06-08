@@ -3,8 +3,6 @@
 import logging
 from typing import Dict, List
 
-from typing_extensions import override
-
 from detector.model.configuration import ProcessingConfig
 from detector.model.detection_models import CalibrationPoint, YoloDetection
 from detector.model.yolo_dart_class_mapping import YoloDartClassMapping
@@ -21,15 +19,12 @@ class CalibrationPointParserService(AbstractYoloParser):
         super().__init__(config)
         self._strategy = CalibrationStrategyFactory.create_strategy(config.calibration_detection_mode)
 
-    @override
     def _get_threshold(self) -> float:
         return self._config.calibration_confidence_threshold
 
-    @override
     def _is_correct_class(self, detection: YoloDetection) -> bool:
         return not detection.is_dart
 
-    @override
     def parse(self, detections: List[YoloDetection]) -> List[CalibrationPoint]:
         """Create calibration points from calibration detections, handling duplicates and missing points."""
         calibration_detections = super()._filter_detections(detections)

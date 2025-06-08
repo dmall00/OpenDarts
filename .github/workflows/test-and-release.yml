@@ -11,6 +11,9 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [ "3.11", "3.12" ] # test with all supported Python versions
     steps:
       - uses: actions/checkout@v4
 
@@ -20,7 +23,7 @@ jobs:
           version: "latest"
 
       - name: Set up Python
-        run: uv python install 3.12
+        run: uv python install ${{ matrix.python-version }}
 
       - name: Install dependencies
         run: uv sync --dev
@@ -48,7 +51,7 @@ jobs:
           version: "latest"
 
       - name: Set up Python
-        run: uv python install 3.12
+        run: uv python install 3.12 # optimal performance but backwards compatible
 
       - name: Install dependencies
         run: uv sync --dev

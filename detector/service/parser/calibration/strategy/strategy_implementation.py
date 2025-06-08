@@ -2,7 +2,7 @@
 
 import logging
 import math
-from typing import List, Optional, Tuple, override
+from typing import List, Optional, Tuple
 
 from detector.model.configuration import ProcessingConfig
 from detector.model.detection_models import YoloDetection
@@ -14,10 +14,13 @@ from detector.service.parser.calibration.strategy.calibration_detection_strategy
 class HighestConfidenceStrategy(CalibrationDetectionStrategy):
     """Strategy that selects calibration point with the highest confidence."""
 
-    @override
     def select_calibration_point(
-        self, calib_index: int, detections: List[YoloDetection], config: ProcessingConfig
+        self,
+        calib_index: int,  # noqa: ARG002
+        detections: List[YoloDetection],
+        config: ProcessingConfig,  # noqa: ARG002
     ) -> Optional[YoloDetection]:
+        """Select the calibration point with the highest confidence."""
         if not detections:
             return None
         return max(detections, key=lambda d: d.confidence)
@@ -28,9 +31,11 @@ class GeometricDetectionStrategy(CalibrationDetectionStrategy):
 
     logger = logging.getLogger(__qualname__)
 
-    @override
     def select_calibration_point(
-        self, calib_index: int, detections: List[YoloDetection], config: ProcessingConfig
+        self,
+        calib_index: int,
+        detections: List[YoloDetection],
+        config: ProcessingConfig,  # noqa: ARG002
     ) -> Optional[YoloDetection]:
         """
         Filter multiple detections for a calibration point using geometric validation,.
@@ -187,10 +192,13 @@ class GeometricDetectionStrategy(CalibrationDetectionStrategy):
 class FilterDuplicatesStrategy(CalibrationDetectionStrategy):
     """Strategy that filters out duplicate calibration points."""
 
-    @override
     def select_calibration_point(
-        self, calib_index: int, detections: List[YoloDetection], config: ProcessingConfig
+        self,
+        calib_index: int,  # noqa: ARG002
+        detections: List[YoloDetection],
+        config: ProcessingConfig,  # noqa: ARG002
     ) -> Optional[YoloDetection]:
+        """Filter out duplicate detections by returning None if multiple detections exist."""
         if not detections:
             return None
         if len(detections) > 1:

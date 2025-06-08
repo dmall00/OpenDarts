@@ -15,7 +15,7 @@ from numpy import ndarray
 
 from detector.geometry.board import DartBoard
 from detector.model.configuration import ProcessingConfig
-from detector.model.detection_models import DartScore, DetectionResult, HomoGraphyMatrix, Point2D
+from detector.model.detection_models import DartScore, DetectionResult, Point2D
 from detector.model.geometry_models import (
     ANGLE_CALCULATION_EPSILON,
     BOARD_CENTER_COORDINATE,
@@ -65,7 +65,7 @@ class CalibrationVisualizer:
             print(f"Visualization error: {e!s}")
 
     def __show_transformation_result(self, original_image: np.ndarray, result: DetectionResult) -> None:
-        h_matrix = result.calibration_result.homography_matrix # type: ignore
+        h_matrix = result.calibration_result.homography_matrix  # type: ignore
         calibration_coords: np.ndarray = Point2D.to_ndarray(result.calibration_result.calibration_points)  # type: ignore
         dart_coords: np.ndarray = Point2D.to_ndarray([detection.original_position for detection in result.scoring_result.dart_detections])  # type: ignore
         dart_scores: List[DartScore] = [d.dart_score for d in result.scoring_result.dart_detections]  # type: ignore
