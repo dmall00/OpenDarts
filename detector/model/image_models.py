@@ -1,20 +1,24 @@
 """Models for image related operations in dart detection."""
 
-from dataclasses import dataclass
 from typing import Optional
 
 import numpy as np
+from pydantic import BaseModel, ConfigDict, field_serializer
 
 
-@dataclass
-class DartImage:
+class DartImage(BaseModel):
     """Represents an image to be processed for dart detection."""
 
+    model_config = ConfigDict(arbitrary_types_allowed=True)
     raw_image: np.ndarray
 
+    @field_serializer("raw_image")
+    def serialize_matrix(self, _: np.ndarray) -> list:
+        """Convert the numpy matrix to a regular nested list for serialization."""
+        return self.raw_image.tolist()
 
-@dataclass
-class CropInformation:
+
+class CropInformation(BaseModel):
     """Information about the cropping applied to an image."""
 
     x_offset: int
@@ -23,16 +27,14 @@ class CropInformation:
     height: int
 
 
-@dataclass
-class PreprocessingResult:
+class PreprocessingResult(BaseModel):
     """Result of preprocessing an image."""
 
     crop_info: Optional[CropInformation] = None
 
 
-@dataclass
-class DartImagePreprocessed:
+class DartImagePreprocessed(BaseModel):
     """Represents a preprocessed dart image ready for detection."""
 
-    image: DartImage
+    dart_image: DartImage
     preprocessing_result: PreprocessingResult

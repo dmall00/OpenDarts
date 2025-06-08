@@ -40,7 +40,7 @@ class YoloDartBoardImageCropper:
         x_start, y_start, x_end, y_end = bounding_box
         crop_info = CropInformation(x_offset=x_start, y_offset=y_start, width=x_end - x_start, height=y_end - y_start)
 
-        return DartImage(cropped_image), crop_info
+        return DartImage(raw_image=cropped_image), crop_info
 
     @staticmethod
     def apply_crop(dart_image: DartImage, crop_info: CropInformation) -> DartImage:
@@ -50,7 +50,7 @@ class YoloDartBoardImageCropper:
         y_end = crop_info.y_offset + crop_info.height
 
         cropped_image = image[crop_info.y_offset : y_end, crop_info.x_offset : x_end]
-        return DartImage(cropped_image)
+        return DartImage(raw_image=cropped_image)
 
     def __detect_dartboard(self, image: np.ndarray) -> Results:
         results = self._model(image, verbose=False)

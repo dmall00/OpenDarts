@@ -32,7 +32,7 @@ class ImagePreprocessor:
             self.logger.info("Cropping model is disabled, skipping image cropping")
 
         resized_image = resize_image(image, self.__config.target_image_size)
-        return DartImagePreprocessed(resized_image, PreprocessingResult(crop_info=crop_info))
+        return DartImagePreprocessed(dart_image=resized_image, preprocessing_result=PreprocessingResult(crop_info=crop_info))
 
     def preprocess_images_from_preprocessing_result(
         self, image: DartImage, preprocessing_result: PreprocessingResult

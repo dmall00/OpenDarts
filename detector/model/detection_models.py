@@ -1,10 +1,11 @@
 """Models for dart detection and scoring."""
+
 import time
 from abc import ABC
-from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, List, Optional, Sequence, TypeVar
 
 import numpy as np
+from pydantic import BaseModel, ConfigDict, Field, field_serializer
 
 from detector.model.detection_result_code import ResultCode
 from detector.model.yolo_dart_class_mapping import YoloDartClassMapping
@@ -13,9 +14,10 @@ if TYPE_CHECKING:
     from detector.model.configuration import ProcessingConfig
 
 
-@dataclass
-class Point2D(ABC):
+class Point2D(BaseModel, ABC):
     """Mixin that automatically implements to_array() for classes with x, y attributes."""
+
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
     x: float
     y: float
@@ -35,15 +37,13 @@ class Point2D(ABC):
         return np.array([obj.to_array() for obj in xy_objects])
 
 
-@dataclass
 class YoloPoint(Point2D):
     """Represents a point from a yolo object with confidence."""
 
     confidence: float
 
 
-@dataclass
-class YoloDetection:
+class YoloDetection(BaseModel):
     """Represents a single detection from YOLO."""
 
     class_id: int
@@ -66,32 +66,34 @@ class YoloDetection:
         return self.confidence >= config.calibration_confidence_threshold
 
 
-@dataclass
-class HomoGraphyMatrix:
+class HomoGraphyMatrix(BaseModel):
     """Represents a homography transformation matrix for dartboard calibration."""
+
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
     matrix: np.ndarray
     calibration_point_count: int
 
+    @field_serializer("matrix")
+    def serialize_matrix(self, _: np.ndarray) -> list:
+        """Convert the numpy matrix to a regular nested list for serialization."""
+        return self.matrix.tolist()
 
-@dataclass
+
 class DartPosition(Point2D):
     """Represents the position of a dart on the dartboard."""
 
 
-@dataclass
 class TransformedDartPosition(DartPosition):
     """Represents a dart position transformed to the dartboard coordinate system."""
 
 
-@dataclass
 class OriginalDartPosition(DartPosition):
     """Represents the original dart position in the image coordinate system before transformation."""
 
     confidence: float
 
 
-@dataclass
 class CalibrationPoint(YoloPoint):
     """Represents a calibration point for the dartboard."""
 
@@ -104,16 +106,14 @@ class CalibrationPoint(YoloPoint):
         return YoloDartClassMapping.get_class_name(self.class_id)
 
 
-@dataclass
-class DartScore:
+class DartScore(BaseModel):
     """Represents the score of a dart based on its position."""
 
     score_string: str
     score_value: int
 
 
-@dataclass
-class DartDetection:
+class DartDetection(BaseModel):
     """Dart detection and scoring result of a single dart."""
 
     original_position: OriginalDartPosition
@@ -126,23 +126,21 @@ class DartDetection:
         return self.original_position.confidence
 
 
-@dataclass
-class YoloDartParseResult:
+class YoloDartParseResult(BaseModel):
     """Result of YOLO model result parsing."""
 
     original_positions: List[OriginalDartPosition]
     calibration_points: List[CalibrationPoint]
 
 
-@dataclass
-class AbstractResult(ABC):
+class AbstractResult(BaseModel, ABC):
     """Abstract base class for results."""
 
     processing_time: float
     result_code: ResultCode
     message: Optional[str] = None
     details: Optional[str] = None
-    creation_time: float = field(default_factory=time.time)
+    creation_time: float = Field(default_factory=time.time)
 
     @property
     def success(self) -> bool:
@@ -150,19 +148,17 @@ class AbstractResult(ABC):
         return self.result_code is ResultCode.SUCCESS
 
 
-@dataclass
 class CalibrationResult(AbstractResult):
     """Result of the calibration process."""
 
-    homography_matrix: HomoGraphyMatrix = None  # type: ignore
-    calibration_points: List[CalibrationPoint] = field(default_factory=list)
+    homography_matrix: Optional[HomoGraphyMatrix] = None
+    calibration_points: List[CalibrationPoint] = Field(default_factory=list)
 
 
-@dataclass
 class ScoringResult(AbstractResult):
     """Result of the scoring process."""
 
-    dart_detections: List[DartDetection] = field(default_factory=list)
+    dart_detections: List[DartDetection] = Field(default_factory=list)
 
     @property
     def total_score(self) -> int:
@@ -176,7 +172,6 @@ class ScoringResult(AbstractResult):
         return f"Score: {self.total_score} | Darts: {', '.join(darts_info) if darts_info else 'None'}"
 
 
-@dataclass
 class DetectionResult(AbstractResult):
     """Result of the dart detection process, including calibration and scoring."""
 

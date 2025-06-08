@@ -325,4 +325,4 @@ class CalibrationVisualizer:
         if image is None:
             self.logger.error("Could not load image: %s", image_path)
             return None
-        return self.preprocessor.preprocess_image(image).image
+        return self.preprocessor.preprocess_image(image).dart_image

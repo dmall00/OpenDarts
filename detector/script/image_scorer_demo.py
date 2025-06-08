@@ -1,6 +1,7 @@
 """Demo running dart detection with an image scorer."""
 
 import argparse
+import json
 import logging
 from pathlib import Path
 from typing import TYPE_CHECKING

@@ -21,13 +21,13 @@ def load_image(image_path: Union[str, Path]) -> DartImage:
         raise ValueError(msg)
 
     logger.debug("Image loaded successfully. Shape: %s", image.shape)
-    return DartImage(image)
+    return DartImage(raw_image=image)
 
 
 def resize_image(image: DartImage, target_size: Tuple[int, int] = (800, 800)) -> DartImage:
     """Resize the image to the target size."""
     logger.debug("Resizing image to target size: %s", target_size)
-    return DartImage(cv2.resize(image.raw_image, target_size, interpolation=cv2.INTER_AREA))
+    return DartImage(raw_image=cv2.resize(image.raw_image, target_size, interpolation=cv2.INTER_AREA))
 
 
 def __validate_image_path(image_path: Union[str, Path]) -> None:

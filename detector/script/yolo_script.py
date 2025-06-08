@@ -29,8 +29,8 @@ class YoloScript:
             image_path = str(IMAGE_PATH / "img_28.png")
 
         image = cv2.imread(image_path)
-        preprocessed_image = self.preprocessor.preprocess_image(DartImage(image))
-        resized_image = resize_image(preprocessed_image.image)
+        preprocessed_image = self.preprocessor.preprocess_image(DartImage(raw_image=image))
+        resized_image = resize_image(preprocessed_image.dart_image)
         return self.model(resized_image.raw_image)
 
     @staticmethod
