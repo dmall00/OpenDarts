@@ -1,10 +1,12 @@
 """Demo running dart detection with an image scorer."""
 
-import argparse
 import json
 import logging
 from pathlib import Path
 from typing import TYPE_CHECKING
+
+import click
+from pydanclick import from_pydantic
 
 from detector.entrypoint.image_score_pipeline import DartBoardImageToScorePipeline
 from detector.model.configuration import ProcessingConfig
@@ -22,21 +24,28 @@ def setup_logging() -> None:  # noqa: D103
     )
 
 
-def main() -> None:
+@click.command()
+@click.argument("image_path", type=click.Path(exists=True, path_type=Path))
+@click.option("--config-path", type=click.Path(exists=True, path_type=Path),
+              help="Path to JSON config file for dart detection")
+@from_pydantic("config", ProcessingConfig)
+def main(image_path: Path, config_path: Path | None, config: ProcessingConfig) -> None:
     """Run the Dart Detection demo with a single image."""
-    parser = argparse.ArgumentParser(description="Run Dart Detection with an image scorer.")
-    parser.add_argument("image_path", type=str, help="Path to the image file for dart detection")
-    parser.add_argument("--config_path", type=str, default=None, help="Path to JSON config file for dart detection")
-    args = parser.parse_args()
-    image_path = Path(args.image_path)
-    config_path = Path(args.config_path) if args.config_path else None
-
     setup_logging()
-    detector = DartBoardImageToScorePipeline(ProcessingConfig.from_json(config_path) if config_path else None)
+
+    if config_path:
+        logger.info("Loading configuration from %s", config_path)
+        file_config = ProcessingConfig.from_json(config_path)
+        detector = DartBoardImageToScorePipeline(file_config)
+    else:
+        detector = DartBoardImageToScorePipeline(config)
+
     result: DetectionResult = detector.detect_darts(image_path)
+
     if not result:
         logger.error("❌ No result returned from the detection service.")
         return
+
     if result.success:
         logger.info("🎯 Dart Detection Results")
         logger.info("⏱️  Processing time: %.2fs", result.processing_time)
@@ -62,7 +71,8 @@ def main() -> None:
                 else:
                     pos = detection.transformed_position or detection.original_position
                     logger.info(
-                        "  ❓ Dart %d: Score pending at (%.2f, %.2f) [Confidence: %.1f%%]", i + 1, pos.x, pos.y, detection.confidence * 100
+                        "  ❓ Dart %d: Score pending at (%.2f, %.2f) [Confidence: %.1f%%]",
+                        i + 1, pos.x, pos.y, detection.confidence * 100
                     )
 
             logger.info("-" * 50)

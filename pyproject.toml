@@ -26,8 +26,10 @@ classifiers = [
 ]
 keywords = ["dart", "detection", "computer-vision", "yolo", "scoring"]
 dependencies = [
+    "click>=8.2.1",
     "numpy>=2.2.6",
     "opencv-python>=4.11.0.86",
+    "pydanclick>=0.5.1",
     "pydantic>=2.11.5",
     "ultralytics>=8.3.147",
 ]

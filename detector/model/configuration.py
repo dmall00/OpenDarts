@@ -34,22 +34,22 @@ class ProcessingConfig(BaseModel):
         default=0.0,
         ge=0.0,
         le=1.0,
-        description="Confidence threshold for calibration point detections, 0.0 disables filtering. Must be between 0.0 and 1.0.",
+        description="Confidence threshold for calibration point detections (0.0-1.0)",
     )
     dart_confidence_threshold: float = Field(
         default=0.0,
         ge=0.0,
         le=1.0,
-        description="Confidence threshold for dart detection, 0.0 disables filtering. Must be between 0.0 and 1.0.",
+        description="Confidence threshold for dart detection (0.0-1.0)",
     )
     target_image_size: Tuple[int, int] = Field(
         default=(800, 800),
-        description="Target image size for processing. Recommended to be 800x800 pixels.",
+        description="Target image size for processing as 'width,height'",
     )
     min_calibration_points: int = Field(
         default=4,
-        description="Minimum calibration points required for homography. Must be at least 4.",
         ge=4,
+        description="Minimum calibration points required for homography",
     )
     max_allowed_darts: int = Field(
         default=3,
@@ -59,14 +59,12 @@ class ProcessingConfig(BaseModel):
         default=True,
         description="Enable cropping model for dart detection",
     )
-
     crop_padding_ratio: float = Field(
         default=0.15,
         ge=0.0,
         le=1.0,
-        description="Padding ratio for cropping the dartboard area, relative to the image size. Only used if cropping model is enabled.",
+        description="Padding ratio for cropping the dartboard area (0.0-1.0)",
     )
-
     calibration_detection_mode: CalibrationPointDetectionMode = Field(
         default=CalibrationPointDetectionMode.GEOMETRIC,
         description="Mode for calibration point detection",
@@ -75,6 +73,6 @@ class ProcessingConfig(BaseModel):
     @classmethod
     def from_json(cls, json_path: Path) -> "ProcessingConfig":
         """Load configuration from a JSON file."""
-        with open(json_path, encoding="utf-8") as f:  # noqa: PTH123
+        with open(json_path, encoding="utf-8") as f:
             data = json.load(f)
         return cls(**data)

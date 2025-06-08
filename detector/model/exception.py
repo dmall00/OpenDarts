@@ -12,7 +12,7 @@ class DartDetectionError(Exception):
         self.error_code = error_code
         self.message = error_code.message
         self.details = details
-        message = f"[Error {self.error_code.code}] {self.message}"
+        message = f"[Error {self.error_code}] {self.message}"
         if details:
             message += f": {details}"
         if cause:
@@ -21,5 +21,5 @@ class DartDetectionError(Exception):
 
     def __str__(self) -> str:
         if self.details:
-            return f"[Error {self.error_code.code}] {self.message}: {self.details}"
-        return f"[Error {self.error_code.code}] {self.message}"
+            return f"[Error {self.error_code}] {self.message}: {self.details}"
+        return f"[Error {self.error_code}] {self.message}"

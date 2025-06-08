@@ -1,10 +1,12 @@
 """Demo running visualization of dart board calibration."""
 
-import argparse
 import logging
 import re
 from pathlib import Path
 from typing import List
+
+import click
+from pydanclick import from_pydantic
 
 from detector.entrypoint.calibration_visualizer import CalibrationVisualizer
 from detector.model.configuration import ProcessingConfig
@@ -35,29 +37,30 @@ def list_available_images(image_folder: Path) -> None:
     print(f"Image folder path: {image_folder}")
 
 
-def main() -> None:  # noqa: C901
-    """Run the calibration visualization demo."""
-    parser = argparse.ArgumentParser(description="Run Dart Board Calibration Visualization demo.")
-    parser.add_argument(
-        "--image_path",
-        type=str,
-        help="Path to a specific image file for calibration visualization. If not provided, runs in interactive mode.",
-    )
-    parser.add_argument("--list", action="store_true", help="List all available PNG images in the images folder and exit.")
-    parser.add_argument("--config_path", type=str, default=None, help="Path to JSON config file for dart detection")
-    parser.add_argument("--image_folder", type=str, default=".", help="Path to the folder containing dart images")
-    args = parser.parse_args()
+@click.command()
+@click.option("--list", is_flag=True, help="List all available images in the target folder and exit.")
+@click.option(
+    "--config_path", type=click.Path(exists=True, path_type=Path), default=None, help="Path to JSON config file for dart detection"
+)
+@click.argument("target", type=click.Path(exists=True, path_type=Path), default=".")
+@from_pydantic("config", ProcessingConfig)
+def main(list: bool, config_path: Path | None, target: Path, config: ProcessingConfig) -> None:
+    """
+    Run the calibration visualization demo.
 
-    image_folder = Path(args.image_folder)
-    config_path = Path(args.config_path) if args.config_path else None
+    TARGET: Path to either an image file or folder containing dart images (default: current directory)
+    """
+    if target.is_file():
+        image_path = target
+        image_folder = target.parent
+    else:
+        image_path = None
+        image_folder = target
 
-    if args.list:
+    if list:
         list_available_images(image_folder)
         return
 
-    image_path = Path(args.image_path) if args.image_path else None
-
-    default_image = "img_3.png"
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
@@ -66,20 +69,11 @@ def main() -> None:  # noqa: C901
     print("=== Dart Board Calibration Visualization Demo ===")
     print("This demo shows how the image looks after calibration and homography transformations.")
     print()
-
     visualizer = CalibrationVisualizer(ProcessingConfig.from_json(config_path) if config_path else None)
 
     if image_path:
-        if image_path.exists():
-            print(f"Processing image: {image_path}")
-            visualizer.visualize(image_path)
-            return
-        fallback_path = image_folder / image_path.name
-        if fallback_path.exists():
-            print(f"Processing image with fallback: {fallback_path}")
-            visualizer.visualize(fallback_path)
-            return
-        print(f"Error: Image file '{image_path}' not found, and fallback '{fallback_path}' also not found!")
+        print(f"Processing single image: {image_path}")
+        visualizer.visualize(image_path)
         return
 
     while True:
@@ -95,15 +89,11 @@ def main() -> None:  # noqa: C901
         if choice == "list":
             list_available_images(image_folder)
             continue
-
-        if choice == "":
-            selected_image = image_folder / default_image
-        else:
-            try:
-                img_num = int(choice)
-                selected_image = image_folder / f"img_{img_num}.png"
-            except ValueError:
-                selected_image = image_folder / choice
+        try:
+            img_num = int(choice)
+            selected_image = image_folder / f"img_{img_num}.png"
+        except ValueError:
+            selected_image = image_folder / choice
 
         if not selected_image.exists():
             print(f"Error: Image file '{selected_image}' not found!")
