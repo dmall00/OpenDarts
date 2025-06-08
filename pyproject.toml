@@ -1,0 +1,19 @@
+[project]
+name = "opendarts-autoscore"
+version = "0.1.0"
+description = "This application serves a websocket server that enables a client to calibrate and score darts automatically."
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.11, <3.13"
+authors = [
+    { name = "David Mall", email = "mall.david@web.de" },
+]
+dependencies = [
+    "dart-detection>=0.1.5",
+]
+
+[dependency-groups]
+dev = [
+    "mypy>=1.16.0",
+    "ruff>=0.11.13",
+]
