@@ -24,8 +24,15 @@ class CropInformation:
 
 
 @dataclass
+class PreprocessingResult:
+    """Result of preprocessing an image."""
+
+    crop_info: Optional[CropInformation] = None
+
+
+@dataclass
 class DartImagePreprocessed:
     """Represents a preprocessed dart image ready for detection."""
 
     image: DartImage
-    crop_info: Optional[CropInformation] = None
+    preprocessing_result: PreprocessingResult

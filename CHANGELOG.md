@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+## [0.1.5] - 08.15.2025
+
+### Changed
+
+- Set python compatibility to >=3.11 <3.13
+
+### Added
+
+- Created method in ImagePreprocessor to preprocess images based on a preprocessing result
+
 ## [0.1.4] - 07.15.2025
 
 ### Added

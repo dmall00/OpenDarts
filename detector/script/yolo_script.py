@@ -33,7 +33,8 @@ class YoloScript:
         resized_image = resize_image(preprocessed_image.image)
         return self.model(resized_image.raw_image)
 
-    def show_results(self, results: List[Results]) -> None:
+    @staticmethod
+    def show_results(results: List[Results]) -> None:
         """Display detection results."""
         results[0].show()
 
