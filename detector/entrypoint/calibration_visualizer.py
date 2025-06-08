@@ -71,7 +71,7 @@ class CalibrationVisualizer:
         dart_scores: List[DartScore] = [d.dart_score for d in result.scoring_result.dart_detections]  # type: ignore
 
         original_viz = self.__create_original_visualization(original_image, calibration_coords, dart_coords)
-        transformed_image = self.__apply_transformation(original_image, h_matrix.matrix)
+        transformed_image = self.__apply_transformation(original_image, h_matrix.matrix)  # type: ignore
 
         if transformed_image is None:
             return
@@ -80,7 +80,7 @@ class CalibrationVisualizer:
             transformed_image,
             dart_coords,
             dart_scores,
-            h_matrix.matrix,
+            h_matrix.matrix,  # type: ignore
             original_image.shape,
         )
 

@@ -46,4 +46,4 @@ class ImagePreprocessor:
             image = self.__image_cropper.apply_crop(image, preprocessing_result.crop_info)
 
         resized_image = resize_image(image, self.__config.target_image_size)
-        return DartImagePreprocessed(resized_image, preprocessing_result)
+        return DartImagePreprocessed(dart_image=resized_image, preprocessing_result=preprocessing_result)

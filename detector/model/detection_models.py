@@ -8,6 +8,7 @@ import numpy as np
 from pydantic import BaseModel, ConfigDict, Field, field_serializer
 
 from detector.model.detection_result_code import ResultCode
+from detector.model.image_models import PreprocessingResult
 from detector.model.yolo_dart_class_mapping import YoloDartClassMapping
 
 if TYPE_CHECKING:
@@ -153,6 +154,7 @@ class CalibrationResult(AbstractResult):
 
     homography_matrix: Optional[HomoGraphyMatrix] = None
     calibration_points: List[CalibrationPoint] = Field(default_factory=list)
+    preprocessing_result: Optional[PreprocessingResult] = None
 
 
 class ScoringResult(AbstractResult):

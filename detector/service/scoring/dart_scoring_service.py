@@ -49,19 +49,19 @@ class DartScoringService:
             self.__validate_image(image)
             results = self.__yolo_image_processor.detect(image)
             detections = self.__yolo_result_parser.extract_detections(results)
-            return self.__calculate_scores(calibration_result.homography_matrix, detections.original_positions, start_time)
+            return self.__calculate_scores(calibration_result.homography_matrix, detections.original_positions, start_time) # type: ignore
         except DartDetectionError as e:
             self.logger.exception("Dart scoring failed")
-            return ScoringResult(0.0, e.error_code, e.message, e.details)
+            return ScoringResult(processing_time=0.0,result_code= e.error_code, message=e.message, details=e.details)
         except Exception as e:
             msg = "Unknown error during dart scoring pipeline"
             self.logger.exception(msg)
-            return ScoringResult(0.0, ResultCode.UNKNOWN, msg, str(e))
+            return ScoringResult(processing_time=0.0, result_code=ResultCode.UNKNOWN, message=msg, details=str(e))
 
     def calculate_scores(self, calibration_result: CalibrationResult, original_positions: List[OriginalDartPosition]) -> ScoringResult:
         """Calculate scores for the darts based on the image, calibration result, and original dart positions."""
         start_time = time.time()
-        return self.__calculate_scores(calibration_result.homography_matrix, original_positions, start_time)
+        return self.__calculate_scores(calibration_result.homography_matrix, original_positions, start_time) # type: ignore
 
     @staticmethod
     def __validate_image(image: Optional[DartImage]) -> None:
