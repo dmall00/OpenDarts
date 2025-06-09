@@ -1,30 +1,38 @@
 from abc import ABC, abstractmethod
+from typing import Generic
 
+from detector.model.detection_models import AbstractResult
 from websockets.asyncio.client import ClientConnection
 
-from autoscore.model.models import (
+from autoscore.model.request import RequestType, REQ
+from autoscore.model.response import (
     ErrorResponse,
-    RequestType,
-    ResponseResult,
+    BaseResponse,
     Status,
-    WebsocketRequest,
+    RES,
+    PingResponse,
 )
 
 
-class BaseHandler(ABC):
+class BaseHandler(Generic[REQ, RES], ABC):
     """Base class for message handlers."""
 
     @abstractmethod
     def get_request_type(self) -> RequestType:
         """Return the type of request this handler processes."""
-        raise NotImplementedError("Subclasses must implement this method.")
+        msg = "Get request type method must be implemented by subclasses."
+        raise NotImplementedError(msg)
 
     @abstractmethod
     async def handle(
-        self, websocket: ClientConnection, request: WebsocketRequest
+        self, websocket: ClientConnection, request: REQ
     ) -> None:
         """Handle a specific message type."""
-        pass
+        msg = "Handle method must be implemented by subclasses."
+        raise NotImplementedError(msg)
+
+    async def send_response(self, websocket: ClientConnection, response: RES) -> None:
+        await websocket.send(response.model_dump_json())
 
     async def send_error(
         self,
@@ -32,10 +40,8 @@ class BaseHandler(ABC):
         error_message: str,
         request_id: str | None,
     ) -> None:
-        response = ResponseResult(request_type=self.get_request_type(),
-                                  request_id=request_id,
-                                  status=Status.ERROR,
-                                  data=ErrorResponse(
-                                      message=error_message
-                                  ))
+        response = ErrorResponse(request_type=self.get_request_type(),
+                                request_id=request_id,
+                                status=Status.ERROR,
+                                message=error_message)
         await websocket.send(response.model_dump_json())

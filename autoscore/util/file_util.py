@@ -9,7 +9,8 @@ def base64_to_numpy(base64_data: bytes | bytearray | str) -> np.ndarray:
     if isinstance(base64_data, str):
         image_bytes = base64.b64decode(base64_data)
     else:
-        image_bytes = base64_data
+        # If it's already bytes/bytearray, assume it's raw image data
+        image_bytes = bytes(base64_data)  # Convert bytearray to bytes if needed
 
     image_buffer = BytesIO(image_bytes)
     image = Image.open(image_buffer)
