@@ -20,24 +20,11 @@ without needing to understand the underlying complexities of computer vision.
 
 ## 🚀 Installation
 
-Install from PyPI:
+Install:
 
 ```bash
-pip install dart-detection
+pip install .
 ```
-
-Or using uv:
-
-```bash
-uv add dart-detection
-```
-
-## 📖 Quick Start
-
-### 🚧 Classes 🚧
-
-Under construction 🚧
-Reach out for questions.
 
 ## 🛠️ Command Line Tools
 
@@ -62,7 +49,8 @@ An example can be seen below.
 
 ## 🎯 How It Works
 
-The dart detection system uses a multi-stage pipeline:
+The dart detection system uses a multi-stage pipeline. Detailed explanation can be read here
+at [dart-sense](https://github.com/bnww/dart-sense):
 
 1. **Image Preprocessing** - Optimizes input images for better model performance
 2. **YOLO Detection** - Identifies dart locations using trained computer vision models
