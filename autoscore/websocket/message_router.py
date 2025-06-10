@@ -128,7 +128,7 @@ class MessageRouter:
         try:
             response = ErrorResponse(
                 request_type=RequestType.NONE,
-                request_id=request_id or "unknown",
+                id=request_id or "unknown",
                 status=Status.ERROR,
                 message=error_message,
             )

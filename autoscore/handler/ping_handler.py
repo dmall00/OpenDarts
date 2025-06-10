@@ -26,7 +26,5 @@ class PingHandler(BaseHandler[PingRequest, PingResponse]):
         self, websocket: ClientConnection, request: PingRequest
     ) -> None:
         """Handle ping requests."""
-        response = PingResponse(request_type=RequestType.PING,
-                                request_id=request.id,
-                                status=Status.SUCCESS)
+        response = PingResponse(request_type=RequestType.PING, id=request.id, status=Status.SUCCESS)
         await self.send_response(websocket, response)

@@ -28,7 +28,7 @@ class PipelineDetectionHandler(BaseHandler[PipelineDetectionRequest, PipelineDet
             await self.send_response(
                 websocket,
                 PipelineDetectionResponse(
-                    request_type=RequestType.FULL, request_id=request.id, status=Status.SUCCESS, detection_result=detection_result
+                    request_type=RequestType.FULL, id=request.id, status=Status.SUCCESS, detection_result=detection_result
                 ),
             )
 

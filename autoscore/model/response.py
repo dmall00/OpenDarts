@@ -26,7 +26,7 @@ class Status(Enum):
 class BaseResponse(ABC, BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
     request_type: RequestType
-    request_id: str
+    id: str
     status: Status
 
 

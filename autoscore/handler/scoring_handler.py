@@ -43,7 +43,7 @@ class ScoringHandler(BaseHandler[ScoringRequest, ScoringResponse]):
 
             response = ScoringResponse(
                 request_type=RequestType.SCORING,
-                request_id=scoring_request.id,
+                id=scoring_request.id,
                 status=Status.SUCCESS,
                 scoring_result=scoring_result,
             )

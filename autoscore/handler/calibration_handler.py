@@ -43,7 +43,7 @@ class CalibrationHandler(BaseHandler[CalibrationRequest, CalibrationResponse]):
             )
             response = CalibrationResponse(
                 request_type=RequestType.CALIBRATION,
-                request_id=request_id,
+                id=request_id,
                 status=Status.SUCCESS,
                 calibration_result=calibration_result,
             )
