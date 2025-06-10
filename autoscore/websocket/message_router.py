@@ -3,17 +3,22 @@ import logging
 from typing import Any, Dict, Generic, Protocol, Type, TypeVar
 
 import websockets.exceptions
+from detector.model.configuration import ProcessingConfig
 from detector.service.calibration.board_calibration_service import (
     DartBoardCalibrationService,
 )
+from detector.service.dart_image_scoring_service import DartInImageScoringService
+from detector.service.image_preprocessor import ImagePreprocessor
 from detector.service.scoring.dart_scoring_service import DartScoringService
+from detector.yolo.dart_detector import YoloDartImageProcessor
 from websockets.asyncio.client import ClientConnection
 
 from autoscore.handler.base_handler import BaseHandler
 from autoscore.handler.calibration_handler import CalibrationHandler
 from autoscore.handler.ping_handler import PingHandler
+from autoscore.handler.pipeline_detection_handler import PipelineDetectionHandler
 from autoscore.handler.scoring_handler import ScoringHandler
-from autoscore.model.request import BaseRequest, CalibrationRequest, PingRequest, RequestType, ScoringRequest
+from autoscore.model.request import BaseRequest, CalibrationRequest, PingRequest, RequestType, ScoringRequest, PipelineDetectionRequest
 from autoscore.model.response import (
     BaseResponse,
     ErrorResponse,
@@ -28,23 +33,36 @@ class MessageRouter:
 
     def __init__(
         self,
-        calibration_service: DartBoardCalibrationService,
-        scoring_service: DartScoringService,
     ) -> None:
-        self.calibration_handler = CalibrationHandler(calibration_service)
-        self.scoring_handler = ScoringHandler(scoring_service)
+        yolo_dart_image_processor = YoloDartImageProcessor(ProcessingConfig())
+        image_preprocessor = ImagePreprocessor(ProcessingConfig())
+        calibration_service = DartBoardCalibrationService(
+            yolo_image_processor=yolo_dart_image_processor, image_preprocessor=image_preprocessor
+        )
+        scoring_service = DartScoringService(yolo_image_processor=yolo_dart_image_processor, image_preprocessor=image_preprocessor)
+        self.calibration_handler = CalibrationHandler(calibration_service=calibration_service)
+        self.scoring_handler = ScoringHandler(scoring_service=scoring_service)
         self.ping_handler = PingHandler()
+        self.detection_handler = PipelineDetectionHandler(
+            DartInImageScoringService(
+                yolo_image_processor=yolo_dart_image_processor,
+                calibration_service=calibration_service,
+                dart_scoring_service=scoring_service,
+            )
+        )
 
         self.handlers: Dict[RequestType, BaseHandler] = {
             RequestType.CALIBRATION: self.calibration_handler,
             RequestType.SCORING: self.scoring_handler,
             RequestType.PING: self.ping_handler,
+            RequestType.FULL: self.detection_handler
         }
 
         self.request_types: Dict[RequestType, Type[BaseRequest]] = {
             RequestType.CALIBRATION: CalibrationRequest,
             RequestType.SCORING: ScoringRequest,
             RequestType.PING: PingRequest,
+            RequestType.FULL: PipelineDetectionRequest,
         }
 
     def _deserialize_request(self, data: Dict[str, Any]) -> BaseRequest:

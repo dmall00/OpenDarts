@@ -12,6 +12,7 @@ class RequestType(Enum):
     CALIBRATION = "calibration"
     SCORING = "scoring"
     PING = "ping"
+    FULL = "full"
     NONE = "none"
 
 
@@ -31,6 +32,9 @@ class ScoringRequest(BaseRequest):
 
 
 class CalibrationRequest(BaseRequest):
+    image: str
+
+class PipelineDetectionRequest(BaseRequest):
     image: str
 
 REQ = TypeVar("REQ", bound=BaseRequest)

@@ -20,9 +20,7 @@ class DartWebSocketServer:
     def __init__(self) -> None:
         self.connections: Set[ClientConnection] = set()
         self.connection_manager = ConnectionManager(self.connections)
-        self.message_router = MessageRouter(
-            DartBoardCalibrationService(), DartScoringService()
-        )
+        self.message_router = MessageRouter()
 
     async def register_connection(self, websocket: ClientConnection) -> None:
         """Register and handle a new WebSocket connection."""
