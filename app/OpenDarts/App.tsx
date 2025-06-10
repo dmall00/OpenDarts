@@ -1,124 +1,393 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- */
-
-import type {PropsWithChildren} from 'react';
-import React from 'react';
-import {ScrollView, StatusBar, StyleSheet, Text, useColorScheme, View,} from 'react-native';
-
+import React, { useState, useRef, useEffect } from 'react';
 import {
-    Colors,
-    DebugInstructions,
-    Header,
-    LearnMoreLinks,
-    ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+  Dimensions,
+  Platform
+} from 'react-native';
+import { Camera, useCameraDevice } from 'react-native-vision-camera';
 
-type SectionProps = PropsWithChildren<{
-    title: string;
-}>;
+const { width, height } = Dimensions.get('window');
 
-function Section({children, title}: SectionProps): React.JSX.Element {
-    const isDarkMode = useColorScheme() === 'dark';
-    return (
-        <View style={styles.sectionContainer}>
-            <Text
-                style={[
-                    styles.sectionTitle,
-                    {
-                        color: isDarkMode ? Colors.white : Colors.black,
-                    },
-                ]}>
-                {title}
-            </Text>
-            <Text
-                style={[
-                    styles.sectionDescription,
-                    {
-                        color: isDarkMode ? Colors.light : Colors.dark,
-                    },
-                ]}>
-                {children}
-            </Text>
-        </View>
-    );
-}
+// Configuration - Update these URLs for your backend
+const CONFIG = {
+  CALIBRATION_API: 'https://your-api.com/calibrate',
+  WEBSOCKET_URL: 'ws://your-websocket-server.com:8080',
+  FRAME_RATE: 10 // 10 FPS
+};
 
-function App(): React.JSX.Element {
-    const isDarkMode = useColorScheme() === 'dark';
+export default function DartScoringApp() {
+  // State management
+  const [mode, setMode] = useState(1); // 1 = Calibration mode, 2 = Streaming mode
+  const [isCalibrated, setIsCalibrated] = useState(false);
+  const [zoomLevel, setZoomLevel] = useState(1);
+  const [isStreaming, setIsStreaming] = useState(false);
+  const [wsConnected, setWsConnected] = useState(false);
 
-    const backgroundStyle = {
-        backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
+  // Refs
+  const cameraRef = useRef(null);
+  const wsRef = useRef(null);
+  const streamIntervalRef = useRef(null);
+
+  // Camera device
+  const device = useCameraDevice('back');
+
+  // WebSocket connection
+  useEffect(() => {
+    if (mode === 2 || (mode === 1 && isCalibrated)) {
+      connectWebSocket();
+    }
+
+    return () => {
+      if (wsRef.current) {
+        wsRef.current.close();
+      }
+      if (streamIntervalRef.current) {
+        clearInterval(streamIntervalRef.current);
+      }
     };
+  }, [mode, isCalibrated]);
 
-    /*
-     * To keep the template simple and small we're adding padding to prevent view
-     * from rendering under the System UI.
-     * For bigger apps the recommendation is to use `react-native-safe-area-context`:
-     * https://github.com/AppAndFlow/react-native-safe-area-context
-     *
-     * You can read more about it here:
-     * https://github.com/react-native-community/discussions-and-proposals/discussions/827
-     */
-    const safePadding = '5%';
+  const connectWebSocket = () => {
+    try {
+      wsRef.current = new WebSocket(CONFIG.WEBSOCKET_URL);
 
+      wsRef.current.onopen = () => {
+        console.log('WebSocket connected');
+        setWsConnected(true);
+        startVideoStreaming();
+      };
+
+      wsRef.current.onmessage = (event) => {
+        console.log('WebSocket message:', event.data);
+      };
+
+      wsRef.current.onerror = (error) => {
+        console.error('WebSocket error:', error);
+        Alert.alert('Connection Error', 'Failed to connect to streaming server');
+      };
+
+      wsRef.current.onclose = () => {
+        console.log('WebSocket disconnected');
+        setWsConnected(false);
+        setIsStreaming(false);
+        if (streamIntervalRef.current) {
+          clearInterval(streamIntervalRef.current);
+        }
+      };
+    } catch (error) {
+      console.error('WebSocket connection failed:', error);
+    }
+  };
+
+  const captureFrame = async () => {
+    if (!cameraRef.current) return null;
+
+    try {
+      const photo = await cameraRef.current.takePhoto({
+        quality: 0.7,
+        base64: true
+      });
+
+      return `data:image/jpeg;base64,${photo.base64}`;
+    } catch (error) {
+      console.error('Frame capture failed:', error);
+      return null;
+    }
+  };
+
+  const startVideoStreaming = () => {
+    if (isStreaming || !wsConnected) return;
+
+    setIsStreaming(true);
+    const frameInterval = 1000 / CONFIG.FRAME_RATE; // Convert FPS to milliseconds
+
+    streamIntervalRef.current = setInterval(async () => {
+      if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+        const frame = await captureFrame();
+        if (frame) {
+          wsRef.current.send(frame);
+        }
+      }
+    }, frameInterval);
+  };
+
+  const stopVideoStreaming = () => {
+    setIsStreaming(false);
+    if (streamIntervalRef.current) {
+      clearInterval(streamIntervalRef.current);
+      streamIntervalRef.current = null;
+    }
+  };
+
+  const handleCalibrate = async () => {
+    try {
+      const frame = await captureFrame();
+      if (!frame) {
+        Alert.alert('Error', 'Failed to capture calibration image');
+        return;
+      }
+
+      const response = await fetch(CONFIG.CALIBRATION_API, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          image: frame,
+          timestamp: Date.now()
+        })
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        setIsCalibrated(true);
+        Alert.alert('Success', 'Calibration completed successfully!');
+      } else {
+        Alert.alert('Calibration Failed', result.message || 'Please try again');
+      }
+    } catch (error) {
+      console.error('Calibration error:', error);
+      Alert.alert('Error', 'Failed to connect to calibration service');
+    }
+  };
+
+  const handleRecalibrate = () => {
+    setIsCalibrated(false);
+    stopVideoStreaming();
+    if (wsRef.current) {
+      wsRef.current.close();
+    }
+  };
+
+  const changeZoom = (newZoom) => {
+    setZoomLevel(newZoom);
+  };
+
+  const toggleMode = () => {
+    const newMode = mode === 1 ? 2 : 1;
+    setMode(newMode);
+
+    // Reset state when switching modes
+    if (newMode === 1) {
+      setIsCalibrated(false);
+    }
+    stopVideoStreaming();
+  };
+
+  if (!device) {
     return (
-        <View style={backgroundStyle}>
-            <StatusBar
-                barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-                backgroundColor={backgroundStyle.backgroundColor}
-            />
-            <ScrollView
-                style={backgroundStyle}>
-                <View style={{paddingRight: safePadding}}>
-                    <Header/>
-                </View>
-                <View
-                    style={{
-                        backgroundColor: isDarkMode ? Colors.black : Colors.white,
-                        paddingHorizontal: safePadding,
-                        paddingBottom: safePadding,
-                    }}>
-                    <Section title="Step One">
-                        Edit <Text style={styles.highlight}>App.tsx</Text> to change this
-                        screen and then come back to see your edits.
-                    </Section>
-                    <Section title="See Your Changes">
-                        <ReloadInstructions/>
-                    </Section>
-                    <Section title="Debug">
-                        <DebugInstructions/>
-                    </Section>
-                    <Section title="Learn More">
-                        Read the docs to discover what to do next:
-                    </Section>
-                    <LearnMoreLinks/>
-                </View>
-            </ScrollView>
-        </View>
+      <View style={styles.container}>
+        <Text style={styles.errorText}>Camera not available</Text>
+      </View>
     );
+  }
+
+  return (
+    <View style={styles.container}>
+      {/* Camera View */}
+      <View style={styles.cameraContainer}>
+        <Camera
+          ref={cameraRef}
+          style={styles.camera}
+          device={device}
+          isActive={true}
+          zoom={zoomLevel}
+          photo={true}
+          enableZoomGesture={true}
+        />
+
+        {/* Status Overlay */}
+        <View style={styles.statusOverlay}>
+          <Text style={styles.statusText}>
+            Mode: {mode === 1 ? 'Calibration' : 'Streaming'}
+          </Text>
+          {mode === 1 && (
+            <Text style={styles.statusText}>
+              Status: {isCalibrated ? 'Calibrated ✓' : 'Not Calibrated'}
+            </Text>
+          )}
+          <Text style={styles.statusText}>
+            WebSocket: {wsConnected ? 'Connected ✓' : 'Disconnected'}
+          </Text>
+          <Text style={styles.statusText}>
+            Streaming: {isStreaming ? 'Active' : 'Inactive'}
+          </Text>
+        </View>
+      </View>
+
+      {/* Controls */}
+      <View style={styles.controlsContainer}>
+        {/* Mode Toggle */}
+        <TouchableOpacity
+          style={[styles.button, styles.toggleButton]}
+          onPress={toggleMode}
+        >
+          <Text style={styles.buttonText}>
+            Switch to {mode === 1 ? 'Streaming' : 'Calibration'} Mode
+          </Text>
+        </TouchableOpacity>
+
+        {/* Zoom Controls */}
+        <View style={styles.zoomContainer}>
+          <Text style={styles.zoomLabel}>Zoom:</Text>
+          {[1, 2, 3].map((zoom) => (
+            <TouchableOpacity
+              key={zoom}
+              style={[
+                styles.zoomButton,
+                zoomLevel === zoom && styles.activeZoomButton
+              ]}
+              onPress={() => changeZoom(zoom)}
+            >
+              <Text style={[
+                styles.zoomButtonText,
+                zoomLevel === zoom && styles.activeZoomButtonText
+              ]}>
+                {zoom}x
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        {/* Mode-specific Controls */}
+        {mode === 1 ? (
+          <View style={styles.calibrationControls}>
+            {!isCalibrated ? (
+              <TouchableOpacity
+                style={[styles.button, styles.calibrateButton]}
+                onPress={handleCalibrate}
+              >
+                <Text style={styles.buttonText}>Calibrate</Text>
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity
+                style={[styles.button, styles.recalibrateButton]}
+                onPress={handleRecalibrate}
+              >
+                <Text style={styles.buttonText}>Recalibrate</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        ) : (
+          <View style={styles.streamingControls}>
+            <TouchableOpacity
+              style={[
+                styles.button,
+                isStreaming ? styles.stopButton : styles.startButton
+              ]}
+              onPress={isStreaming ? stopVideoStreaming : connectWebSocket}
+            >
+              <Text style={styles.buttonText}>
+                {isStreaming ? 'Stop Streaming' : 'Start Streaming'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
+      </View>
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
-    sectionContainer: {
-        marginTop: 32,
-        paddingHorizontal: 24,
-    },
-    sectionTitle: {
-        fontSize: 24,
-        fontWeight: '600',
-    },
-    sectionDescription: {
-        marginTop: 8,
-        fontSize: 18,
-        fontWeight: '400',
-    },
-    highlight: {
-        fontWeight: '700',
-    },
+  container: {
+    flex: 1,
+    backgroundColor: '#000',
+  },
+  cameraContainer: {
+    flex: 1,
+    position: 'relative',
+  },
+  camera: {
+    flex: 1,
+  },
+  statusOverlay: {
+    position: 'absolute',
+    top: 50,
+    left: 20,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    padding: 10,
+    borderRadius: 8,
+  },
+  statusText: {
+    color: '#fff',
+    fontSize: 12,
+    marginBottom: 2,
+  },
+  controlsContainer: {
+    backgroundColor: '#1a1a1a',
+    padding: 20,
+    paddingBottom: Platform.OS === 'ios' ? 40 : 20,
+  },
+  button: {
+    backgroundColor: '#007AFF',
+    padding: 15,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginVertical: 5,
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  toggleButton: {
+    backgroundColor: '#FF9500',
+  },
+  calibrateButton: {
+    backgroundColor: '#34C759',
+  },
+  recalibrateButton: {
+    backgroundColor: '#FF3B30',
+  },
+  startButton: {
+    backgroundColor: '#34C759',
+  },
+  stopButton: {
+    backgroundColor: '#FF3B30',
+  },
+  zoomContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginVertical: 10,
+  },
+  zoomLabel: {
+    color: '#fff',
+    fontSize: 16,
+    marginRight: 15,
+  },
+  zoomButton: {
+    backgroundColor: '#333',
+    paddingHorizontal: 15,
+    paddingVertical: 8,
+    borderRadius: 6,
+    marginHorizontal: 5,
+  },
+  activeZoomButton: {
+    backgroundColor: '#007AFF',
+  },
+  zoomButtonText: {
+    color: '#fff',
+    fontSize: 14,
+  },
+  activeZoomButtonText: {
+    fontWeight: 'bold',
+  },
+  calibrationControls: {
+    marginTop: 10,
+  },
+  streamingControls: {
+    marginTop: 10,
+  },
+  errorText: {
+    color: '#fff',
+    fontSize: 18,
+    textAlign: 'center',
+    marginTop: 100,
+  },
 });
-
-export default App;

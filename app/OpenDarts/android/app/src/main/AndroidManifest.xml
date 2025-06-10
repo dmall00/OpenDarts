@@ -1,6 +1,18 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!-- Existing permission -->
     <uses-permission android:name="android.permission.INTERNET"/>
+
+    <!-- Required camera permission -->
+    <uses-permission android:name="android.permission.CAMERA" />
+
+    <!-- Optional but recommended permissions for better camera functionality -->
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+
+    <!-- Hardware features -->
+    <uses-feature android:name="android.hardware.camera" android:required="true" />
+    <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
 
     <application
             android:name=".MainApplication"
