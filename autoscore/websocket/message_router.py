@@ -70,6 +70,7 @@ class MessageRouter:
             async for message in websocket:
                 try:
                     data = json.loads(message)
+                    self.logger.debug(f"Received message: {data}")
                     request = self._deserialize_request(data)
                     await self._process_message(websocket, request)
                 except json.JSONDecodeError:

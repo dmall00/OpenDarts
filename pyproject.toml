@@ -9,7 +9,7 @@ authors = [
     { name = "David Mall", email = "mall.david@web.de" },
 ]
 dependencies = [
-    "dart-detection>=0.1.6",
+    "dart-detection @ git+https://github.com/dmall00/dart-detection.git",
     "pydantic>=2.11.5",
     "websockets>=15.0.1",
 ]
