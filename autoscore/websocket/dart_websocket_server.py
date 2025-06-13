@@ -5,7 +5,7 @@ from detector.service.calibration.board_calibration_service import (
     DartBoardCalibrationService,
 )
 from detector.service.scoring.dart_scoring_service import DartScoringService
-from websockets.asyncio.client import ClientConnection
+from websockets.asyncio.server import ServerConnection
 
 from autoscore.websocket.connection_manager import ConnectionManager
 from autoscore.websocket.message_router import MessageRouter
@@ -17,11 +17,11 @@ class DartWebSocketServer:
     logger = logging.getLogger(__qualname__)
 
     def __init__(self) -> None:
-        self.connections: Set[ClientConnection] = set()
+        self.connections: Set[ServerConnection] = set()
         self.connection_manager = ConnectionManager(self.connections)
         self.message_router = MessageRouter()
 
-    async def register_connection(self, websocket: ClientConnection) -> None:
+    async def register_connection(self, websocket: ServerConnection) -> None:
         """Register and handle a new WebSocket connection."""
         await self.connection_manager.add_connection(websocket)
 

@@ -6,7 +6,7 @@ from detector.service.calibration.board_calibration_service import (
     DartBoardCalibrationService,
 )
 from detector.service.image_preprocessor import ImagePreprocessor
-from websockets.asyncio.client import ClientConnection
+from websockets.asyncio.server import ServerConnection
 
 from autoscore.handler.base_handler import BaseHandler
 from autoscore.model.request import BaseRequest, CalibrationRequest, RequestType
@@ -31,7 +31,7 @@ class CalibrationHandler(BaseHandler[CalibrationRequest, CalibrationResponse]):
         return RequestType.CALIBRATION
 
     async def handle(
-        self, websocket: ClientConnection, calibration_request: CalibrationRequest
+        self, websocket: ServerConnection, calibration_request: CalibrationRequest
     ) -> None:
         """Handle calibration requests."""
         request_id = calibration_request.id

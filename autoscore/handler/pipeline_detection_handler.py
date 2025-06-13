@@ -2,7 +2,7 @@ import logging
 
 from detector.model.image_models import DartImage
 from detector.service.dart_image_scoring_service import DartInImageScoringService
-from websockets import ClientConnection
+from websockets.asyncio.server import ServerConnection
 
 from autoscore.handler.base_handler import BaseHandler
 from autoscore.model.request import PipelineDetectionRequest, RequestType
@@ -21,7 +21,7 @@ class PipelineDetectionHandler(BaseHandler[PipelineDetectionRequest, PipelineDet
     def get_request_type(self) -> RequestType:
         return RequestType.FULL
 
-    async def handle(self, websocket: ClientConnection, request: PipelineDetectionRequest) -> None:
+    async def handle(self, websocket: ServerConnection, request: PipelineDetectionRequest) -> None:
         try:
             detection_result = self.__dart_detection_service.detect_and_score(image=DartImage(raw_image=base64_to_numpy(request.image)))
 

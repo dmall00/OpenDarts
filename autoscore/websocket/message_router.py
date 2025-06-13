@@ -11,7 +11,7 @@ from detector.service.dart_image_scoring_service import DartInImageScoringServic
 from detector.service.image_preprocessor import ImagePreprocessor
 from detector.service.scoring.dart_scoring_service import DartScoringService
 from detector.yolo.dart_detector import YoloDartImageProcessor
-from websockets.asyncio.client import ClientConnection
+from websockets.asyncio.server import ServerConnection
 
 from autoscore.handler.calibration_handler import CalibrationHandler
 from autoscore.handler.ping_handler import PingHandler
@@ -87,7 +87,7 @@ class MessageRouter:
 
         return request_class(**data)
 
-    async def handle_messages(self, websocket: ClientConnection) -> None:
+    async def handle_messages(self, websocket: ServerConnection) -> None:
         """Handle incoming messages from a WebSocket connection."""
         try:
             async for message in websocket:
@@ -108,7 +108,7 @@ class MessageRouter:
         except websockets.exceptions.ConnectionClosed:
             self.logger.info("Connection closed by client")
 
-    async def _process_message(self, websocket: ClientConnection, request: BaseRequest) -> None:
+    async def _process_message(self, websocket: ServerConnection, request: BaseRequest) -> None:
         """Process a parsed message and route it to the appropriate handler."""
         message_type = request.request_type
         request_id = request.id
@@ -126,7 +126,7 @@ class MessageRouter:
 
     async def _send_error(
         self,
-        websocket: ClientConnection,
+        websocket: ServerConnection,
         error_message: str,
         request_id: str | None,
     ) -> None:

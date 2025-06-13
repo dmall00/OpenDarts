@@ -17,7 +17,7 @@ from autoscore.util.file_util import base64_to_numpy
 logger = logging.getLogger("ServerTestIT")
 def send_image_base64(file_path: str | Path) -> str:
     """Send image as base64 over WebSocket."""
-    with Path.open(file_path, "rb") as f:
+    with Path(file_path).open("rb") as f:
         image_bytes = f.read()
 
     return base64.b64encode(image_bytes).decode("utf-8")
@@ -58,31 +58,30 @@ async def test_separate_pipeline(websocket_server) -> None:
         calibration_request = CalibrationRequest(
             request_type=RequestType.CALIBRATION,
             id="test",
-            image=image
-        )
+            image=image        )
         await websocket.send(calibration_request.model_dump_json())
         response = await websocket.recv()
-        response_result = CalibrationResponse(**json.loads(response))
-        logger.info(f"Received calibration response: {response_result}")
-        assert response_result.status == Status.SUCCESS
-        assert response_result.request_type == RequestType.CALIBRATION
+        calibration_response = CalibrationResponse(**json.loads(response))
+        logger.info(f"Received calibration response: {calibration_response}")
+        assert calibration_response.status == Status.SUCCESS
+        assert calibration_response.request_type == RequestType.CALIBRATION
 
         # Test scoring
         scoring_request = ScoringRequest(
             request_type=RequestType.SCORING,
             id="test",
             image=image,
-            calibration_result=response_result.calibration_result
+            calibration_result=calibration_response.calibration_result
         )
         await websocket.send(scoring_request.model_dump_json())
         response = await websocket.recv()
-        response_result = ScoringResponse(**json.loads(response))
-        logger.info(f"Received scoring response: {response_result}")
-        assert response_result.status == Status.SUCCESS
-        assert response_result.request_type == RequestType.SCORING
+        scoring_response = ScoringResponse(**json.loads(response))
+        logger.info(f"Received scoring response: {scoring_response}")
+        assert scoring_response.status == Status.SUCCESS
+        assert scoring_response.request_type == RequestType.SCORING
 
         # Verify scoring results
-        scoring_result = response_result.scoring_result
+        scoring_result = scoring_response.scoring_result
         assert scoring_result.dart_detections
         assert len(scoring_result.dart_detections) > 0
         assert all(dart.dart_score.score_value > 0 for dart in scoring_result.dart_detections)
@@ -111,6 +110,7 @@ async def test_full_pipeline(websocket_server) -> None:
         response = await websocket.recv()
         detection_response = PipelineDetectionResponse(**json.loads(response))
         scoring_result = detection_response.detection_result.scoring_result
+        assert scoring_result is not None, "scoring_result is None"
         assert scoring_result.dart_detections
         assert len(scoring_result.dart_detections) > 0
         assert all(dart.dart_score.score_value > 0 for dart in scoring_result.dart_detections)

@@ -8,7 +8,7 @@ from detector.model.detection_models import (
 )
 from detector.model.image_models import DartImage
 from detector.service.scoring.dart_scoring_service import DartScoringService
-from websockets.asyncio.client import ClientConnection
+from websockets.asyncio.server import ServerConnection
 
 from autoscore.handler.base_handler import BaseHandler
 from autoscore.model.request import BaseRequest, RequestType, ScoringRequest
@@ -36,7 +36,7 @@ class ScoringHandler(BaseHandler[ScoringRequest, ScoringResponse]):
     def get_request_type(self) -> RequestType:
         return RequestType.SCORING
 
-    async def handle(self, websocket: ClientConnection, scoring_request: ScoringRequest) -> None:
+    async def handle(self, websocket: ServerConnection, scoring_request: ScoringRequest) -> None:
         """Handle scoring requests."""
         try:
             logger.info(f"Received scoring request: {scoring_request.id}")

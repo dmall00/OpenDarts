@@ -1,4 +1,4 @@
-from websockets.asyncio.client import ClientConnection
+from websockets.asyncio.server import ServerConnection
 
 from autoscore.handler.base_handler import BaseHandler
 from autoscore.model.request import PingRequest, RequestType
@@ -15,7 +15,7 @@ class PingHandler(BaseHandler[PingRequest, PingResponse]):
         return RequestType.PING
 
     async def handle(
-        self, websocket: ClientConnection, request: PingRequest
+        self, websocket: ServerConnection, request: PingRequest
     ) -> None:
         """Handle ping requests."""
         response = PingResponse(request_type=RequestType.PING, id=request.id, status=Status.SUCCESS)

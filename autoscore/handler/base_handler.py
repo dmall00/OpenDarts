@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Generic
 
 from detector.model.detection_models import AbstractResult
-from websockets.asyncio.client import ClientConnection
+from websockets.asyncio.server import ServerConnection
 
 from autoscore.model.request import REQ, RequestType
 from autoscore.model.response import (
@@ -21,22 +21,20 @@ class BaseHandler(Generic[REQ, RES], ABC):
     def get_request_type(self) -> RequestType:
         """Return the type of request this handler processes."""
         msg = "Get request type method must be implemented by subclasses."
-        raise NotImplementedError(msg)
-
-    @abstractmethod
+        raise NotImplementedError(msg)    @abstractmethod
     async def handle(
-        self, websocket: ClientConnection, request: REQ
+        self, websocket: ServerConnection, request: REQ
     ) -> None:
         """Handle a specific message type."""
         msg = "Handle method must be implemented by subclasses."
         raise NotImplementedError(msg)
 
-    async def send_response(self, websocket: ClientConnection, response: RES) -> None:
+    async def send_response(self, websocket: ServerConnection, response: RES) -> None:
         await websocket.send(response.model_dump_json())
 
     async def send_error(
         self,
-        websocket: ClientConnection,
+        websocket: ServerConnection,
         error_message: str,
         request_id: str | None,
     ) -> None:
