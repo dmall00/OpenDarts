@@ -51,7 +51,7 @@ class DartScoringService:
             start_time = time.time()
             self.__validate_input(image, calibration_result)
             self.__image_preprocessor.preprocess_images_from_preprocessing_result(
-                image=image, preprocessing_result=calibration_result.preprocessing_result
+                image=image, preprocessing_result=calibration_result.preprocessing_result # type: ignore
             )
             results = self.__yolo_image_processor.detect(image)
             detections = self.__yolo_result_parser.extract_detections(results)
