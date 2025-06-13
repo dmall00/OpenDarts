@@ -9,6 +9,7 @@ from typing import AsyncGenerator
 
 import pytest
 import websockets
+from websockets import Server
 
 from autoscore.model.request import CalibrationRequest, PingRequest, PipelineDetectionRequest, RequestType, ScoringRequest
 from autoscore.model.response import CalibrationResponse, PingResponse, PipelineDetectionResponse, ScoringResponse, Status
@@ -27,7 +28,7 @@ def send_image_base64(file_path: str | Path) -> str:
 
 
 @pytest.fixture
-async def websocket_server() -> AsyncGenerator[None, None]:
+async def websocket_server() -> AsyncGenerator[Server, None]:
     """Start the WebSocket server as a background task."""
     from autoscore.websocket.dart_websocket_server import DartWebSocketServer
 
