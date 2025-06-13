@@ -1,36 +1,31 @@
-import React, { useState, useRef, useEffect } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  Alert,
-  Dimensions,
-  Platform
-} from 'react-native';
-import { Camera, useCameraDevice } from 'react-native-vision-camera';
+import React, {useEffect, useRef, useState} from 'react';
+import {Alert, Dimensions, Modal, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View} from 'react-native';
+import {Camera, useCameraDevice} from 'react-native-vision-camera';
 
 const { width, height } = Dimensions.get('window');
 
 // Configuration - Update these URLs for your backend
-const CONFIG = {
+const DEFAULT_CONFIG = {
   CALIBRATION_API: 'https://your-api.com/calibrate',
-  WEBSOCKET_URL: 'ws://your-websocket-server.com:8080',
+  DEFAULT_WEBSOCKET_URL: 'ws://localhost:8080/ws/app',
   FRAME_RATE: 10 // 10 FPS
 };
 
 export default function DartScoringApp() {
   // State management
-  const [mode, setMode] = useState(1); // 1 = Calibration mode, 2 = Streaming mode
+  const [mode, setMode] = useState<1 | 2>(1); // 1 = Calibration mode, 2 = Streaming mode
   const [isCalibrated, setIsCalibrated] = useState(false);
   const [zoomLevel, setZoomLevel] = useState(1);
   const [isStreaming, setIsStreaming] = useState(false);
   const [wsConnected, setWsConnected] = useState(false);
+  const [showConfigModal, setShowConfigModal] = useState(false);
+  const [websocketUrl, setWebsocketUrl] = useState(DEFAULT_CONFIG.DEFAULT_WEBSOCKET_URL);
+  const [calibrationApi, setCalibrationApi] = useState(DEFAULT_CONFIG.CALIBRATION_API);
 
   // Refs
-  const cameraRef = useRef(null);
-  const wsRef = useRef(null);
-  const streamIntervalRef = useRef(null);
+  const cameraRef = useRef<Camera>(null);
+  const wsRef = useRef<WebSocket | null>(null);
+  const streamIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Camera device
   const device = useCameraDevice('back');
@@ -50,22 +45,20 @@ export default function DartScoringApp() {
       }
     };
   }, [mode, isCalibrated]);
-
   const connectWebSocket = () => {
     try {
-      wsRef.current = new WebSocket(CONFIG.WEBSOCKET_URL);
+      wsRef.current = new WebSocket(websocketUrl);
 
       wsRef.current.onopen = () => {
         console.log('WebSocket connected');
         setWsConnected(true);
         startVideoStreaming();
       };
-
-      wsRef.current.onmessage = (event) => {
+      wsRef.current.onmessage = (event: any) => {
         console.log('WebSocket message:', event.data);
       };
 
-      wsRef.current.onerror = (error) => {
+      wsRef.current.onerror = (error: any) => {
         console.error('WebSocket error:', error);
         Alert.alert('Connection Error', 'Failed to connect to streaming server');
       };
@@ -82,28 +75,27 @@ export default function DartScoringApp() {
       console.error('WebSocket connection failed:', error);
     }
   };
-
   const captureFrame = async () => {
     if (!cameraRef.current) return null;
 
     try {
       const photo = await cameraRef.current.takePhoto({
-        quality: 0.7,
-        base64: true
+        enableAutoRedEyeReduction: false,
       });
 
-      return `data:image/jpeg;base64,${photo.base64}`;
+      // Note: For base64 encoding, you might need to use react-native-fs or similar library
+      // This is a simplified version - you may need to implement proper base64 conversion
+      return `data:image/jpeg;base64,${photo.path}`;
     } catch (error) {
       console.error('Frame capture failed:', error);
       return null;
     }
   };
-
   const startVideoStreaming = () => {
     if (isStreaming || !wsConnected) return;
 
     setIsStreaming(true);
-    const frameInterval = 1000 / CONFIG.FRAME_RATE; // Convert FPS to milliseconds
+    const frameInterval = 1000 / DEFAULT_CONFIG.FRAME_RATE; // Convert FPS to milliseconds
 
     streamIntervalRef.current = setInterval(async () => {
       if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
@@ -131,7 +123,7 @@ export default function DartScoringApp() {
         return;
       }
 
-      const response = await fetch(CONFIG.CALIBRATION_API, {
+      const response = await fetch(calibrationApi, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -163,11 +155,9 @@ export default function DartScoringApp() {
       wsRef.current.close();
     }
   };
-
-  const changeZoom = (newZoom) => {
+  const changeZoom = (newZoom: number) => {
     setZoomLevel(newZoom);
   };
-
   const toggleMode = () => {
     const newMode = mode === 1 ? 2 : 1;
     setMode(newMode);
@@ -179,6 +169,14 @@ export default function DartScoringApp() {
     stopVideoStreaming();
   };
 
+  const saveConfiguration = () => {
+    setShowConfigModal(false);
+    // Reconnect with new URL if currently connected
+    if (wsConnected && wsRef.current) {
+      wsRef.current.close();
+    }
+  };
+
   if (!device) {
     return (
       <View style={styles.container}>
@@ -186,9 +184,55 @@ export default function DartScoringApp() {
       </View>
     );
   }
-
   return (
     <View style={styles.container}>
+      {/* Configuration Modal */}
+      <Modal
+          visible={showConfigModal}
+          animationType="slide"
+          presentationStyle="pageSheet"
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>Configuration</Text>
+            <TouchableOpacity onPress={() => setShowConfigModal(false)}>
+              <Text style={styles.modalCloseButton}>✕</Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.configForm}>
+            <Text style={styles.configLabel}>WebSocket URL:</Text>
+            <TextInput
+                style={styles.configInput}
+                value={websocketUrl}
+                onChangeText={setWebsocketUrl}
+                placeholder="ws://localhost:8080/ws/app"
+                placeholderTextColor="#666"
+                autoCapitalize="none"
+                autoCorrect={false}
+            />
+
+            <Text style={styles.configLabel}>Calibration API URL:</Text>
+            <TextInput
+                style={styles.configInput}
+                value={calibrationApi}
+                onChangeText={setCalibrationApi}
+                placeholder="https://your-api.com/calibrate"
+                placeholderTextColor="#666"
+                autoCapitalize="none"
+                autoCorrect={false}
+            />
+
+            <TouchableOpacity
+                style={[styles.button, styles.saveButton]}
+                onPress={saveConfiguration}
+            >
+              <Text style={styles.buttonText}>Save Configuration</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
       {/* Camera View */}
       <View style={styles.cameraContainer}>
         <Camera
@@ -218,10 +262,16 @@ export default function DartScoringApp() {
             Streaming: {isStreaming ? 'Active' : 'Inactive'}
           </Text>
         </View>
-      </View>
-
-      {/* Controls */}
+      </View> {/* Controls */}
       <View style={styles.controlsContainer}>
+        {/* Settings Button */}
+        <TouchableOpacity
+            style={[styles.button, styles.settingsButton]}
+            onPress={() => setShowConfigModal(true)}
+        >
+          <Text style={styles.buttonText}>⚙️ Settings</Text>
+        </TouchableOpacity>
+
         {/* Mode Toggle */}
         <TouchableOpacity
           style={[styles.button, styles.toggleButton]}
@@ -335,6 +385,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
   },
+  settingsButton: {
+    backgroundColor: '#666',
+  },
   toggleButton: {
     backgroundColor: '#FF9500',
   },
@@ -349,6 +402,10 @@ const styles = StyleSheet.create({
   },
   stopButton: {
     backgroundColor: '#FF3B30',
+  },
+  saveButton: {
+    backgroundColor: '#007AFF',
+    marginTop: 20,
   },
   zoomContainer: {
     flexDirection: 'row',
@@ -389,5 +446,45 @@ const styles = StyleSheet.create({
     fontSize: 18,
     textAlign: 'center',
     marginTop: 100,
+  },
+  // Modal styles
+  modalContainer: {
+    flex: 1,
+    backgroundColor: '#1a1a1a',
+    paddingTop: Platform.OS === 'ios' ? 50 : 30,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#333',
+  },
+  modalTitle: {
+    color: '#fff',
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  modalCloseButton: {
+    color: '#fff',
+    fontSize: 24,
+    fontWeight: 'bold',
+  },
+  configForm: {
+    padding: 20,
+  },
+  configLabel: {
+    color: '#fff',
+    fontSize: 16,
+    marginBottom: 8,
+    marginTop: 16,
+  },
+  configInput: {
+    backgroundColor: '#333',
+    color: '#fff',
+    padding: 15,
+    borderRadius: 8,
+    fontSize: 16,
   },
 });
