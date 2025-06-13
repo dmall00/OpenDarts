@@ -1,24 +1,28 @@
 import json
 import logging
-from typing import Any, Dict
+from typing import TYPE_CHECKING, Any, Dict
 
 from detector.model.detection_models import (
     CalibrationPoint,
     CalibrationResult,
-    ScoringResult,
 )
 from detector.model.image_models import DartImage
 from detector.service.scoring.dart_scoring_service import DartScoringService
 from websockets.asyncio.client import ClientConnection
 
 from autoscore.handler.base_handler import BaseHandler
+from autoscore.model.request import BaseRequest, RequestType, ScoringRequest
 from autoscore.model.response import (
     BaseResponse,
-    Status,
     ScoringResponse,
+    Status,
 )
-from autoscore.model.request import BaseRequest, RequestType, ScoringRequest
 from autoscore.util.file_util import base64_to_numpy
+
+if TYPE_CHECKING:
+    from detector.model.detection_models import (
+        ScoringResult,
+    )
 
 logger = logging.getLogger(__name__)
 
@@ -51,5 +55,5 @@ class ScoringHandler(BaseHandler[ScoringRequest, ScoringResponse]):
             logger.info(f"Scoring completed for request {scoring_request.id}")
 
         except Exception as e:
-            logger.error(f"Scoring error: {e}")
-            await self.send_error(websocket, f"Scoring failed: {str(e)}", scoring_request.id)
+            logger.exception(f"Scoring error: {e}")
+            await self.send_error(websocket, f"Scoring failed: {e!s}", scoring_request.id)

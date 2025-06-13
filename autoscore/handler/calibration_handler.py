@@ -9,12 +9,12 @@ from detector.service.image_preprocessor import ImagePreprocessor
 from websockets.asyncio.client import ClientConnection
 
 from autoscore.handler.base_handler import BaseHandler
+from autoscore.model.request import BaseRequest, CalibrationRequest, RequestType
 from autoscore.model.response import (
     BaseResponse,
-    Status,
     CalibrationResponse,
+    Status,
 )
-from autoscore.model.request import BaseRequest, RequestType, CalibrationRequest
 from autoscore.util.file_util import base64_to_numpy
 
 logger = logging.getLogger(__name__)
@@ -51,7 +51,7 @@ class CalibrationHandler(BaseHandler[CalibrationRequest, CalibrationResponse]):
             logger.info(f"Calibration completed for request {request_id}")
 
         except Exception as e:
-            logger.error(f"Calibration error: {e}")
+            logger.exception(f"Calibration error: {e}")
             await self.send_error(
-                websocket, f"Calibration failed: {str(e)}", request_id
+                websocket, f"Calibration failed: {e!s}", request_id
             )

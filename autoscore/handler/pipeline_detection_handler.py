@@ -33,7 +33,7 @@ class PipelineDetectionHandler(BaseHandler[PipelineDetectionRequest, PipelineDet
             )
 
         except Exception as e:
-            self.logger.error(f"Pipeline detection error: {e}")
-            await self.send_error(websocket, f"Pipeline detection failed: {str(e)}", request.id)
+            self.logger.exception(f"Pipeline detection error: {e}")
+            await self.send_error(websocket, f"Pipeline detection failed: {e!s}", request.id)
 
 

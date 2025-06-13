@@ -1,18 +1,10 @@
 from websockets.asyncio.client import ClientConnection
 
 from autoscore.handler.base_handler import BaseHandler
+from autoscore.model.request import PingRequest, RequestType
 from autoscore.model.response import (
-    Status,
     PingResponse,
-)
-from autoscore.model.request import RequestType, PingRequest
-from websockets.asyncio.client import ClientConnection
-
-from autoscore.handler.base_handler import BaseHandler
-from autoscore.model.request import RequestType, PingRequest
-from autoscore.model.response import (
     Status,
-    PingResponse,
 )
 
 

@@ -4,13 +4,13 @@ from typing import Generic
 from detector.model.detection_models import AbstractResult
 from websockets.asyncio.client import ClientConnection
 
-from autoscore.model.request import RequestType, REQ
+from autoscore.model.request import REQ, RequestType
 from autoscore.model.response import (
-    ErrorResponse,
-    BaseResponse,
-    Status,
     RES,
+    BaseResponse,
+    ErrorResponse,
     PingResponse,
+    Status,
 )
 
 

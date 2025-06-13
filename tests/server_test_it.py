@@ -10,8 +10,8 @@ from detector.model.detection_models import CalibrationResult, ScoringResult
 from detector.model.image_models import DartImage
 
 from autoscore.main import main
-from autoscore.model.request import RequestType, ScoringRequest, CalibrationRequest, PingRequest, PipelineDetectionRequest
-from autoscore.model.response import BaseResponse, Status, PingResponse, CalibrationResponse, ScoringResponse, PipelineDetectionResponse
+from autoscore.model.request import CalibrationRequest, PingRequest, PipelineDetectionRequest, RequestType, ScoringRequest
+from autoscore.model.response import BaseResponse, CalibrationResponse, PingResponse, PipelineDetectionResponse, ScoringResponse, Status
 from autoscore.util.file_util import base64_to_numpy
 
 logger = logging.getLogger("ServerTestIT")
@@ -20,8 +20,7 @@ def send_image_base64(file_path: str | Path) -> str:
     with Path.open(file_path, "rb") as f:
         image_bytes = f.read()
 
-    base64_string = base64.b64encode(image_bytes).decode("utf-8")
-    return base64_string
+    return base64.b64encode(image_bytes).decode("utf-8")
 
 
 @pytest.fixture

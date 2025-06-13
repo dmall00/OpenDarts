@@ -3,7 +3,7 @@ from abc import ABC
 from enum import Enum
 from typing import Any, Optional, TypeVar
 
-from detector.model.detection_models import ScoringResult, CalibrationResult, AbstractResult, DetectionResult
+from detector.model.detection_models import AbstractResult, CalibrationResult, DetectionResult, ScoringResult
 from pydantic import BaseModel, ConfigDict, field_serializer
 
 from autoscore.model.request import RequestType

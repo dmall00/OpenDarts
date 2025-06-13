@@ -1,7 +1,8 @@
 import base64
+from io import BytesIO
+
 import numpy as np
 from PIL import Image
-from io import BytesIO
 
 
 def base64_to_numpy(base64_data: bytes | bytearray | str) -> np.ndarray:
@@ -18,5 +19,4 @@ def base64_to_numpy(base64_data: bytes | bytearray | str) -> np.ndarray:
     if image.mode != "RGB":
         image = image.convert("RGB")
 
-    numpy_array = np.array(image)
-    return numpy_array
+    return np.array(image)

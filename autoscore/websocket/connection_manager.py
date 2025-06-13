@@ -4,8 +4,6 @@ from typing import Set
 from websockets.asyncio.client import ClientConnection
 
 
-
-
 class ConnectionManager:
     """Manages WebSocket connections lifecycle."""
 

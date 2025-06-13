@@ -1,6 +1,6 @@
 import json
 import logging
-from typing import Any, Dict, Generic, Protocol, Type, TypeVar
+from typing import TYPE_CHECKING, Any, Dict, Generic, Protocol, Type, TypeVar
 
 import websockets.exceptions
 from detector.model.configuration import ProcessingConfig
@@ -13,17 +13,19 @@ from detector.service.scoring.dart_scoring_service import DartScoringService
 from detector.yolo.dart_detector import YoloDartImageProcessor
 from websockets.asyncio.client import ClientConnection
 
-from autoscore.handler.base_handler import BaseHandler
 from autoscore.handler.calibration_handler import CalibrationHandler
 from autoscore.handler.ping_handler import PingHandler
 from autoscore.handler.pipeline_detection_handler import PipelineDetectionHandler
 from autoscore.handler.scoring_handler import ScoringHandler
-from autoscore.model.request import BaseRequest, CalibrationRequest, PingRequest, RequestType, ScoringRequest, PipelineDetectionRequest
+from autoscore.model.request import BaseRequest, CalibrationRequest, PingRequest, PipelineDetectionRequest, RequestType, ScoringRequest
 from autoscore.model.response import (
     BaseResponse,
     ErrorResponse,
     Status,
 )
+
+if TYPE_CHECKING:
+    from autoscore.handler.base_handler import BaseHandler
 
 
 class MessageRouter:
@@ -69,16 +71,19 @@ class MessageRouter:
         """Dynamically deserialize request based on request_type."""
         request_type_str = data.get("request_type")
         if not request_type_str:
-            raise ValueError("Missing request_type in message")
+            msg = "Missing request_type in message"
+            raise ValueError(msg)
 
         try:
             request_type = RequestType(request_type_str)
         except ValueError:
-            raise ValueError(f"Unknown request_type: {request_type_str}")
+            msg = f"Unknown request_type: {request_type_str}"
+            raise ValueError(msg)
 
         request_class = self.request_types.get(request_type)
         if request_class is None:
-            raise ValueError(f"No request class registered for request_type: {request_type}")
+            msg = f"No request class registered for request_type: {request_type}"
+            raise ValueError(msg)
 
         return request_class(**data)
 
@@ -97,9 +102,9 @@ class MessageRouter:
                     request_id = data.get("id") if isinstance(data, dict) else None
                     await self._send_error(websocket, str(e), request_id)
                 except Exception as e:
-                    self.logger.error(f"Error processing message: {e}")
+                    self.logger.exception(f"Error processing message: {e}")
                     request_id = data.get("id") if isinstance(data, dict) else None
-                    await self._send_error(websocket, f"Server error: {str(e)}", request_id)
+                    await self._send_error(websocket, f"Server error: {e!s}", request_id)
         except websockets.exceptions.ConnectionClosed:
             self.logger.info("Connection closed by client")
 
@@ -134,4 +139,4 @@ class MessageRouter:
             )
             await websocket.send(response.model_dump_json())
         except Exception as e:
-            self.logger.error(f"Failed to send error response: {e}")
+            self.logger.exception(f"Failed to send error response: {e}")
