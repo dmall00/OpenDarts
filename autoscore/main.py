@@ -20,8 +20,8 @@ async def main() -> None:
 
     logger.info("Starting dart WebSocket server on localhost:8765")
 
-    async with websockets.serve(server.register_connection, "localhost", 8765, max_size=20 * 1024 * 1024) as websocket_server:
-        logger.info("WebSocket server is running on ws://localhost:8765")
+    async with websockets.serve(server.register_connection, "0.0.0.0", 8765, max_size=20 * 1024 * 1024) as websocket_server:  # noqa: S104
+        logger.info("WebSocket server is running on ws://127.0.0.1:8765")
         await websocket_server.serve_forever()
 
 
