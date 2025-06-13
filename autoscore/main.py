@@ -1,3 +1,5 @@
+"""Main module for starting the dart autoscore WebSocket server."""
+
 import asyncio
 import logging
 
@@ -18,9 +20,7 @@ async def main() -> None:
 
     logger.info("Starting dart WebSocket server on localhost:8765")
 
-    async with websockets.serve(
-        server.register_connection, "localhost", 8765, max_size=20 * 1024 * 1024
-    ) as websocket_server:
+    async with websockets.serve(server.register_connection, "localhost", 8765, max_size=20 * 1024 * 1024) as websocket_server:
         logger.info("WebSocket server is running on ws://localhost:8765")
         await websocket_server.serve_forever()
 

@@ -1,6 +1,8 @@
+"""Message router for handling WebSocket message routing and processing."""
+
 import json
 import logging
-from typing import TYPE_CHECKING, Any, Dict, Generic, Protocol, Type, TypeVar
+from typing import TYPE_CHECKING, Any, Dict, Type
 
 import websockets.exceptions
 from detector.model.configuration import ProcessingConfig
@@ -19,7 +21,6 @@ from autoscore.handler.pipeline_detection_handler import PipelineDetectionHandle
 from autoscore.handler.scoring_handler import ScoringHandler
 from autoscore.model.request import BaseRequest, CalibrationRequest, PingRequest, PipelineDetectionRequest, RequestType, ScoringRequest
 from autoscore.model.response import (
-    BaseResponse,
     ErrorResponse,
     Status,
 )
@@ -57,7 +58,7 @@ class MessageRouter:
             RequestType.CALIBRATION: self.calibration_handler,
             RequestType.SCORING: self.scoring_handler,
             RequestType.PING: self.ping_handler,
-            RequestType.FULL: self.detection_handler
+            RequestType.FULL: self.detection_handler,
         }
 
         self.request_types: Dict[RequestType, Type[BaseRequest]] = {
@@ -76,9 +77,9 @@ class MessageRouter:
 
         try:
             request_type = RequestType(request_type_str)
-        except ValueError:
+        except ValueError as e:
             msg = f"Unknown request_type: {request_type_str}"
-            raise ValueError(msg)
+            raise ValueError(msg) from e
 
         request_class = self.request_types.get(request_type)
         if request_class is None:
@@ -93,7 +94,7 @@ class MessageRouter:
             async for message in websocket:
                 try:
                     data = json.loads(message)
-                    self.logger.debug(f"Received message: {data}")
+                    self.logger.debug("Received message: %s", data)
                     request = self._deserialize_request(data)
                     await self._process_message(websocket, request)
                 except json.JSONDecodeError:
@@ -102,7 +103,7 @@ class MessageRouter:
                     request_id = data.get("id") if isinstance(data, dict) else None
                     await self._send_error(websocket, str(e), request_id)
                 except Exception as e:
-                    self.logger.exception(f"Error processing message: {e}")
+                    self.logger.exception("Error processing message")
                     request_id = data.get("id") if isinstance(data, dict) else None
                     await self._send_error(websocket, f"Server error: {e!s}", request_id)
         except websockets.exceptions.ConnectionClosed:
@@ -138,5 +139,5 @@ class MessageRouter:
                 message=error_message,
             )
             await websocket.send(response.model_dump_json())
-        except Exception as e:
-            self.logger.exception(f"Failed to send error response: {e}")
+        except Exception:
+            self.logger.exception("Failed to send error response")

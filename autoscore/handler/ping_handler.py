@@ -1,3 +1,5 @@
+"""Ping handler for connection health checks."""
+
 from websockets.asyncio.server import ServerConnection
 
 from autoscore.handler.base_handler import BaseHandler
@@ -12,11 +14,10 @@ class PingHandler(BaseHandler[PingRequest, PingResponse]):
     """Handles ping requests for connection health checks."""
 
     def get_request_type(self) -> RequestType:
+        """Return the request type this handler processes."""
         return RequestType.PING
 
-    async def handle(
-        self, websocket: ServerConnection, request: PingRequest
-    ) -> None:
+    async def handle(self, websocket: ServerConnection, request: PingRequest) -> None:
         """Handle ping requests."""
         response = PingResponse(request_type=RequestType.PING, id=request.id, status=Status.SUCCESS)
         await self.send_response(websocket, response)

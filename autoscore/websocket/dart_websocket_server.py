@@ -1,10 +1,8 @@
+"""WebSocket server for handling dart autoscore operations."""
+
 import logging
 from typing import Set
 
-from detector.service.calibration.board_calibration_service import (
-    DartBoardCalibrationService,
-)
-from detector.service.scoring.dart_scoring_service import DartScoringService
 from websockets.asyncio.server import ServerConnection
 
 from autoscore.websocket.connection_manager import ConnectionManager

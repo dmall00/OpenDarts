@@ -1,3 +1,5 @@
+"""Pipeline detection handler for processing dart detection and scoring requests."""
+
 import logging
 
 from detector.model.image_models import DartImage
@@ -19,9 +21,11 @@ class PipelineDetectionHandler(BaseHandler[PipelineDetectionRequest, PipelineDet
         self.__dart_detection_service = dart_detection_service
 
     def get_request_type(self) -> RequestType:
+        """Return the request type handled by this handler."""
         return RequestType.FULL
 
     async def handle(self, websocket: ServerConnection, request: PipelineDetectionRequest) -> None:
+        """Handle pipeline detection requests."""
         try:
             detection_result = self.__dart_detection_service.detect_and_score(image=DartImage(raw_image=base64_to_numpy(request.image)))
 
@@ -33,7 +37,5 @@ class PipelineDetectionHandler(BaseHandler[PipelineDetectionRequest, PipelineDet
             )
 
         except Exception as e:
-            self.logger.exception(f"Pipeline detection error: {e}")
+            self.logger.exception("Pipeline detection error")
             await self.send_error(websocket, f"Pipeline detection failed: {e!s}", request.id)
-
-
