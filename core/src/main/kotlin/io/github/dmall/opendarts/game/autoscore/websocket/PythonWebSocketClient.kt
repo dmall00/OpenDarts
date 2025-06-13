@@ -23,7 +23,7 @@ class PythonWebSocketClient private constructor() {
 
     fun connect() {
         val client = StandardWebSocketClient()
-        client.execute(PythonHandler(), "ws://localhost:8765")
+        client.execute(PythonHandler(), "ws://192.168.178.34:8765")
     }
 
     fun sendToPython(message: String) {

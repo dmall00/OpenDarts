@@ -27,14 +27,19 @@ class SecurityConfig @Autowired constructor(
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
         http
             .csrf { it.disable() }
+            .cors { it.disable() }
             .authorizeHttpRequests { authorize ->
                 authorize
                     .requestMatchers("/auth/**", "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                    .requestMatchers("/ws/**").permitAll() // Allow WebSocket endpoints
                     .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                     .anyRequest().authenticated()
             }
             .sessionManagement { session ->
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            }
+            .headers { headers ->
+                headers.frameOptions().sameOrigin()
             }
 
         http.addFilterBefore(
