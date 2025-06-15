@@ -5,7 +5,7 @@ import org.springframework.web.socket.TextMessage
 import org.springframework.web.socket.WebSocketSession
 import org.springframework.web.socket.handler.TextWebSocketHandler
 
-class PythonHandler : TextWebSocketHandler() {
+class AutoscoringHandler : TextWebSocketHandler() {
 
     val logger = KotlinLogging.logger {}
 
@@ -15,6 +15,6 @@ class PythonHandler : TextWebSocketHandler() {
     }
 
     public override fun handleTextMessage(session: WebSocketSession, message: TextMessage) {
-        logger.info { "Websocket message received " + message.payload }
+        logger.info { "Websocket message received ${message.payload}" }
     }
 }

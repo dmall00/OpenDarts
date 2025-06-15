@@ -19,21 +19,21 @@ class AppWebSocketHandler(
     private val logger = KotlinLogging.logger {}
 
     override fun afterConnectionEstablished(session: WebSocketSession) {
-        logger.info { "App connected" }
+        logger.info { "App connection established" }
         sessions.add(session)
     }
 
     override fun handleBinaryMessage(session: WebSocketSession, message: BinaryMessage) {
         val sizeInBytes = message.payload.remaining()
         val sizeInMB = sizeInBytes / (1024.0 * 1024.0)
-        logger.info("Received message from app with size in MB: {}", String.format("%.2f", sizeInMB))
+        logger.info { "Received message from app with size in MB: ${String.format("%.2f", sizeInMB)}" }
         val imageBytes = message.payload.array()
         autoScoreService.sendPipelineDetectionRequest(imageBytes)
         pythonClient.sendToPython(imageBytes)
     }
 
     override fun afterConnectionClosed(session: WebSocketSession, status: CloseStatus) {
-        logger.info("Connection closed")
+        logger.info { "App connection closed" }
         sessions.remove(session)
     }
 }

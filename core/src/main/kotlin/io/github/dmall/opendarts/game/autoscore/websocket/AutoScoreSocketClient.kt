@@ -34,7 +34,7 @@ class AutoScoreSocketClient @Autowired constructor(val autoScoreProperties: Auto
 
     fun connect() {
         val client = StandardWebSocketClient()
-        client.execute(PythonHandler(), "ws://${autoScoreProperties.host}:${autoScoreProperties.port}")
+        client.execute(AutoscoringHandler(), "ws://${autoScoreProperties.host}:${autoScoreProperties.port}")
     }
 
     fun sendToPython(data: ByteArray) {
