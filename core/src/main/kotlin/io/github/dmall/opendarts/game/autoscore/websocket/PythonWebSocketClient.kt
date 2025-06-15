@@ -2,9 +2,10 @@ package io.github.dmall.opendarts.game.autoscore.websocket
 
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.springframework.web.socket.TextMessage
+import org.springframework.web.socket.BinaryMessage
 import org.springframework.web.socket.WebSocketSession
 import org.springframework.web.socket.client.standard.StandardWebSocketClient
+import java.nio.ByteBuffer
 import java.util.concurrent.atomic.AtomicReference
 
 class PythonWebSocketClient private constructor() {
@@ -26,11 +27,12 @@ class PythonWebSocketClient private constructor() {
         client.execute(PythonHandler(), "ws://192.168.178.34:8765")
     }
 
-    fun sendToPython(message: String) {
+    fun sendToPython(data: ByteArray) {
         val session = pythonSession.get()
         if (session != null && session.isOpen) {
             try {
-                session.sendMessage(TextMessage(message))
+                val message = BinaryMessage(ByteBuffer.wrap(data))
+                session.sendMessage(message)
             } catch (e: Exception) {
                 LOGGER.error(e.message, e)
             }

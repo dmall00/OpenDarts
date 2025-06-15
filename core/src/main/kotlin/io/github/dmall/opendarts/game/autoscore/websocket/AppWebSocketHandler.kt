@@ -1,12 +1,10 @@
 package io.github.dmall.opendarts.game.autoscore.websocket
 
-import org.springframework.web.socket.CloseStatus
-import org.springframework.web.socket.TextMessage
-import org.springframework.web.socket.WebSocketSession
-import org.springframework.web.socket.handler.TextWebSocketHandler
+import org.springframework.web.socket.*
+import org.springframework.web.socket.handler.BinaryWebSocketHandler
 import java.util.concurrent.ConcurrentHashMap
 
-class AppWebSocketHandler : TextWebSocketHandler() {
+class AppWebSocketHandler : BinaryWebSocketHandler() {
     private val sessions: MutableSet<WebSocketSession?> = ConcurrentHashMap.newKeySet<WebSocketSession?>()
     private val pythonClient: PythonWebSocketClient = PythonWebSocketClient.Companion.instance
 
@@ -14,8 +12,8 @@ class AppWebSocketHandler : TextWebSocketHandler() {
         sessions.add(session)
     }
 
-    public override fun handleTextMessage(session: WebSocketSession, message: TextMessage) {
-        pythonClient.sendToPython(message.payload)
+    override fun handleBinaryMessage(session: WebSocketSession, message: BinaryMessage) {
+        pythonClient.sendToPython(message.payload.array())
     }
 
     override fun afterConnectionClosed(session: WebSocketSession, status: CloseStatus) {

@@ -1,9 +1,17 @@
 server:
   port: 8080
+  # Configure max HTTP post size for large WebSocket handshakes
+  max-http-header-size: 16KB
+  tomcat:
+    max-http-post-size: 10MB
 
 spring:
   application:
     name: api-gateway
+  # WebSocket configuration
+  websocket:
+    max-text-message-buffer-size: 10485760  # 10MB in bytes
+    max-binary-message-buffer-size: 10485760  # 10MB in bytes
 
   datasource:
     url: jdbc:postgresql://localhost:5432/opendarts_db
