@@ -44,7 +44,7 @@ class AutoScoreSocketClient @Autowired constructor(val autoScoreProperties: Auto
                 val message = BinaryMessage(ByteBuffer.wrap(data))
                 session.sendMessage(message)
             } catch (e: Exception) {
-                logger.error(e.message, e)
+                logger.error(e) { "${e.message}" }
             }
         } else {
             logger.warn("Autoscoring websocket server not available");
