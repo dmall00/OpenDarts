@@ -12,8 +12,9 @@ from detector.model.detection_models import (
 )
 from detector.model.detection_result_code import ResultCode
 from detector.model.exception import DartDetectionError
-from detector.model.image_models import DartImage
+from detector.model.image_models import DartImage, PreprocessingResult
 from detector.service.calibration.board_calibration_service import DartBoardCalibrationService
+from detector.service.image_preprocessor import ImagePreprocessor
 from detector.service.parser.yolo_result_parser import YoloResultParser
 from detector.service.scoring.dart_scoring_service import DartScoringService
 from detector.yolo.dart_detector import YoloDartImageProcessor
@@ -24,13 +25,14 @@ class DartInImageScoringService:
 
     logger = logging.getLogger(__qualname__)
 
-    def __init__(
+    def __init__(  # noqa: PLR0913
         self,
         config: Optional[ProcessingConfig] = None,
         yolo_image_processor: Optional[YoloDartImageProcessor] = None,
         yolo_result_parser: Optional[YoloResultParser] = None,
         calibration_service: Optional[DartBoardCalibrationService] = None,
         dart_scoring_service: Optional[DartScoringService] = None,
+        image_preprocessor: Optional[ImagePreprocessor] = None,
     ) -> None:
         self.__config = config or ProcessingConfig()
         self.__yolo_image_processor = yolo_image_processor or YoloDartImageProcessor(self.__config)
@@ -41,18 +43,20 @@ class DartInImageScoringService:
         self.__dart_scoring_service = dart_scoring_service or DartScoringService(
             self.__config, yolo_image_processor=self.__yolo_image_processor, yolo_result_parser=self.__yolo_result_parser
         )
+        self.__image_preprocessor = image_preprocessor or ImagePreprocessor(self.__config)
 
     def detect_and_score(self, image: DartImage) -> DetectionResult:
         """Execute the complete detection and scoring pipeline."""
         try:
             start_time = time.time()
-            results = self.__yolo_image_processor.detect(image)
+            preprocessing_result = self.__image_preprocessor.preprocess_image(image)
+            results = self.__yolo_image_processor.detect(preprocessing_result.dart_image)
             detections = self.__yolo_result_parser.extract_detections(results)
             calibration_result = self.__calibration_service.calibrate_board(detections.calibration_points)
             scoring_result = self.__dart_scoring_service.calculate_scores(calibration_result, detections.original_positions)
             processing_time = round(time.time() - start_time, 3)
             self.logger.info("Full detection pipeline took %s seconds", processing_time)
-            return self.__create_success_result(scoring_result, calibration_result, processing_time)
+            return self.__create_success_result(scoring_result, calibration_result, preprocessing_result.preprocessing_result, processing_time)
         except DartDetectionError as e:
             self.logger.exception("Dart detection failed")
             return self.__create_error_result(e.error_code, e.message)
@@ -64,9 +68,11 @@ class DartInImageScoringService:
     def __create_success_result(
         scoring_result: ScoringResult,
         calibration_result: CalibrationResult,
+        preprocessing_result: PreprocessingResult,
         processing_time: float,
     ) -> DetectionResult:
         return DetectionResult(
+            preprocessing_result=preprocessing_result,
             calibration_result=calibration_result,
             scoring_result=scoring_result,
             processing_time=processing_time,

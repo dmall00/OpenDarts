@@ -50,13 +50,13 @@ class GeometricDetectionStrategy(CalibrationDetectionStrategy):
         valid_detections = self._filter_geometrically_valid_detections(calib_index, detections)
 
         if not valid_detections:
-            self.logger.info("No geometrically valid detections for calibration point %s, using highest confidence", calib_index)
+            self.logger.debug("No geometrically valid detections for calibration point %s, using highest confidence", calib_index)
             return max(detections, key=lambda d: d.confidence)
 
         # Score remaining valid detections
         best_detection = self._select_best_detection(calib_index, valid_detections)
 
-        self.logger.info(
+        self.logger.debug(
             "Selected calibration point %s ID(%s) at (%.3f, %.3f) with confidence %.3f",
             YoloDartClassMapping.get_class_name(calib_index),
             calib_index,
@@ -75,7 +75,7 @@ class GeometricDetectionStrategy(CalibrationDetectionStrategy):
             if self._is_geometrically_valid(calib_index, detection):
                 valid_detections.append(detection)
             else:
-                self.logger.info(
+                self.logger.debug(
                     "Filtered out geometrically invalid detection for point %s (ID %s) at (%.3f, %.3f)",
                     YoloDartClassMapping.get_class_name(calib_index),
                     calib_index,

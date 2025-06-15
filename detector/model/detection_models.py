@@ -2,7 +2,7 @@
 
 import time
 from abc import ABC
-from typing import TYPE_CHECKING, Any, List, Optional, Sequence, TypeVar
+from typing import TYPE_CHECKING, List, Optional, Sequence, TypeVar
 
 import numpy as np
 from pydantic import BaseModel, ConfigDict, Field, field_serializer, field_validator
@@ -185,6 +185,7 @@ class ScoringResult(AbstractResult):
 class DetectionResult(AbstractResult):
     """Result of the dart detection process, including calibration and scoring."""
 
+    preprocessing_result: Optional[PreprocessingResult] = None
     calibration_result: Optional[CalibrationResult] = None
     scoring_result: Optional[ScoringResult] = None
 

@@ -7,7 +7,6 @@ from typing import Optional, Union
 from detector.model.configuration import ProcessingConfig
 from detector.model.detection_models import DetectionResult
 from detector.service.dart_image_scoring_service import DartInImageScoringService
-from detector.service.image_preprocessor import ImagePreprocessor
 from detector.util.file_utils import load_image
 
 
@@ -19,14 +18,12 @@ class DartBoardImageToScorePipeline:
     def __init__(self, config: Optional[ProcessingConfig] = None) -> None:
         self.__config = config or ProcessingConfig()
         self._detection_service = DartInImageScoringService(self.__config)
-        self.preprocessor = ImagePreprocessor(self.__config)
 
     def detect_darts(self, image_path: Union[str, Path]) -> DetectionResult:
         """Detect darts in the image at the given path and return detection results."""
         self.logger.info("Scoring image: %s", image_path)
         loaded_image = load_image(image_path)
-        preprocess_image = self.preprocessor.preprocess_image(loaded_image).dart_image
 
         return self._detection_service.detect_and_score(
-            preprocess_image,
+            loaded_image,
         )

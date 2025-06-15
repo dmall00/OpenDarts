@@ -2,8 +2,6 @@
 
 from enum import Enum
 
-from pydantic import field_validator, validator
-
 
 class ResultCode(Enum):
     """Enum containing error codes and their corresponding messages."""
@@ -17,6 +15,7 @@ class ResultCode(Enum):
 
     @property
     def message(self) -> str:
+        """Return the message corresponding to the error code."""
         messages = {
             0: "Successful dart detection",
             1: "Yolo model inference failed",

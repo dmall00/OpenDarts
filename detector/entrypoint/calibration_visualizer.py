@@ -41,13 +41,15 @@ class CalibrationVisualizer:
         self.__config = config or ProcessingConfig()
         self.window_name: str = "Calibration Visualization"
         self.dart_board: DartBoard = DartBoard()
-        self.detection_service: DartInImageScoringService = DartInImageScoringService(self.__config)
-        self.preprocessor = ImagePreprocessor(self.__config)
+        self.image_preprocessor = ImagePreprocessor(self.__config)
+        self.detection_service: DartInImageScoringService = DartInImageScoringService(
+            self.__config, image_preprocessor=self.image_preprocessor
+        )
 
     def visualize(self, image_path: Path) -> None:
         """Visualize the transformation result for a given image path."""
         try:
-            image = self.__load_and_prepare_image(image_path)
+            image = self.__load_image(image_path)
             if image is None:
                 return
 
@@ -320,9 +322,9 @@ class CalibrationVisualizer:
         cv2.waitKey(0)
         cv2.destroyAllWindows()
 
-    def __load_and_prepare_image(self, image_path: Path) -> DartImage | None:
+    def __load_image(self, image_path: Path) -> DartImage | None:
         image = load_image(image_path)
         if image is None:
             self.logger.error("Could not load image: %s", image_path)
             return None
-        return self.preprocessor.preprocess_image(image).dart_image
+        return self.image_preprocessor.preprocess_image(image).dart_image

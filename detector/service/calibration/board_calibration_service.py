@@ -42,7 +42,9 @@ class DartBoardCalibrationService:
             yolo_results = self.__yolo_image_processor.detect(image_preprocessed.dart_image)
             detections = self.__yolo_result_parser.extract_detections(yolo_results)
             homography = self.__calibration_matrix_calculator.calculate_homography(detections.calibration_points)
-            return self.__create_calibration_result(homography, detections.calibration_points, start_time, image_preprocessed.preprocessing_result)
+            return self.__create_calibration_result(
+                homography, detections.calibration_points, start_time, image_preprocessed.preprocessing_result
+            )
         except DartDetectionError as e:
             self.logger.exception("Dartboard calibration failed")
             return CalibrationResult(processing_time=0.0, result_code=e.error_code, message=e.message, details=e.details)
@@ -64,15 +66,19 @@ class DartBoardCalibrationService:
             raise DartDetectionError(ResultCode.INVALID_INPUT, details="Image cannot be None")
 
     @staticmethod
-    def __create_calibration_result(homography: HomoGraphyMatrix, calibration_points: List[CalibrationPoint],
-                                    start_time: float, preprocessing_result: Optional[PreprocessingResult] = None) -> CalibrationResult:
+    def __create_calibration_result(
+        homography: HomoGraphyMatrix,
+        calibration_points: List[CalibrationPoint],
+        start_time: float,
+        preprocessing_result: Optional[PreprocessingResult] = None,
+    ) -> CalibrationResult:
         calibration_result = CalibrationResult(
             processing_time=round(time.time() - start_time, 3),
             result_code=ResultCode.SUCCESS,
             message="Calibration successful",
             homography_matrix=homography,
             calibration_points=calibration_points,
-            preprocessing_result=preprocessing_result
+            preprocessing_result=preprocessing_result,
         )
         DartBoardCalibrationService.logger.info("Calibration completed in %s seconds", calibration_result.processing_time)
         return calibration_result

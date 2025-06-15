@@ -1,6 +1,5 @@
 """Demo running dart detection with an image scorer."""
 
-import json
 import logging
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -26,8 +25,7 @@ def setup_logging() -> None:  # noqa: D103
 
 @click.command()
 @click.argument("image_path", type=click.Path(exists=True, path_type=Path))
-@click.option("--config-path", type=click.Path(exists=True, path_type=Path),
-              help="Path to JSON config file for dart detection")
+@click.option("--config-path", type=click.Path(exists=True, path_type=Path), help="Path to JSON config file for dart detection")
 @from_pydantic("config", ProcessingConfig)
 def main(image_path: Path, config_path: Path | None, config: ProcessingConfig) -> None:
     """Run the Dart Detection demo with a single image."""
@@ -71,8 +69,7 @@ def main(image_path: Path, config_path: Path | None, config: ProcessingConfig) -
                 else:
                     pos = detection.transformed_position or detection.original_position
                     logger.info(
-                        "  ❓ Dart %d: Score pending at (%.2f, %.2f) [Confidence: %.1f%%]",
-                        i + 1, pos.x, pos.y, detection.confidence * 100
+                        "  ❓ Dart %d: Score pending at (%.2f, %.2f) [Confidence: %.1f%%]", i + 1, pos.x, pos.y, detection.confidence * 100
                     )
 
             logger.info("-" * 50)

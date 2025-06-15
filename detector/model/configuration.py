@@ -73,6 +73,6 @@ class ProcessingConfig(BaseModel):
     @classmethod
     def from_json(cls, json_path: Path) -> "ProcessingConfig":
         """Load configuration from a JSON file."""
-        with open(json_path, encoding="utf-8") as f:
+        with Path.open(json_path, encoding="utf-8") as f:
             data = json.load(f)
         return cls(**data)

@@ -44,7 +44,7 @@ def list_available_images(image_folder: Path) -> None:
 )
 @click.argument("target", type=click.Path(exists=True, path_type=Path), default=".")
 @from_pydantic("config", ProcessingConfig)
-def main(list: bool, config_path: Path | None, target: Path, config: ProcessingConfig) -> None:
+def main(list: bool, config_path: Path | None, target: Path, config: ProcessingConfig) -> None:  # noqa: A002, ARG001, FBT001
     """
     Run the calibration visualization demo.
 
