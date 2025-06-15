@@ -10,11 +10,11 @@
     </parent>
 
     <groupId>io.github.dmall</groupId>
-    <artifactId>multi-dart</artifactId>
+    <artifactId>open-darts</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <packaging>pom</packaging>
-    <name>multi-dart</name>
-    <description>multi-dart</description>
+    <name>open-darts</name>
+    <description>open-darts</description>
     <modules>
         <module>core</module>
     </modules>
@@ -79,6 +79,20 @@
                 </configuration>
                 <executions>
                     <execution>
+                        <id>compile</id>
+                        <phase>process-sources</phase>
+                        <goals>
+                            <goal>compile</goal>
+                        </goals>
+                        <configuration>
+                            <sourceDirs>
+                                <sourceDir>src/main/kotlin</sourceDir>
+                                <sourceDir>src/main/java</sourceDir>
+                            </sourceDirs>
+                        </configuration>
+                    </execution>
+
+                    <execution>
                         <id>kapt</id>
                         <goals>
                             <goal>kapt</goal>
@@ -86,6 +100,7 @@
                         <configuration>
                             <sourceDirs>
                                 <sourceDir>src/main/kotlin</sourceDir>
+                                <sourceDir>src/main/java</sourceDir>
                             </sourceDirs>
                             <annotationProcessorPaths>
                                 <annotationProcessorPath>
@@ -96,18 +111,7 @@
                             </annotationProcessorPaths>
                         </configuration>
                     </execution>
-                    <execution>
-                        <id>compile</id>
-                        <goals>
-                            <goal>compile</goal>
-                        </goals>
-                        <configuration>
-                            <sourceDirs>
-                                <sourceDir>${project.basedir}/src/main/kotlin</sourceDir>
-                                <sourceDir>${project.build.directory}/generated-sources/kapt/compile</sourceDir>
-                            </sourceDirs>
-                        </configuration>
-                    </execution>
+
                     <execution>
                         <id>test-compile</id>
                         <goals>
