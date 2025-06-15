@@ -12,10 +12,10 @@ class RequestType(Enum):
     """Enumeration of available request types."""
 
     CALIBRATION = "calibration"
-    SCORING = "scoring"
-    PING = "ping"
-    FULL = "full"
-    NONE = "none"
+    SCORING = "SCORING"
+    PING = "PING"
+    FULL = "FULL"
+    NONE = "NONE"
 
 
 class BaseRequest(ABC, BaseModel):

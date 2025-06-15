@@ -2,6 +2,7 @@
 
 import logging
 
+from detector.model.detection_models import ResultCode
 from detector.model.image_models import DartImage
 from detector.service.dart_image_scoring_service import DartInImageScoringService
 from websockets.asyncio.server import ServerConnection
@@ -9,13 +10,13 @@ from websockets.asyncio.server import ServerConnection
 from autoscore.handler.base_handler import BaseHandler
 from autoscore.model.request import PipelineDetectionRequest, RequestType
 from autoscore.model.response import PipelineDetectionResponse, Status
-from autoscore.util.file_util import base64_to_numpy
+from autoscore.util.file_util import base64_to_numpy, save_base64_as_png
 
 
 class PipelineDetectionHandler(BaseHandler[PipelineDetectionRequest, PipelineDetectionResponse]):
     """Handles pipeline detection requests."""
 
-    logger = logging.getLogger(__name__)
+    logger = logging.getLogger(__qualname__)
 
     def __init__(self, dart_detection_service: DartInImageScoringService) -> None:
         self.__dart_detection_service = dart_detection_service
@@ -28,6 +29,10 @@ class PipelineDetectionHandler(BaseHandler[PipelineDetectionRequest, PipelineDet
         """Handle pipeline detection requests."""
         try:
             detection_result = self.__dart_detection_service.detect_and_score(image=DartImage(raw_image=base64_to_numpy(request.image)))
+            if detection_result.result_code != ResultCode.SUCCESS:
+                saved_image_path = save_base64_as_png(request.image)
+                msg = f"Saved incoming image to: {saved_image_path} (result code: {detection_result.result_code})"
+                self.logger.info(msg)
 
             await self.send_response(
                 websocket,
