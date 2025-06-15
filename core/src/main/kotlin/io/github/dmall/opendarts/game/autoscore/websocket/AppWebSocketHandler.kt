@@ -27,9 +27,14 @@ class AppWebSocketHandler(
         val sizeInBytes = message.payload.remaining()
         val sizeInMB = sizeInBytes / (1024.0 * 1024.0)
         logger.info { "Received message from app with size in MB: ${String.format("%.2f", sizeInMB)}" }
-        val imageBytes = message.payload.array()
-        autoScoreService.sendPipelineDetectionRequest(imageBytes)
-        pythonClient.sendToPython(imageBytes)
+
+        try {
+            val imageBytes = message.payload.array()
+            autoScoreService.sendPipelineDetectionRequest(imageBytes)
+            pythonClient.sendToPython(imageBytes)
+        } catch (e: Exception) {
+            logger.error(e) { "Failed to process binary message from app" }
+        }
     }
 
     override fun afterConnectionClosed(session: WebSocketSession, status: CloseStatus) {

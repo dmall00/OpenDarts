@@ -2,7 +2,8 @@ package io.github.dmall.opendarts.game.autoscore.websocket
 
 import io.github.dmall.opendarts.game.autoscore.model.AutoScoreProperties
 import io.github.oshai.kotlinlogging.KotlinLogging
-import org.springframework.beans.factory.annotation.Autowired
+import jakarta.annotation.PostConstruct
+import jakarta.annotation.PreDestroy
 import org.springframework.stereotype.Component
 import org.springframework.web.socket.BinaryMessage
 import org.springframework.web.socket.TextMessage
@@ -12,29 +13,52 @@ import java.nio.ByteBuffer
 import java.util.concurrent.atomic.AtomicReference
 
 @Component
-class AutoScoreSocketClient @Autowired constructor(val autoScoreProperties: AutoScoreProperties) {
-    val pythonSession: AtomicReference<WebSocketSession?> = AtomicReference<WebSocketSession?>()
+class AutoScoreSocketClient(private val autoScoreProperties: AutoScoreProperties) {
+    private val pythonSession: AtomicReference<WebSocketSession?> = AtomicReference<WebSocketSession?>()
+    private val logger = KotlinLogging.logger {}
 
-    val logger = KotlinLogging.logger {}
-
-    companion object {
-
-        @Volatile
-        private var INSTANCE: AutoScoreSocketClient? = null
-
-        val instance: AutoScoreSocketClient
-            get() = INSTANCE ?: throw IllegalStateException("PythonWebSocketClient not initialized")
-    }
-
-    init {
-        INSTANCE = this
-        logger.info { "Autoscoring WebSocketClient created" }
+    @PostConstruct
+    fun initialize() {
+        logger.info { "Initializing Autoscoring WebSocketClient" }
         connect()
     }
 
-    fun connect() {
-        val client = StandardWebSocketClient()
-        client.execute(AutoscoringHandler(), "ws://${autoScoreProperties.host}:${autoScoreProperties.port}")
+    @PreDestroy
+    fun cleanup() {
+        logger.info { "Cleaning up Autoscoring WebSocketClient" }
+        disconnect()
+    }
+
+    private fun connect() {
+        try {
+            val client = StandardWebSocketClient()
+            val handler = AutoscoringHandler(this)
+            client.execute(handler, "ws://${autoScoreProperties.host}:${autoScoreProperties.port}")
+            logger.info { "Connecting to autoscoring server at ws://${autoScoreProperties.host}:${autoScoreProperties.port}" }
+        } catch (e: Exception) {
+            logger.error(e) { "Failed to connect to autoscoring server" }
+        }
+    }
+
+    private fun disconnect() {
+        pythonSession.get()?.let { session ->
+            try {
+                if (session.isOpen) {
+                    session.close()
+                }
+            } catch (e: Exception) {
+                logger.error(e) { "Error closing websocket session" }
+            }
+        }
+        pythonSession.set(null)
+    }
+
+    internal fun setSession(session: WebSocketSession) {
+        pythonSession.set(session)
+    }
+
+    internal fun clearSession() {
+        pythonSession.set(null)
     }
 
     fun sendToPython(data: ByteArray) {
@@ -43,11 +67,12 @@ class AutoScoreSocketClient @Autowired constructor(val autoScoreProperties: Auto
             try {
                 val message = BinaryMessage(ByteBuffer.wrap(data))
                 session.sendMessage(message)
+                logger.debug { "Sent binary message to Python server, size: ${data.size} bytes" }
             } catch (e: Exception) {
-                logger.error(e) { "${e.message}" }
+                logger.error(e) { "Failed to send binary message to autoscore server: ${e.message}" }
             }
         } else {
-            logger.warn("Autoscoring websocket server not available");
+            logger.warn { "Autoscoring websocket server not available - cannot send binary message" }
         }
     }
 
@@ -58,13 +83,12 @@ class AutoScoreSocketClient @Autowired constructor(val autoScoreProperties: Auto
                 val jsonString = String(jsonData, Charsets.UTF_8)
                 val message = TextMessage(jsonString)
                 session.sendMessage(message)
-                logger.info { "${"Sent JSON message to Python server, size: {} bytes"} ${jsonData.size}" }
+                logger.info { "Sent JSON message to Python server, size: ${jsonData.size} bytes" }
             } catch (e: Exception) {
-                logger.error(e) { "Failed to send JSON message to autoscore server" }
+                logger.error(e) { "Failed to send JSON message to autoscore server: ${e.message}" }
             }
         } else {
             logger.warn { "Could not send JSON message to autoscore server - session not available" }
         }
     }
-
 }

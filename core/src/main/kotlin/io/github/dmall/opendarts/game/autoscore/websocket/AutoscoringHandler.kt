@@ -6,12 +6,12 @@ import org.springframework.web.socket.TextMessage
 import org.springframework.web.socket.WebSocketSession
 import org.springframework.web.socket.handler.TextWebSocketHandler
 
-class AutoscoringHandler : TextWebSocketHandler() {
+class AutoscoringHandler(private val autoScoreSocketClient: AutoScoreSocketClient) : TextWebSocketHandler() {
 
     val logger = KotlinLogging.logger {}
 
     override fun afterConnectionEstablished(session: WebSocketSession) {
-        AutoScoreSocketClient.instance.pythonSession.set(session)
+        autoScoreSocketClient.setSession(session)
         logger.info { "Websocket connection to python server established" }
     }
 
@@ -20,6 +20,7 @@ class AutoscoringHandler : TextWebSocketHandler() {
     }
 
     override fun afterConnectionClosed(session: WebSocketSession, status: CloseStatus) {
+        autoScoreSocketClient.clearSession()
         logger.warn { "Websocket connection to python server closed with status: ${status.code} - ${status.reason}" }
     }
 
