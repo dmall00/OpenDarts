@@ -1,6 +1,8 @@
 package io.github.dmall.opendarts.game.autoscore.websocket
 
+import io.github.dmall.opendarts.game.autoscore.model.AutoScoreProperties
 import io.github.oshai.kotlinlogging.KotlinLogging
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import org.springframework.web.socket.BinaryMessage
 import org.springframework.web.socket.TextMessage
@@ -10,10 +12,11 @@ import java.nio.ByteBuffer
 import java.util.concurrent.atomic.AtomicReference
 
 @Component
-class AutoScoreSocketClient {
+class AutoScoreSocketClient @Autowired constructor(val autoScoreProperties: AutoScoreProperties) {
     val pythonSession: AtomicReference<WebSocketSession?> = AtomicReference<WebSocketSession?>()
 
     val logger = KotlinLogging.logger {}
+
     companion object {
 
         @Volatile
@@ -25,13 +28,13 @@ class AutoScoreSocketClient {
 
     init {
         INSTANCE = this
-        logger.info { "Python WebSocketClient created" }
+        logger.info { "Autoscoring WebSocketClient created" }
         connect()
     }
 
     fun connect() {
         val client = StandardWebSocketClient()
-        client.execute(PythonHandler(), "ws://192.168.178.34:8765")
+        client.execute(PythonHandler(), "ws://${autoScoreProperties.host}:${autoScoreProperties.port}")
     }
 
     fun sendToPython(data: ByteArray) {

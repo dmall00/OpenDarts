@@ -1,15 +1,8 @@
 server:
   port: 8080
-  max-http-header-size: 16KB
-  tomcat:
-    max-http-post-size: 10MB
-
 spring:
   application:
     name: api-gateway
-  websocket:
-    max-text-message-buffer-size: 10485760
-    max-binary-message-buffer-size: 10485760
   datasource:
     url: jdbc:postgresql://localhost:5432/opendarts_db
     username: postgres
@@ -29,6 +22,10 @@ logging:
 
 jwt:
   secret: 181bffe5afd4b7d3cbeb58345477e004b6325064e06b77610339809634ce7352
+
+autoscore:
+  port: 8765
+  host: 192.168.178.34
 
 springdoc:
   swagger-ui:
