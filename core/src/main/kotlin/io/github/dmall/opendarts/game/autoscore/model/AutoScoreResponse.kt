@@ -43,5 +43,7 @@ class PipelineDetectionResponse(
     requestType: RequestType,
     status: Status,
     id: String,
-    val detectionResult: DetectionResult
+    val detectionResult: DetectionResult,
+    val calibrationResult: CalibrationResult,
+    val preprocessingResult: PreprocessingResult
 ) : BaseResponse(requestType, status, id)
