@@ -44,7 +44,6 @@ class CalibrationPointParserService(AbstractYoloParser):
                 calibration_points.append(self.__create_invalid_calibration_point(calib_index, "duplicate"))
             else:
                 calibration_points.append(self.__create_calibration_point_from_detection(selected_detection))
-
         return calibration_points
 
     @staticmethod
@@ -65,8 +64,8 @@ class CalibrationPointParserService(AbstractYoloParser):
             x=detection.center_x, y=detection.center_y, confidence=detection.confidence, class_id=detection.class_id, message="valid"
         )
 
-        CalibrationPointParserService.logger.debug(
-            "Created calibration point %s with confidence %s", calibration_point.point_type, f"{detection.confidence:.2f}"
+        CalibrationPointParserService.logger.info(
+            "Created calibration point %s (%s)", calibration_point.point_type, f"{detection.confidence:.2f}"
         )
         return calibration_point
 
