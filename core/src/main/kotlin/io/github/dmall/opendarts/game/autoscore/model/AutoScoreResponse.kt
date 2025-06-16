@@ -5,45 +5,49 @@ enum class Status(val code: Int) {
     ERROR(1)
 }
 
-abstract class BaseResponse(
-    val requestType: RequestType,
-    val status: Status,
-    val id: String
+
+sealed class AutoScoreResponse(
+    open val requestType: RequestType,
+    open val status: Status,
+    open val id: String,
+
+    open val message: String?
 )
 
-class ErrorResponse(
-    requestType: RequestType,
-    status: Status,
-    id: String,
-    val message: String
-) : BaseResponse(requestType, status, id)
+data class ErrorResponse(
+    override val requestType: RequestType,
+    override val status: Status,
+    override val id: String,
+    override val message: String?
+) : AutoScoreResponse(requestType, status, id, message)
 
-class PingResponse(
-    requestType: RequestType,
-    status: Status,
-    id: String,
-    val message: String
-) : BaseResponse(requestType, status, id)
+data class PingResponse(
+    override val requestType: RequestType,
+    override val status: Status,
+    override val id: String,
+    override val message: String?
+) : AutoScoreResponse(requestType, status, id, message)
 
-class CalibrationResponse(
-    requestType: RequestType,
-    status: Status,
-    id: String,
+data class CalibrationResponse(
+    override val requestType: RequestType,
+    override val status: Status,
+    override val id: String,
+    override val message: String?,
     val calibrationResult: CalibrationResult
-) : BaseResponse(requestType, status, id)
+) : AutoScoreResponse(requestType, status, id, message)
 
-class ScoringResponse(
-    requestType: RequestType,
-    status: Status,
-    id: String,
+data class ScoringResponse(
+    override val requestType: RequestType,
+    override val status: Status,
+    override val id: String,
+    override val message: String?,
     val scoringResult: ScoringResult
-) : BaseResponse(requestType, status, id)
+) : AutoScoreResponse(requestType, status, id, message)
 
-class PipelineDetectionResponse(
-    requestType: RequestType,
-    status: Status,
-    id: String,
-    val scoringResult: ScoringResult?,
-    val calibrationResult: CalibrationResult?,
-    val preprocessingResult: PreprocessingResult?
-) : BaseResponse(requestType, status, id)
+data class PipelineDetectionResponse(
+    override val requestType: RequestType,
+    override val status: Status,
+    override val id: String,
+    override val message: String?,
+    val detectionResult: DetectionResult
+) : AutoScoreResponse(requestType, status, id, message)

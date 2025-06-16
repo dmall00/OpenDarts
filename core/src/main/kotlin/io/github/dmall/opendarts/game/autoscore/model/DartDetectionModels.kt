@@ -7,46 +7,65 @@ enum class RequestType {
     PING,
     NONE
 }
+enum class AutoScoringResultCode(val code: Int) {
+    SUCCESS(0),
+    YOLO_ERROR(1),
+    HOMOGRAPHY(2),
+    MISSING_CALIBRATION_POINTS(3),
+    INVALID_INPUT(4),
+    UNKNOWN(100)
+}
 
-class CalibrationResult(
+data class CalibrationResult(
     val homographyMatrix: Array<IntArray>,
     val calibrationPoints: List<CalibrationPoint>,
     val preprocessingResult: PreprocessingResult
 )
 
-class PreprocessingResult(
+data class PreprocessingResult(
     val cropInfo: CropInformation?
 )
 
-class CropInformation(
+data class CropInformation(
     val xOffset: Int,
     val yOffset: Int,
     val width: Int,
     val height: Int
 )
 
-class CalibrationPoint(
+data class CalibrationPoint(
     val classId: Int,
     val pointType: String,
     val message: String
 )
 
-class ScoringResult(
+data class ScoringResult(
     val dartDetections: List<DartDetection>
 )
 
-class DartDetection(
+data class DartDetection(
     val dartScore: DartScore,
     val originalPosition: DartPosition,
     val transformedPosition: DartPosition
 )
 
-class DartPosition(
+data class DartPosition(
     val x: Int,
     val y: Int
 )
 
-class DartScore(
+data class DartScore(
     val scoreString: String,
     val scoreValue: Int
+)
+
+
+data class DetectionResult(
+    val preprocessing: PreprocessingResult?,
+    val calibrationResult: CalibrationResult?,
+    val scoringResult: ScoringResult?,
+    val resultCode: AutoScoringResultCode,
+    val message: String?,
+    val details: String?,
+    val creationTime: Double,
 )

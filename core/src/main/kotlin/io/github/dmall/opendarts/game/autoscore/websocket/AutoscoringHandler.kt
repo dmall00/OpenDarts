@@ -21,9 +21,8 @@ class AutoscoringHandler(
     }
 
     public override fun handleTextMessage(session: WebSocketSession, message: TextMessage) {
-        val result: PipelineDetectionResponse =
-            objectMapper.readValue(message.payload, PipelineDetectionResponse::class.java)
-        logger.info { "Websocket message received ${result.status}" }
+        val result = objectMapper.readValue(message.payload, PipelineDetectionResponse::class.java)
+        logger.info { result }
     }
 
     override fun afterConnectionClosed(session: WebSocketSession, status: CloseStatus) {

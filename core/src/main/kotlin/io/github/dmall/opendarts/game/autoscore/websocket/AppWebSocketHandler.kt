@@ -11,8 +11,7 @@ import java.util.concurrent.ConcurrentHashMap
 
 @Component
 class AppWebSocketHandler(
-    private val autoScoreService: AutoScoreService,
-    private val pythonClient: AutoScoreSocketClient
+    private val autoScoreService: AutoScoreService
 ) : BinaryWebSocketHandler() {
     private val sessions: MutableSet<WebSocketSession?> = ConcurrentHashMap.newKeySet<WebSocketSession?>()
 
@@ -31,7 +30,6 @@ class AppWebSocketHandler(
         try {
             val imageBytes = message.payload.array()
             autoScoreService.sendPipelineDetectionRequest(imageBytes)
-            pythonClient.sendToPython(imageBytes)
         } catch (e: Exception) {
             logger.error(e) { "Failed to process binary message from app" }
         }

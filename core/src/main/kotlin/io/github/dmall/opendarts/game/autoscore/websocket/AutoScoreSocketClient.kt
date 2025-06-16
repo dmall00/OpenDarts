@@ -7,11 +7,9 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import jakarta.annotation.PostConstruct
 import jakarta.annotation.PreDestroy
 import org.springframework.stereotype.Component
-import org.springframework.web.socket.BinaryMessage
 import org.springframework.web.socket.TextMessage
 import org.springframework.web.socket.WebSocketSession
 import org.springframework.web.socket.client.standard.StandardWebSocketClient
-import java.nio.ByteBuffer
 import java.util.concurrent.atomic.AtomicReference
 
 @Component
@@ -64,21 +62,6 @@ class AutoScoreSocketClient(
 
     internal fun clearSession() {
         pythonSession.set(null)
-    }
-
-    fun sendToPython(data: ByteArray) {
-        val session = pythonSession.get()
-        if (session != null && session.isOpen) {
-            try {
-                val message = BinaryMessage(ByteBuffer.wrap(data))
-                session.sendMessage(message)
-                logger.debug { "Sent binary message to Python server, size: ${data.size} bytes" }
-            } catch (e: Exception) {
-                logger.error(e) { "Failed to send binary message to autoscore server: ${e.message}" }
-            }
-        } else {
-            logger.warn { "Autoscoring websocket server not available - cannot send binary message" }
-        }
     }
 
     fun autoscoreImage(jsonData: ByteArray) {
