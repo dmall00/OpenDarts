@@ -31,7 +31,8 @@ class SecurityConfig @Autowired constructor(
             .authorizeHttpRequests { authorize ->
                 authorize
                     .requestMatchers("/auth/**", "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                    .requestMatchers("/ws/**").permitAll() // Allow WebSocket endpoints
+                    .requestMatchers("/ws/**").permitAll()
+                    .requestMatchers("/api/**").permitAll()
                     .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                     .anyRequest().authenticated()
             }

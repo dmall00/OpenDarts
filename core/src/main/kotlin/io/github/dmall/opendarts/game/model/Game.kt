@@ -3,7 +3,9 @@ package io.github.dmall.opendarts.game.model
 import jakarta.persistence.*
 
 enum class GameType {
-    X01
+    X01,
+    AROUND_THE_WORLD,
+    PRACTICE
 }
 
 @Entity
@@ -14,6 +16,9 @@ class Game {
 
     @Enumerated(EnumType.STRING)
     var gameType: GameType? = null
+
+    @OneToMany(mappedBy = "game", cascade = [CascadeType.ALL])
+    val gameSessions: MutableList<GameSession> = mutableListOf()
 }
 
 @Entity
