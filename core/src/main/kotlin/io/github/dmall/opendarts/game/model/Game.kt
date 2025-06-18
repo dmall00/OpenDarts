@@ -16,9 +16,6 @@ class Game {
 
     @Enumerated(EnumType.STRING)
     var gameType: GameType? = null
-
-    @OneToMany(mappedBy = "game", cascade = [CascadeType.ALL])
-    val gameSessions: MutableList<GameSession> = mutableListOf()
 }
 
 @Entity
