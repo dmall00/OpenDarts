@@ -10,13 +10,13 @@ interface GamePickerProps {
 export interface GameConfig {
     mode: 'x01';
     score: 301 | 501;
-    players: 'single';
+    players: string[];
 }
 
 export default function GamePicker({onGameConfigChange}: GamePickerProps) {
     const [selectedScore, setSelectedScore] = useState<301 | 501>(301);
     const [selectedMode] = useState<'x01'>('x01');
-    const [selectedPlayers] = useState<'single'>('single');
+    const [selectedPlayers] = useState<string[]>(["test"]);
 
     const handleScoreChange = (score: 301 | 501) => {
         setSelectedScore(score);

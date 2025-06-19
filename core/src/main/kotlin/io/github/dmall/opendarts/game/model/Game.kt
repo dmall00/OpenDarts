@@ -2,7 +2,7 @@ package io.github.dmall.opendarts.game.model
 
 import jakarta.persistence.*
 
-enum class GameType {
+enum class GameMode {
     X01,
     AROUND_THE_WORLD,
     PRACTICE
@@ -15,7 +15,7 @@ class Game {
     var id: Long? = null
 
     @Enumerated(EnumType.STRING)
-    var gameType: GameType? = null
+    var gameMode: GameMode? = null
 }
 
 @Entity

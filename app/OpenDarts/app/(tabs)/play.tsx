@@ -7,7 +7,7 @@ export default function Play() {
     const [gameConfig, setGameConfig] = useState<GameConfig>({
         mode: 'x01',
         score: 301,
-        players: 'single',
+        players: ["test"],
     });
 
     const handleStartGame = () => {
