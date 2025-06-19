@@ -34,9 +34,8 @@ export interface User {
     updatedAt: string;
 }
 
-export interface Game {
-    id: string;
-    gameMode: 'X01';
+export interface GameSession {
+    gameId: string;
 }
 
 export interface CreateGameRequest {

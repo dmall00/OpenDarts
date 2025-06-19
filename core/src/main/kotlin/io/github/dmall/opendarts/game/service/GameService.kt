@@ -1,6 +1,7 @@
 package io.github.dmall.opendarts.game.service
 
 import io.github.dmall.opendarts.game.autoscore.rest.model.GameConfigTo
+import io.github.dmall.opendarts.game.autoscore.rest.model.GameSessionResponse
 import io.github.dmall.opendarts.game.model.Game
 import io.github.dmall.opendarts.game.model.GameSession
 import io.github.dmall.opendarts.game.repository.GameRepository
@@ -18,7 +19,7 @@ class GameService @Autowired constructor(
     val playerRepository: PlayerRepository
 ) {
 
-    fun createGame(gameConfig: GameConfigTo): Long {
+    fun createGame(gameConfig: GameConfigTo): GameSessionResponse {
         val game = Game().apply {
             gameMode = gameConfig.gameMode
         }
@@ -32,6 +33,6 @@ class GameService @Autowired constructor(
             this.players.addAll(players)
         }
         gameSessionRepository.save(gameSession)
-        return savedGame.id!!
+        return GameSessionResponse(gameSession.id!!)
     }
 }

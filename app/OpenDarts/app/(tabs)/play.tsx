@@ -18,7 +18,7 @@ export default function Play() {
             onSuccess: (game) => {
                 Alert.alert(
                     'Game Created!',
-                    'Successfully created game',
+                    `Successfully created game with id ${game.gameId}`,
                     [{text: 'OK'}]
                 );
             },

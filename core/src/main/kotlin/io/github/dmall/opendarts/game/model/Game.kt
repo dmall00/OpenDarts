@@ -33,8 +33,8 @@ class Player {
 @Entity
 class GameSession {
     @Id
-    @GeneratedValue
-    var id: Long? = null
+    @GeneratedValue(strategy = GenerationType.UUID)
+    var id: String? = null
 
     @ManyToOne
     var game: Game? = null
