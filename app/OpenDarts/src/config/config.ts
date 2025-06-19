@@ -34,3 +34,16 @@ export const API_ENDPOINTS = {
         CREATE: '/game',
     },
 };
+
+export const WEBSOCKET_CONFIG = {
+    DEFAULT_URL: 'ws://192.168.178.34:8080/ws/app',
+    DEFAULT_FPS: 2,
+    RECONNECT_ATTEMPTS: 10,
+    RECONNECT_DELAY: 2000,
+    HEARTBEAT_INTERVAL: 30000,
+} as const;
+
+export const CAMERA_CONFIG = {
+    DEFAULT_QUALITY: 0.8,
+    SKIP_PROCESSING: true,
+} as const;

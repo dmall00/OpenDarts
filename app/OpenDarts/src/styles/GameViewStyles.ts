@@ -196,8 +196,7 @@ export const GameViewStyles = StyleSheet.create({
         shadowOpacity: 0.3,
         shadowRadius: 8,
         elevation: 6,
-    },
-    permissionButtonText: {
+    }, permissionButtonText: {
         color: 'white',
         fontSize: 16,
         fontWeight: '600',
