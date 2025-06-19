@@ -1,26 +1,32 @@
 import React, {useState} from 'react';
-import {Alert, SafeAreaView, Text, TouchableOpacity, View} from 'react-native';
+import {SafeAreaView, View} from 'react-native';
 import {GlobalStyles} from '@/app/styles/GlobalStyles';
 import GamePicker, {GameConfig} from '../components/play/GamePicker';
 import {gameService} from '@/app/services';
 import {useMutation} from '../hooks/useMutation';
 import {CreateGameRequest} from '../types/api';
+import {StartGameButton} from "@/app/components/play/StartGameButton";
+import {router} from "expo-router";
 
 export default function Play() {
+
     const [gameConfig, setGameConfig] = useState<GameConfig>({
         gameMode: 'X01',
         score: 301,
         players: ["test"],
     });
+
+    const openGameView = (gameId: String) => {
+        // @ts-ignore
+        router.push(`/game/${gameId}`);
+    };
+
+
     const createGameMutation = useMutation(
         (gameData: CreateGameRequest) => gameService.createGame(gameData),
         {
             onSuccess: (game) => {
-                Alert.alert(
-                    'Game Created!',
-                    `Successfully created game with id ${game.gameId}`,
-                    [{text: 'OK'}]
-                );
+                openGameView(game.gameId);
             },
             onError: (error) => {
                 console.error('Failed to create game:', error);
@@ -43,24 +49,8 @@ export default function Play() {
             <View style={GlobalStyles.contentContainer}>
                 <GamePicker onGameConfigChange={setGameConfig}/>
 
-                <TouchableOpacity
-                    style={[
-                        GlobalStyles.primaryButton,
-                        createGameMutation.loading && {opacity: 0.7}
-                    ]}
-                    onPress={handleStartGame}
-                    disabled={createGameMutation.loading}
-                >
-                    <Text style={GlobalStyles.primaryButtonText}>
-                        {createGameMutation.loading ? 'Creating Game...' : 'Start Game'}
-                    </Text>
-                </TouchableOpacity>
-
-                {createGameMutation.error && (
-                    <Text style={{color: 'red', marginTop: 10, textAlign: 'center'}}>
-                        {createGameMutation.error}
-                    </Text>
-                )}
+                <StartGameButton onPress={handleStartGame} loading={createGameMutation.loading}
+                                 error={createGameMutation.error}></StartGameButton>
             </View>
         </SafeAreaView>
     );
