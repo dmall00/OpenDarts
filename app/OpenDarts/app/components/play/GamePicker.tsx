@@ -1,7 +1,7 @@
 import React, {useState} from 'react';
 import {Text, TouchableOpacity, View} from 'react-native';
-import {GlobalStyles} from '@/styles/GlobalStyles';
-import {GamePickerStyles} from '@/styles/GamePickerStyles';
+import {GlobalStyles} from '@/app/styles/GlobalStyles';
+import {GamePickerStyles} from '@/app/styles/GamePickerStyles';
 
 interface GamePickerProps {
     onGameConfigChange?: (config: GameConfig) => void;

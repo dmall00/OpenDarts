@@ -2,8 +2,8 @@ import {Tabs} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
 import {StyleSheet, Text, View} from 'react-native';
 import {StatusBar} from 'expo-status-bar';
-import {Colors} from '@/styles/Colors';
-import {Layout} from '@/styles/Layout';
+import {Colors} from '@/app/styles/Colors';
+import {Layout} from '@/app/styles/Layout';
 
 export default function TabLayout() {
     return (

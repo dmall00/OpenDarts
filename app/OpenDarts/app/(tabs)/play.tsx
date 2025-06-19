@@ -1,6 +1,6 @@
 import React, {useState} from 'react';
 import {Alert, SafeAreaView, Text, TouchableOpacity, View} from 'react-native';
-import {GlobalStyles} from '@/styles/GlobalStyles';
+import {GlobalStyles} from '@/app/styles/GlobalStyles';
 import GamePicker, {GameConfig} from '../components/play/GamePicker';
 
 export default function Play() {

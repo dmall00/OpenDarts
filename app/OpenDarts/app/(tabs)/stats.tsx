@@ -1,6 +1,6 @@
 import React from 'react';
 import {SafeAreaView, Text, View} from 'react-native';
-import {GlobalStyles} from '@/styles/GlobalStyles';
+import {GlobalStyles} from '@/app/styles/GlobalStyles';
 
 export default function Stats() {
     return (
