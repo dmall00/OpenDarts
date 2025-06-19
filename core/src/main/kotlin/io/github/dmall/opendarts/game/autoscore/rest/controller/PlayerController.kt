@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-@RequestMapping("/api/player")
+@RequestMapping("/app/player")
 class PlayerController @Autowired constructor(private val playerService: PlayerService) {
 
     @PostMapping

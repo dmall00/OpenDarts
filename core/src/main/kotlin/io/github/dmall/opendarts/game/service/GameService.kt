@@ -23,9 +23,9 @@ class GameService @Autowired constructor(
             gameMode = gameConfig.gameMode
         }
         val savedGame = gameRepository.save(game)
-        val players = gameConfig.players.map { playerTo ->
-            playerRepository.findByName(playerTo.username)
-                ?: throw IllegalStateException("Player ${playerTo.username} not found")
+        val players = gameConfig.players.map { player ->
+            playerRepository.findByName(player)
+                ?: throw IllegalStateException("Player ${player} not found")
         }
         val gameSession = GameSession().apply {
             this.game = savedGame

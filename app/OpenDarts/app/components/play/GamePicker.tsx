@@ -8,20 +8,20 @@ interface GamePickerProps {
 }
 
 export interface GameConfig {
-    mode: 'x01';
+    gameMode: 'X01';
     score: 301 | 501;
     players: string[];
 }
 
 export default function GamePicker({onGameConfigChange}: GamePickerProps) {
     const [selectedScore, setSelectedScore] = useState<301 | 501>(301);
-    const [selectedMode] = useState<'x01'>('x01');
+    const [selectedMode] = useState<'X01'>('X01');
     const [selectedPlayers] = useState<string[]>(["test"]);
 
     const handleScoreChange = (score: 301 | 501) => {
         setSelectedScore(score);
         const config: GameConfig = {
-            mode: selectedMode,
+            gameMode: selectedMode,
             score,
             players: selectedPlayers,
         };

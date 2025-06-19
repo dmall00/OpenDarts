@@ -17,7 +17,9 @@ export const API_CONFIG = {
     timeout: 10000,
     headers: {
         'Content-Type': 'application/json',
+        'Accept': 'application/json',
     },
+    withCredentials: false,
 };
 
 export const API_ENDPOINTS = {
@@ -29,16 +31,6 @@ export const API_ENDPOINTS = {
     },
 
     GAMES: {
-        CREATE: '/games',
-        GET_ALL: '/games',
-        GET_BY_ID: (id: string) => `/games/${id}`,
-        UPDATE: (id: string) => `/games/${id}`,
-        DELETE: (id: string) => `/games/${id}`,
-    },
-
-    USERS: {
-        PROFILE: '/users/profile',
-        UPDATE_PROFILE: '/users/profile',
-        GET_STATS: '/users/stats',
+        CREATE: '/game',
     },
 };

@@ -36,16 +36,11 @@ export interface User {
 
 export interface Game {
     id: string;
-    mode: 'x01' | 'cricket' | 'around-the-clock';
-    score: number;
-    players: string[];
-    status: 'pending' | 'active' | 'completed';
-    createdAt: string;
-    updatedAt: string;
+    gameMode: 'X01';
 }
 
 export interface CreateGameRequest {
-    mode: 'x01' | 'cricket' | 'around-the-clock';
+    gameMode: 'X01';
     score: number;
     players: string[];
 }

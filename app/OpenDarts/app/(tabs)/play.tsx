@@ -2,13 +2,13 @@ import React, {useState} from 'react';
 import {Alert, SafeAreaView, Text, TouchableOpacity, View} from 'react-native';
 import {GlobalStyles} from '@/app/styles/GlobalStyles';
 import GamePicker, {GameConfig} from '../components/play/GamePicker';
-import {gameService} from '../services/play/gameService';
-import {useMutation} from '../hooks/useApi';
+import {gameService} from '@/app/services';
+import {useMutation} from '../hooks/useMutation';
 import {CreateGameRequest} from '../types/api';
 
 export default function Play() {
     const [gameConfig, setGameConfig] = useState<GameConfig>({
-        mode: 'x01',
+        gameMode: 'X01',
         score: 301,
         players: ["test"],
     });
@@ -18,7 +18,7 @@ export default function Play() {
             onSuccess: (game) => {
                 Alert.alert(
                     'Game Created!',
-                    `Successfully created ${game.mode.toUpperCase()} game with ID: ${game.id}`,
+                    'Successfully created game',
                     [{text: 'OK'}]
                 );
             },
@@ -30,7 +30,7 @@ export default function Play() {
 
     const handleStartGame = async () => {
         const gameData: CreateGameRequest = {
-            mode: gameConfig.mode,
+            gameMode: gameConfig.gameMode,
             score: gameConfig.score,
             players: gameConfig.players,
         };

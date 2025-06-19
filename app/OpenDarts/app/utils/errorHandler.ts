@@ -43,20 +43,4 @@ export class ErrorHandler {
             {cancelable: true}
         );
     }
-
-    static getErrorMessage(error: any): string {
-        return this.handle(error, false).message;
-    }
-}
-
-export async function withErrorHandling<T>(
-    operation: () => Promise<T>,
-    showAlert: boolean = true
-): Promise<T | null> {
-    try {
-        return await operation();
-    } catch (error) {
-        ErrorHandler.handle(error, showAlert);
-        return null;
-    }
 }

@@ -51,3 +51,5 @@ export class TokenStorage {
         return token !== null;
     }
 }
+
+export default TokenStorage;

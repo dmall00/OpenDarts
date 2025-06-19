@@ -9,6 +9,25 @@ class ApiService {
         this.setupInterceptors();
     }
 
+    async get<T>(url: string, config?: any): Promise<T> {
+        const response = await this.axiosInstance.get(url, config);
+        return response.data;
+    }
+
+    async post<T>(url: string, data?: any, config?: any): Promise<T> {
+        const response = await this.axiosInstance.post(url, data, config);
+        return response.data;
+    }
+
+    async put<T>(url: string, data?: any, config?: any): Promise<T> {
+        const response = await this.axiosInstance.put(url, data, config);
+        return response.data;
+    }
+
+    async delete<T>(url: string, config?: any): Promise<T> {
+        const response = await this.axiosInstance.delete(url, config);
+        return response.data;
+    }
     private setupInterceptors() {
         this.axiosInstance.interceptors.request.use(
             async (config: any) => {
@@ -17,21 +36,21 @@ class ApiService {
                     config.headers.Authorization = `Bearer ${token}`;
                 }
 
-                console.log(`🚀 API Request: ${config.method?.toUpperCase()} ${config.url}`);
+                console.log(`API Request: ${config.method?.toUpperCase()} ${config.url}`);
                 return config;
             },
             (error: any) => {
-                console.error('🚨 Request Error:', error);
+                console.error('Request Error:', error);
                 return Promise.reject(error);
             }
         );
         this.axiosInstance.interceptors.response.use(
             (response: any) => {
-                console.log(`✅ API Response: ${response.status} ${response.config.url}`);
+                console.log(`API Response: ${response.status} ${response.config.url}`);
                 return response;
             },
             (error: any) => {
-                console.error('🚨 Response Error:', error.response?.status, error.response?.data);
+                console.error('Response Error:', error.response?.status, error.response?.data);
 
                 if (error.response?.status === 401) {
                     this.handleUnauthorized();
@@ -51,44 +70,6 @@ class ApiService {
         const {TokenStorage} = await import('../utils/tokenStorage');
         await TokenStorage.clearTokens();
         console.log('User unauthorized - tokens cleared');
-        // TODO: Navigate to login screen
-    }
-
-    async get<T>(url: string, config?: any): Promise<T> {
-        const response = await this.axiosInstance.get(url, config);
-        return response.data;
-    }
-
-    async post<T>(url: string, data?: any, config?: any): Promise<T> {
-        const response = await this.axiosInstance.post(url, data, config);
-        return response.data;
-    }
-
-    async put<T>(url: string, data?: any, config?: any): Promise<T> {
-        const response = await this.axiosInstance.put(url, data, config);
-        return response.data;
-    }
-
-    async patch<T>(url: string, data?: any, config?: any): Promise<T> {
-        const response = await this.axiosInstance.patch(url, data, config);
-        return response.data;
-    }
-
-    async delete<T>(url: string, config?: any): Promise<T> {
-        const response = await this.axiosInstance.delete(url, config);
-        return response.data;
-    }
-
-    // Upload file method
-    async uploadFile<T>(url: string, file: FormData, config?: any): Promise<T> {
-        const response = await this.axiosInstance.post(url, file, {
-            ...config,
-            headers: {
-                ...config?.headers,
-                'Content-Type': 'multipart/form-data',
-            },
-        });
-        return response.data;
     }
 }
 
