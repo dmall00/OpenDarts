@@ -1,7 +1,7 @@
 import React from 'react';
 import {Text, TouchableOpacity} from 'react-native';
-import {GlobalStyles} from '@/app/styles/GlobalStyles';
-import {ErrorStyles} from "@/app/styles/Errors";
+import {GlobalStyles} from '@/src/styles/GlobalStyles';
+import {ErrorStyles} from "@/src/styles/Errors";
 
 interface StartGameButtonProps {
     onPress: () => void;

@@ -1,6 +1,6 @@
 import React from 'react';
 import {SafeAreaView, Text, View} from 'react-native';
-import {GlobalStyles} from '@/app/styles/GlobalStyles';
+import {GlobalStyles} from "@/src/styles/GlobalStyles";
 
 export default function Community() {
     return (

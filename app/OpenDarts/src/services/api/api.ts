@@ -1,5 +1,5 @@
 import axios from 'axios';
-import {API_CONFIG} from '../config/config';
+import {API_CONFIG} from "../../config/config";
 
 class ApiService {
     private axiosInstance: any;
@@ -62,12 +62,12 @@ class ApiService {
     }
 
     private async getAuthToken(): Promise<string | null> {
-        const {TokenStorage} = await import('../utils/tokenStorage');
+        const {TokenStorage} = await import('../../utils/tokenStorage');
         return TokenStorage.getToken();
     }
 
     private async handleUnauthorized() {
-        const {TokenStorage} = await import('../utils/tokenStorage');
+        const {TokenStorage} = await import('../../utils/tokenStorage');
         await TokenStorage.clearTokens();
         console.log('User unauthorized - tokens cleared');
     }

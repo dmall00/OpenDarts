@@ -1,6 +1,6 @@
-import {apiService} from '../api';
 import {API_ENDPOINTS} from '../../config/config';
 import {CreateGameRequest, GameSession} from '../../types/api';
+import apiService from "@/src/services/api/api";
 
 export class GameService {
     async createGame(gameData: CreateGameRequest): Promise<GameSession> {

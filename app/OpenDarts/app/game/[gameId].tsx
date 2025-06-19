@@ -1,6 +1,6 @@
 import React from 'react';
 import {useLocalSearchParams} from 'expo-router';
-import GameView from '../components/play/game/GameView';
+import GameView from "@/src/components/game/GameView";
 
 export default function Game() {
     const {gameId} = useLocalSearchParams();
