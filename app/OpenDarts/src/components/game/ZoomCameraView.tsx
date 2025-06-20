@@ -1,4 +1,4 @@
-import {CameraView, useCameraPermissions} from "expo-camera";
+import {Camera, useCameraDevice, useCameraPermission} from "react-native-vision-camera";
 import React, {useEffect, useRef, useState} from "react";
 import {Text, TouchableOpacity, View} from "react-native";
 import Slider from "@react-native-community/slider";
@@ -11,33 +11,35 @@ interface ZoomCameraViewProps {
 }
 
 export default function ZoomCameraView({isExpanded = false, onToggleExpand}: ZoomCameraViewProps) {
-    const [permission, requestPermission] = useCameraPermissions();
+    const {hasPermission, requestPermission} = useCameraPermission();
     const [zoom, setZoom] = useState(0);
-    const cameraRef = useRef<CameraView>(null);
+    const cameraRef = useRef<Camera>(null);
+    const device = useCameraDevice('back');
     const cameraService = CameraService.getInstance();
     useEffect(() => {
         console.log('ZoomCameraView mounted, setting camera ref...');
-        if (cameraRef.current) {
+        if (cameraRef.current && device) {
             console.log('Camera ref is available, setting in service');
             cameraService.setCameraRef(cameraRef.current);
+            cameraService.setDevice(device);
         } else {
             console.log('Camera ref not yet available');
         }
-    }, [cameraService]);
+    }, [cameraService, device]);
 
     useEffect(() => {
-        // Also try to set the ref whenever the component re-renders
-        if (cameraRef.current) {
+        if (cameraRef.current && device) {
             console.log('Camera ref updated, setting in service');
             cameraService.setCameraRef(cameraRef.current);
+            cameraService.setDevice(device);
         }
     });
 
-    if (!permission) {
+    if (hasPermission === null) {
         return <View/>;
     }
 
-    if (!permission.granted) {
+    if (!hasPermission) {
         return (
             <View style={GameViewStyles.permissionContainer}>
                 <Text style={GameViewStyles.permissionMessage}>
@@ -51,20 +53,31 @@ export default function ZoomCameraView({isExpanded = false, onToggleExpand}: Zoo
                 </TouchableOpacity> </View>
         );
     }
-
     const handleZoom = (zoomLevel: number) => {
         setZoom(zoomLevel);
     };
 
     const cameraStyle = isExpanded ? GameViewStyles.expandedCamera : GameViewStyles.compactCameraPressable;
 
+    if (!device) {
+        return (
+            <View style={GameViewStyles.permissionContainer}>
+                <Text style={GameViewStyles.permissionMessage}>
+                    No camera device found
+                </Text>
+            </View>
+        );
+    }
+
     if (!isExpanded) {
         return (
             <TouchableOpacity style={cameraStyle} onPress={onToggleExpand}>
-                <CameraView
+                <Camera
                     ref={cameraRef}
                     style={GameViewStyles.camera}
-                    facing="back"
+                    device={device}
+                    isActive={true}
+                    photo={true}
                     zoom={zoom}
                 />
                 <View style={GameViewStyles.cameraOverlay}/>
@@ -77,10 +90,12 @@ export default function ZoomCameraView({isExpanded = false, onToggleExpand}: Zoo
                 onPress={onToggleExpand}
                 activeOpacity={1}
         >
-            <CameraView
+            <Camera
                 ref={cameraRef}
                     style={GameViewStyles.camera}
-                    facing="back"
+                device={device}
+                isActive={true}
+                photo={true}
                     zoom={zoom}
             />
             <View style={GameViewStyles.cameraOverlay}/>

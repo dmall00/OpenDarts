@@ -1,4 +1,4 @@
-import {CameraView} from 'expo-camera';
+import {Camera, CameraDevice} from 'react-native-vision-camera';
 
 export interface CameraConfig {
     quality?: number;
@@ -7,11 +7,10 @@ export interface CameraConfig {
 
 export class CameraService {
     private static instance: CameraService;
-    private cameraRef: CameraView | null = null;
-    private mediaRecorder: MediaRecorder | null = null;
-    private videoStream: MediaStream | null = null;
+    private cameraRef: Camera | null = null;
+    private device: CameraDevice | null = null;
     private isRecording: boolean = false;
-    private frameExtractor: ((blob: Blob) => void) | null = null;
+    private captureInterval: ReturnType<typeof setInterval> | null = null;
 
     private constructor() {
     }
@@ -22,7 +21,8 @@ export class CameraService {
         }
         return CameraService.instance;
     }
-  public setCameraRef(ref: CameraView | null): void {
+
+    public setCameraRef(ref: Camera | null): void {
     console.log('CameraService: Setting camera ref:', !!ref);
         this.cameraRef = ref;
     if (ref) {
@@ -33,12 +33,16 @@ export class CameraService {
     }
   }
 
+    public setDevice(device: CameraDevice | null): void {
+        this.device = device;
+    }
+
   public isCameraReady(): boolean {
     return this.cameraRef !== null;
   }
 
     public async startVideoRecording(): Promise<boolean> {
-        if (!this.cameraRef || this.isRecording) {
+        if (!this.cameraRef || !this.device || this.isRecording) {
             return false;
         }
 
@@ -59,6 +63,10 @@ export class CameraService {
 
         try {
             this.isRecording = false;
+            if (this.captureInterval) {
+                clearInterval(this.captureInterval);
+                this.captureInterval = null;
+            }
             console.log('Video recording stopped');
         } catch (error) {
             console.error('Failed to stop video recording:', error);
@@ -66,27 +74,19 @@ export class CameraService {
     }
 
     public async captureFrameFromStream(config: CameraConfig = {}): Promise<Blob | null> {
-        if (!this.cameraRef) {
-            console.warn('Camera reference not set');
+        if (!this.cameraRef || !this.device) {
+            console.warn('Camera reference or device not set');
             return null;
         }
 
         try {
-            const options = {
-                quality: config.quality || 0.7,
-                base64: false,
-                skipProcessing: config.skipProcessing || false,
-                shutterSound: false,
-                animationEnabled: false,
-            };
+            const photo = await this.cameraRef.takePhoto();
 
-            const photo = await this.cameraRef.takePictureAsync(options);
-
-            if (!photo || !photo.uri) {
+            if (!photo || !photo.path) {
                 return null;
             }
 
-            const response = await fetch(photo.uri);
+            const response = await fetch(`file://${photo.path}`);
             const blob = await response.blob();
             return blob;
         } catch (error) {
@@ -94,15 +94,16 @@ export class CameraService {
             return null;
         }
     }
-  public async captureAndSend(
+
+    public async captureAndSend(
         sendBinaryFunction: (data: string | ArrayBuffer | Blob) => boolean,
         config: CameraConfig = {}
     ): Promise<boolean> {
         try {
             console.log('Starting camera capture from stream...');
 
-          if (!this.cameraRef) {
-            console.error('Camera reference not set - cannot capture');
+            if (!this.cameraRef || !this.device) {
+                console.error('Camera reference or device not set - cannot capture');
             return false;
           }
 
@@ -121,6 +122,22 @@ export class CameraService {
         } catch (error) {
             console.error('Failed to capture and send camera data:', error);
             return false;
+        }
+    }
+
+    public startFrameCapture(captureCallback: () => Promise<void>, fps: number): void {
+        if (this.captureInterval) {
+            clearInterval(this.captureInterval);
+        }
+
+        const intervalMs = 1000 / fps;
+        this.captureInterval = setInterval(captureCallback, intervalMs);
+    }
+
+    public stopFrameCapture(): void {
+        if (this.captureInterval) {
+            clearInterval(this.captureInterval);
+            this.captureInterval = null;
         }
     }
 }
