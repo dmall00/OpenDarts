@@ -2,6 +2,9 @@ import {StyleSheet} from 'react-native';
 import {Colors} from './Colors';
 
 export const HeaderStyles = StyleSheet.create({
+    safeAreaTop: {
+        backgroundColor: '#000000',
+    },
     container: {
         backgroundColor: Colors.tabBar.background,
         borderBottomColor: Colors.tabBar.border,

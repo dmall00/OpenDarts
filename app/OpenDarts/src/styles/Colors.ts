@@ -28,7 +28,7 @@ export const Colors = {
         inactiveBackground: 'transparent',
         activeBackground: '#ecfdf5',
     },
-    background: '#f1f5f9',
+    background: '#ffffff',
 };
 
 export const Gradients = {

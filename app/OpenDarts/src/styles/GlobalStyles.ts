@@ -6,11 +6,13 @@ export const GlobalStyles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: Colors.background,
-    },
-    containerWithHeader: {
+    }, containerWithHeader: {
         flex: 1,
         backgroundColor: Colors.background,
         padding: 0,
+    },
+    safeAreaBottom: {
+        backgroundColor: Colors.background,
     },
     headerContentContainer: {
         flex: 1,

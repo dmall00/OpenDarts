@@ -1,5 +1,6 @@
 import React, {useCallback, useEffect, useState} from "react";
 import {Alert, AppState, View} from "react-native";
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import ZoomCameraView from "./ZoomCameraView";
 import ConnectionStatus from "./ConnectionStatus";
 import Header from "../common/Header";
@@ -19,6 +20,7 @@ interface GameViewProps {
 export default function GameView({gameId, websocketUrl, fps = WEBSOCKET_CONFIG.DEFAULT_FPS}: GameViewProps) {
     const [isCameraExpanded, setIsCameraExpanded] = useState(false);
     const [isCapturing, setIsCapturing] = useState(false);
+    const insets = useSafeAreaInsets();
     const cameraService = CameraService.getInstance();
 
     const wsUrl = websocketUrl || WEBSOCKET_CONFIG.DEFAULT_URL;
@@ -117,7 +119,6 @@ export default function GameView({gameId, websocketUrl, fps = WEBSOCKET_CONFIG.D
     const handleReconnect = () => {
         webSocket.connect();
     };
-
     return (
         <View style={GlobalStyles.containerWithHeader}>
             <Header>
@@ -138,13 +139,11 @@ export default function GameView({gameId, websocketUrl, fps = WEBSOCKET_CONFIG.D
                             onToggleExpand={handleToggleCamera}
                         />
                     )}
-                </View>
-
-                {!isCameraExpanded && (
-                    <ZoomCameraView
-                        isExpanded={isCameraExpanded} onToggleExpand={handleToggleCamera}
-                    />
-                )}
+                </View> {!isCameraExpanded && (
+                <ZoomCameraView
+                    isExpanded={isCameraExpanded} onToggleExpand={handleToggleCamera}
+                />
+            )}
             </View>
         </View>
     );

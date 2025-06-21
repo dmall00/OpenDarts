@@ -1,37 +1,19 @@
 import {Tabs} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
-import {StyleSheet, Text, View} from 'react-native';
-import {StatusBar} from 'expo-status-bar';
 import {Colors} from '@/src/styles/Colors';
 import {Layout} from '@/src/styles/Layout';
+import Header from '@/src/components/common/Header';
+import HeaderText from '@/src/components/common/HeaderText';
 
 export default function TabLayout() {
     return (
         <>
-            <StatusBar style="light" backgroundColor={Colors.tabBar.background}/>
+            <Header>
+                <HeaderText title="OpenDarts"/>
+            </Header>
             <Tabs screenOptions={{
                 tabBarActiveTintColor: Colors.tabBar.active,
-                tabBarInactiveTintColor: Colors.tabBar.inactive,
-                headerShown: true,
-                headerStyle: {
-                    backgroundColor: Colors.tabBar.background,
-                    borderBottomColor: Colors.tabBar.border,
-                    borderBottomWidth: 1,
-                    elevation: 4,
-                    shadowColor: '#000',
-                    shadowOffset: {
-                        width: 0,
-                        height: 2,
-                    },
-                    shadowOpacity: 0.1,
-                    shadowRadius: 4,
-                },
-                headerTitle: () => (
-                    <View style={styles.headerTitleContainer}>
-                        <Text style={styles.headerTitle}>OpenDarts</Text>
-                    </View>
-                ),
-                headerTitleAlign: 'center',
+                tabBarInactiveTintColor: Colors.tabBar.inactive, headerShown: false,
                 tabBarStyle: {
                     backgroundColor: Colors.tabBar.background,
                     borderTopColor: Colors.tabBar.border,
@@ -137,19 +119,5 @@ export default function TabLayout() {
                     }}
                 />
             </Tabs>
-        </>
-    );
+        </>);
 }
-
-const styles = StyleSheet.create({
-    headerTitleContainer: {
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    headerTitle: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        color: Colors.tabBar.active,
-        letterSpacing: 0.5,
-    },
-});
