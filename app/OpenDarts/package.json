@@ -43,7 +43,8 @@
     "react-native-vision-camera": "^4.7.0",
     "react-native-web": "~0.20.0",
     "react-native-webview": "13.13.5",
-    "react-use-websocket": "^4.13.0"
+    "react-use-websocket": "^4.13.0",
+    "expo-dev-client": "~5.2.1"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
