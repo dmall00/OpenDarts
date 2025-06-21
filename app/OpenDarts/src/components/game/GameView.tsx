@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useState} from "react";
-import {Alert, View} from "react-native";
+import {Alert, AppState, View} from "react-native";
 import ZoomCameraView from "./ZoomCameraView";
 import ConnectionStatus from "./ConnectionStatus";
 import {GameViewStyles} from "../../styles/GameViewStyles";
@@ -77,6 +77,30 @@ export default function GameView({gameId, websocketUrl, fps = WEBSOCKET_CONFIG.D
             cameraService.stopVideoRecording();
         };
     }, [webSocket.isConnected, isCapturing, webSocket.startCapture, webSocket.stopCapture, handleCameraCapture, cameraService]);
+
+    useEffect(() => {
+        const handleAppStateChange = (nextAppState: string) => {
+            console.log('App state changed to:', nextAppState);
+            if (nextAppState === 'background') {
+                console.log('App going to background, pausing capture...');
+                setIsCapturing(false);
+                cameraService.stopVideoRecording();
+                webSocket.stopCapture();
+            } else if (nextAppState === 'active' && webSocket.isConnected) {
+                console.log('App became active, resuming capture...');
+                setTimeout(() => {
+                    if (cameraService.isCameraReady()) {
+                        cameraService.startVideoRecording();
+                        webSocket.startCapture(handleCameraCapture);
+                        setIsCapturing(true);
+                    }
+                }, 1000);
+            }
+        };
+
+        const subscription = AppState.addEventListener('change', handleAppStateChange);
+        return () => subscription?.remove();
+    }, [webSocket.isConnected, webSocket.startCapture, webSocket.stopCapture, handleCameraCapture, cameraService]);
 
     useEffect(() => {
         if (webSocket.error) {

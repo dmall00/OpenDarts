@@ -42,22 +42,22 @@ export const useWebSocket = (config: WebSocketConfig) => {
                     clearTimeout(reconnectTimeoutRef.current);
                     reconnectTimeoutRef.current = null;
                 }
-            },
-            onClose: (event) => {
+            }, onClose: (event) => {
                 console.log('WebSocket disconnected:', event.code, event.reason);
                 stopHeartbeat();
                 if (event.code !== 1000 && event.code !== 1001) {
                     setError(`Connection lost: ${event.reason || 'Unknown error'}`);
+                } else if (event.code === 1001) {
+                    console.log('WebSocket closed due to app going away (background/navigation)');
                 }
             },
             onError: (event) => {
                 console.error('WebSocket error:', event);
                 setError('WebSocket connection failed');
                 stopHeartbeat();
-            },
-            shouldReconnect: (closeEvent) => {
-                const shouldReconnect = closeEvent.code !== 1000 && closeEvent.code !== 1001;
-                console.log('Should reconnect:', shouldReconnect, 'Code:', closeEvent.code);
+            }, shouldReconnect: (closeEvent) => {
+                const shouldReconnect = closeEvent.code !== 1000;
+                console.log('Should reconnect:', shouldReconnect, 'Code:', closeEvent.code, 'Reason:', closeEvent.reason);
                 return shouldReconnect;
             },
             reconnectAttempts,

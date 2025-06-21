@@ -36,7 +36,7 @@ class AppWebSocketHandler(
     }
 
     override fun afterConnectionClosed(session: WebSocketSession, status: CloseStatus) {
-        logger.info { "App connection closed" }
+        logger.info { "App connection closed $status" }
         sessions.remove(session)
     }
 }
