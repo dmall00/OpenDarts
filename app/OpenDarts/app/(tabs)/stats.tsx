@@ -4,7 +4,7 @@ import {GlobalStyles} from '@/src/styles/GlobalStyles';
 
 export default function Stats() {
     return (
-        <SafeAreaView style={GlobalStyles.safeArea}>
+        <SafeAreaView style={GlobalStyles.containerWithHeader}>
             <View style={GlobalStyles.contentContainer}>
                 <Text>Stats</Text>
             </View>

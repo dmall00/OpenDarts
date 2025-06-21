@@ -2,11 +2,11 @@ import React from 'react';
 import {SafeAreaView, Text, View} from 'react-native';
 import {GlobalStyles} from "@/src/styles/GlobalStyles";
 
-export default function Community() {
+export default function Social() {
     return (
-        <SafeAreaView style={GlobalStyles.safeArea}>
+        <SafeAreaView style={GlobalStyles.containerWithHeader}>
             <View style={GlobalStyles.contentContainer}>
-                <Text>Community</Text>
+                <Text>Social</Text>
             </View>
         </SafeAreaView>
     );

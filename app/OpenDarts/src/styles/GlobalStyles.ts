@@ -7,9 +7,14 @@ export const GlobalStyles = StyleSheet.create({
         flex: 1,
         backgroundColor: Colors.background,
     },
-    safeArea: {
+    containerWithHeader: {
         flex: 1,
-        backgroundColor: Colors.slate[100],
+        backgroundColor: Colors.background,
+        padding: 0,
+    },
+    headerContentContainer: {
+        flex: 1,
+        padding: Spacing.base,
     },
     contentContainer: {
         padding: Spacing.base,

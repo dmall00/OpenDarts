@@ -74,7 +74,7 @@ export default function TabLayout() {
                 <Tabs.Screen
                     name="index"
                     options={{
-                        title: 'Dashboard',
+                        title: 'Home',
                         tabBarIcon: ({color, size, focused}) => (
                             <Ionicons
                                 name={focused ? "home" : "home"}
@@ -111,9 +111,9 @@ export default function TabLayout() {
                     }}
                 />
                 <Tabs.Screen
-                    name="community"
+                    name="social"
                     options={{
-                        title: 'Community',
+                        title: 'Social',
                         tabBarIcon: ({color, size, focused}) => (
                             <Ionicons
                                 name={focused ? "people" : "people-outline"}

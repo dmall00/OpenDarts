@@ -2,10 +2,13 @@ import React, {useCallback, useEffect, useState} from "react";
 import {Alert, AppState, View} from "react-native";
 import ZoomCameraView from "./ZoomCameraView";
 import ConnectionStatus from "./ConnectionStatus";
+import Header from "../common/Header";
 import {GameViewStyles} from "../../styles/GameViewStyles";
+import {GlobalStyles} from "../../styles/GlobalStyles";
 import {useWebSocket} from "../../hooks/useWebSocket";
 import {CameraService} from "../../services/camera/cameraService";
 import {CAMERA_CONFIG, WEBSOCKET_CONFIG} from "../../config/config";
+import HeaderText from "@/src/components/common/HeaderText";
 
 interface GameViewProps {
     gameId: string;
@@ -116,29 +119,33 @@ export default function GameView({gameId, websocketUrl, fps = WEBSOCKET_CONFIG.D
     };
 
     return (
-        <View style={GameViewStyles.container}>
-            {/* Connection Status Indicator */}
-            <ConnectionStatus
-                isConnected={webSocket.isConnected}
-                isConnecting={webSocket.isConnecting}
-                onReconnect={handleReconnect}
-            />
+        <View style={GlobalStyles.containerWithHeader}>
+            <Header>
+                <HeaderText title="OpenDarts"></HeaderText>
+            </Header>
 
-            <View style={GameViewStyles.cameraContainer}>
-                {isCameraExpanded && (
+            <View style={GlobalStyles.headerContentContainer}>
+                <ConnectionStatus
+                    isConnected={webSocket.isConnected}
+                    isConnecting={webSocket.isConnecting}
+                    onReconnect={handleReconnect}
+                />
+
+                <View style={GameViewStyles.cameraContainer}>
+                    {isCameraExpanded && (
+                        <ZoomCameraView
+                            isExpanded={isCameraExpanded}
+                            onToggleExpand={handleToggleCamera}
+                        />
+                    )}
+                </View>
+
+                {!isCameraExpanded && (
                     <ZoomCameraView
-                        isExpanded={isCameraExpanded}
-                        onToggleExpand={handleToggleCamera}
+                        isExpanded={isCameraExpanded} onToggleExpand={handleToggleCamera}
                     />
                 )}
             </View>
-
-            {!isCameraExpanded && (
-                <ZoomCameraView
-                    isExpanded={isCameraExpanded}
-                    onToggleExpand={handleToggleCamera}
-                />
-            )}
         </View>
     );
 }

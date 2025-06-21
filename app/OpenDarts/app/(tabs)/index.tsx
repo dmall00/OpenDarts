@@ -4,9 +4,9 @@ import {GlobalStyles} from "@/src/styles/GlobalStyles";
 
 export default function Index() {
     return (
-        <SafeAreaView style={GlobalStyles.safeArea}>
+        <SafeAreaView style={GlobalStyles.containerWithHeader}>
             <View style={GlobalStyles.contentContainer}>
-                <Text>Dashboard</Text>
+                <Text>Home</Text>
             </View>
         </SafeAreaView>
     );

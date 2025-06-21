@@ -1,0 +1,37 @@
+import {StyleSheet} from 'react-native';
+import {Colors} from './Colors';
+
+export const HeaderStyles = StyleSheet.create({
+    container: {
+        backgroundColor: Colors.tabBar.background,
+        borderBottomColor: Colors.tabBar.border,
+        borderBottomWidth: 1,
+        elevation: 4,
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        paddingTop: 10,
+        paddingBottom: 15,
+        paddingHorizontal: 16,
+    },
+    titleContainer: {
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    title: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        color: Colors.tabBar.active,
+        letterSpacing: 0.5,
+    },
+    subtitle: {
+        fontSize: 14,
+        fontWeight: '500',
+        color: Colors.tabBar.inactive,
+        marginTop: 4,
+    },
+});

@@ -45,7 +45,7 @@ export default function Play() {
     };
 
     return (
-        <SafeAreaView style={GlobalStyles.safeArea}>
+        <SafeAreaView style={GlobalStyles.containerWithHeader}>
             <View style={GlobalStyles.contentContainer}>
                 <GamePicker onGameConfigChange={setGameConfig}/>
 
