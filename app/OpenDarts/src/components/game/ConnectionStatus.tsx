@@ -37,14 +37,10 @@ export default function ConnectionStatus({isConnected, isConnecting, onReconnect
 
 const styles = StyleSheet.create({
     container: {
-        position: 'absolute',
-        top: 50,
-        right: 20,
         width: 24,
         height: 24,
         justifyContent: 'center',
         alignItems: 'center',
-        zIndex: 1000,
     },
     dot: {
         width: 12,

@@ -4,8 +4,7 @@ import {Colors} from './Colors';
 export const HeaderStyles = StyleSheet.create({
     safeAreaTop: {
         backgroundColor: '#000000',
-    },
-    container: {
+    }, container: {
         backgroundColor: Colors.tabBar.background,
         borderBottomColor: Colors.tabBar.border,
         borderBottomWidth: 1,
@@ -20,6 +19,21 @@ export const HeaderStyles = StyleSheet.create({
         paddingTop: 10,
         paddingBottom: 15,
         paddingHorizontal: 16,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+    },
+    leftContent: {
+        flex: 1,
+        alignItems: 'flex-start',
+    },
+    centerContent: {
+        flex: 2,
+        alignItems: 'center',
+    },
+    rightContent: {
+        flex: 1,
+        alignItems: 'flex-end',
     },
     titleContainer: {
         alignItems: 'center',

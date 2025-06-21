@@ -11,17 +11,10 @@ interface CameraSectionProps {
 export default function CameraSection({isCameraExpanded, onToggleCamera}: CameraSectionProps) {
     return (
         <View style={GameViewStyles.cameraContainer}>
-            {isCameraExpanded ? (
-                <ZoomCameraView
-                    isExpanded={isCameraExpanded}
-                    onToggleExpand={onToggleCamera}
-                />
-            ) : (
-                <ZoomCameraView
-                    isExpanded={isCameraExpanded}
-                    onToggleExpand={onToggleCamera}
-                />
-            )}
+            <ZoomCameraView
+                isExpanded={isCameraExpanded}
+                onToggleExpand={onToggleCamera}
+            />
         </View>
     );
 }

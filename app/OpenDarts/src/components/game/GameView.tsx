@@ -5,6 +5,7 @@ import ConnectionStatus from "./ConnectionStatus";
 import CameraSection from "./CameraSection";
 import Header from "../common/Header";
 import {GlobalStyles} from "../../styles/GlobalStyles";
+import {HeaderStyles} from "../../styles/HeaderStyles";
 import {useGameWebSocket} from "../../hooks/useGameWebSocket";
 import {useGameCapture} from "../../hooks/useGameCapture";
 import {useCameraUI} from "../../hooks/useCameraUI";
@@ -32,20 +33,24 @@ export default function GameView({gameId, websocketUrl, fps}: GameViewProps) {
     const handleReconnect = () => {
         webSocket.connect();
     };
-
     return (
         <View style={GlobalStyles.containerWithHeader}>
             <Header>
-                <HeaderText title="OpenDarts"/>
+                <View style={HeaderStyles.leftContent}>
+                    <ConnectionStatus
+                        isConnected={webSocket.isConnected}
+                        isConnecting={webSocket.isConnecting}
+                        onReconnect={handleReconnect}
+                    />
+                </View>
+                <View style={HeaderStyles.centerContent}>
+                    <HeaderText title="OpenDarts"/>
+                </View>
+                <View style={HeaderStyles.rightContent}>
+                </View>
             </Header>
 
             <View style={GlobalStyles.headerContentContainer}>
-                <ConnectionStatus
-                    isConnected={webSocket.isConnected}
-                    isConnecting={webSocket.isConnecting}
-                    onReconnect={handleReconnect}
-                />
-
                 <CameraSection
                     isCameraExpanded={isCameraExpanded}
                     onToggleCamera={handleToggleCamera}
