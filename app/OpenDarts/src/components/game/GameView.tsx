@@ -1,16 +1,13 @@
 import React from "react";
 import {View} from "react-native";
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
-import ConnectionStatus from "./ConnectionStatus";
 import CameraSection from "./CameraSection";
-import Header from "../common/Header";
 import {GlobalStyles} from "../../styles/GlobalStyles";
-import {HeaderStyles} from "../../styles/HeaderStyles";
 import {useGameWebSocket} from "../../hooks/useGameWebSocket";
 import {useGameCapture} from "../../hooks/useGameCapture";
 import {useCameraUI} from "../../hooks/useCameraUI";
 import {useErrorHandler} from "../../hooks/useErrorHandler";
-import HeaderText from "@/src/components/common/HeaderText";
+import InGameHeader from "@/src/components/game/InGameHeader";
 
 interface GameViewProps {
     gameId: string;
@@ -35,20 +32,9 @@ export default function GameView({gameId, websocketUrl, fps}: GameViewProps) {
     };
     return (
         <View style={GlobalStyles.containerWithHeader}>
-            <Header>
-                <View style={HeaderStyles.leftContent}>
-                    <ConnectionStatus
-                        isConnected={webSocket.isConnected}
-                        isConnecting={webSocket.isConnecting}
-                        onReconnect={handleReconnect}
-                    />
-                </View>
-                <View style={HeaderStyles.centerContent}>
-                    <HeaderText title="OpenDarts"/>
-                </View>
-                <View style={HeaderStyles.rightContent}>
-                </View>
-            </Header>
+
+            <InGameHeader isConnected={webSocket.isConnected} isConnecting={webSocket.isConnecting}
+                          handleReconnect={handleReconnect}/>
 
             <View style={GlobalStyles.headerContentContainer}>
                 <CameraSection
