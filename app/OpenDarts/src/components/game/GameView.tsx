@@ -8,6 +8,7 @@ import {useGameCapture} from "../../hooks/useGameCapture";
 import {useCameraUI} from "../../hooks/useCameraUI";
 import {useErrorHandler} from "../../hooks/useErrorHandler";
 import InGameHeader from "@/src/components/game/InGameHeader";
+import ScoreView from "@/src/components/game/ScoreView";
 
 interface GameViewProps {
     gameId: string;
@@ -37,6 +38,9 @@ export default function GameView({gameId, websocketUrl, fps}: GameViewProps) {
                           handleReconnect={handleReconnect}/>
 
             <View style={GlobalStyles.headerContentContainer}>
+
+                <ScoreView/>
+
                 <CameraSection
                     isCameraExpanded={isCameraExpanded}
                     onToggleCamera={handleToggleCamera}
