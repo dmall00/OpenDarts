@@ -4,18 +4,16 @@ import {Animated, Dimensions, Text, TouchableOpacity, View} from "react-native";
 import Slider from "@react-native-community/slider";
 import {GameViewStyles} from "../../styles/GameViewStyles";
 import {CameraService} from "../../services/camera/cameraService";
+import {useCameraUI} from "@/src/hooks/useCameraUI";
 
-interface ZoomCameraViewProps {
-    isExpanded?: boolean;
-    onToggleExpand?: () => void;
-}
-
-export default function ZoomCameraView({isExpanded = false, onToggleExpand}: ZoomCameraViewProps) {
+export default function ZoomCameraView() {
     const {hasPermission, requestPermission} = useCameraPermission();
-    const [zoom, setZoom] = useState(1); 
+    const [zoom, setZoom] = useState(1);
     const cameraRef = useRef<Camera>(null);
     const device = useCameraDevice('back');
     const cameraService = CameraService.getInstance();
+
+    const {isCameraExpanded, handleToggleCamera} = useCameraUI();
 
     const screenDimensions = Dimensions.get('window');
     const scale = useRef(new Animated.Value(0)).current;
@@ -51,11 +49,11 @@ export default function ZoomCameraView({isExpanded = false, onToggleExpand}: Zoo
 
     useEffect(() => {
         Animated.timing(scale, {
-            toValue: isExpanded ? 1 : 0,
+            toValue: isCameraExpanded ? 1 : 0,
             duration: 300,
             useNativeDriver: false,
         }).start();
-    }, [isExpanded, scale]);
+    }, [isCameraExpanded, scale]);
 
     if (hasPermission === null) {
         return <View/>;
@@ -92,15 +90,15 @@ export default function ZoomCameraView({isExpanded = false, onToggleExpand}: Zoo
 
     const containerStyle = [
         GameViewStyles.zoomCameraContainer,
-        isExpanded ? GameViewStyles.zoomCameraContainerExpanded : GameViewStyles.zoomCameraContainerCompact,
-        isExpanded ? {width: screenDimensions.width, height: screenDimensions.height} : {}
+        isCameraExpanded ? GameViewStyles.zoomCameraContainerExpanded : GameViewStyles.zoomCameraContainerCompact,
+        isCameraExpanded ? {width: screenDimensions.width, height: screenDimensions.height} : {}
     ];
 
     return (
         <Animated.View style={containerStyle}>
             <TouchableOpacity
                 style={GameViewStyles.camera}
-                onPress={onToggleExpand} activeOpacity={1}
+                onPress={handleToggleCamera} activeOpacity={1}
             >
                 <Camera
                     ref={cameraRef}
@@ -110,37 +108,37 @@ export default function ZoomCameraView({isExpanded = false, onToggleExpand}: Zoo
                     photo={true}
                     zoom={zoom}
                 />
-                <View style={GameViewStyles.cameraOverlay}/> </TouchableOpacity> {isExpanded && (
-                <Animated.View
-                    style={[
-                        GameViewStyles.zoomSliderContainer,
-                        {
-                            opacity: scale,
-                            bottom: safeBottomPadding,
-                            transform: [{
-                                translateY: scale.interpolate({
-                                    inputRange: [0, 1],
-                                    outputRange: [50, 0],
-                                })
-                            }]
-                        }
-                    ]}
-                >
-                    <Slider
-                        style={GameViewStyles.zoomSlider}
-                        minimumValue={minZoom}
-                        maximumValue={maxZoom}
-                        value={zoom}
-                        onValueChange={handleZoom}
-                        minimumTrackTintColor="#10b981"
-                        maximumTrackTintColor="#e5e7eb"
-                        thumbTintColor="#10b981"
-                    />
-                    <Text style={GameViewStyles.zoomText}>
-                        {`${Math.round(zoom * 10) / 10}x`}
-                    </Text>
-                </Animated.View>
-            )}
+                <View style={GameViewStyles.cameraOverlay}/> </TouchableOpacity> {isCameraExpanded && (
+            <Animated.View
+                style={[
+                    GameViewStyles.zoomSliderContainer,
+                    {
+                        opacity: scale,
+                        bottom: safeBottomPadding,
+                        transform: [{
+                            translateY: scale.interpolate({
+                                inputRange: [0, 1],
+                                outputRange: [50, 0],
+                            })
+                        }]
+                    }
+                ]}
+            >
+                <Slider
+                    style={GameViewStyles.zoomSlider}
+                    minimumValue={minZoom}
+                    maximumValue={maxZoom}
+                    value={zoom}
+                    onValueChange={handleZoom}
+                    minimumTrackTintColor="#10b981"
+                    maximumTrackTintColor="#e5e7eb"
+                    thumbTintColor="#10b981"
+                />
+                <Text style={GameViewStyles.zoomText}>
+                    {`${Math.round(zoom * 10) / 10}x`}
+                </Text>
+            </Animated.View>
+        )}
         </Animated.View>
     );
 }

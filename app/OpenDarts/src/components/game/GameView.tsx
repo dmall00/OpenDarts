@@ -5,10 +5,10 @@ import CameraSection from "./CameraSection";
 import {GlobalStyles} from "../../styles/GlobalStyles";
 import {useGameWebSocket} from "../../hooks/useGameWebSocket";
 import {useGameCapture} from "../../hooks/useGameCapture";
-import {useCameraUI} from "../../hooks/useCameraUI";
 import {useErrorHandler} from "../../hooks/useErrorHandler";
 import InGameHeader from "@/src/components/game/InGameHeader";
 import ScoreView from "@/src/components/game/ScoreView";
+import {useGameStore} from "@/src/stores/gameStore";
 
 interface GameViewProps {
     gameId: string;
@@ -18,9 +18,10 @@ interface GameViewProps {
 
 export default function GameView({gameId, websocketUrl, fps}: GameViewProps) {
     const insets = useSafeAreaInsets();
+    const isAutoScoreEnabled = useGameStore((state) => state.isAutoScoreEnabled);
 
     const webSocket = useGameWebSocket({gameId, websocketUrl, fps});
-    const {isCameraExpanded, handleToggleCamera} = useCameraUI();
+
     useGameCapture({
         isConnected: webSocket.isConnected,
         sendBinary: webSocket.sendBinary,
@@ -35,17 +36,12 @@ export default function GameView({gameId, websocketUrl, fps}: GameViewProps) {
         <View style={GlobalStyles.containerWithHeader}>
 
             <InGameHeader isConnected={webSocket.isConnected} isConnecting={webSocket.isConnecting}
-                          handleReconnect={handleReconnect}/>
+                          handleReconnect={handleReconnect}/> <View style={GlobalStyles.headerContentContainer}>
 
-            <View style={GlobalStyles.headerContentContainer}>
+            <ScoreView/>
 
-                <ScoreView/>
-
-                <CameraSection
-                    isCameraExpanded={isCameraExpanded}
-                    onToggleCamera={handleToggleCamera}
-                />
-            </View>
+            {isAutoScoreEnabled && <CameraSection/>}
+        </View>
         </View>
     );
 }

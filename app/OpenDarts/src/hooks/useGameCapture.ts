@@ -2,6 +2,7 @@ import {useCallback, useEffect, useState} from 'react';
 import {AppState} from 'react-native';
 import {CameraService} from '../services/camera/cameraService';
 import {CAMERA_CONFIG} from '../config/config';
+import {useGameStore} from "@/src/stores/gameStore";
 
 interface UseGameCaptureProps {
     isConnected: boolean;
@@ -17,6 +18,8 @@ export const useGameCapture = ({
                                    stopCapture
                                }: UseGameCaptureProps) => {
     const [isCapturing, setIsCapturing] = useState(false);
+    const isAutoScoreEnabled = useGameStore((state) => state.isAutoScoreEnabled);
+
     const cameraService = CameraService.getInstance();
 
     const handleCameraCapture = useCallback(async () => {
@@ -57,15 +60,14 @@ export const useGameCapture = ({
         cameraService.stopVideoRecording();
         stopCapture();
     }, [cameraService, stopCapture]);
-
     useEffect(() => {
-        console.log('GameCapture useEffect - isConnected:', isConnected, 'isCapturing:', isCapturing);
+        console.log('GameCapture useEffect - isConnected:', isConnected, 'isCapturing:', isCapturing, 'isAutoScoreEnabled:', isAutoScoreEnabled);
 
-        if (isConnected && !isCapturing) {
+        if (isConnected && !isCapturing && isAutoScoreEnabled) {
             console.log('Starting capture with delay...');
             setIsCapturing(true);
             setTimeout(startCaptureWhenReady, 1000);
-        } else if (!isConnected && isCapturing) {
+        } else if ((!isConnected || !isAutoScoreEnabled) && isCapturing) {
             stopCaptureAndRecording();
         }
 
@@ -73,8 +75,7 @@ export const useGameCapture = ({
             stopCapture();
             cameraService.stopVideoRecording();
         };
-    }, [isConnected, isCapturing, startCaptureWhenReady, stopCaptureAndRecording]);
-
+    }, [isConnected, isCapturing, isAutoScoreEnabled, startCaptureWhenReady, stopCaptureAndRecording]);
     useEffect(() => {
         const handleAppStateChange = (nextAppState: string) => {
             console.log('App state changed to:', nextAppState);
@@ -82,7 +83,7 @@ export const useGameCapture = ({
             if (nextAppState === 'background') {
                 console.log('App going to background, pausing capture...');
                 stopCaptureAndRecording();
-            } else if (nextAppState === 'active' && isConnected) {
+            } else if (nextAppState === 'active' && isConnected && isAutoScoreEnabled) {
                 console.log('App became active, resuming capture...');
                 setTimeout(() => {
                     if (cameraService.isCameraReady()) {
@@ -96,7 +97,7 @@ export const useGameCapture = ({
 
         const subscription = AppState.addEventListener('change', handleAppStateChange);
         return () => subscription?.remove();
-    }, [isConnected, startCapture, handleCameraCapture, cameraService, stopCaptureAndRecording]);
+    }, [isConnected, isAutoScoreEnabled, startCapture, handleCameraCapture, cameraService, stopCaptureAndRecording]);
 
     return {
         isCapturing,
