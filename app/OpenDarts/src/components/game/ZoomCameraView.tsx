@@ -1,0 +1,146 @@
+import {Camera, useCameraDevice, useCameraPermission} from "react-native-vision-camera";
+import React, {useEffect, useRef, useState} from "react";
+import {Animated, Dimensions, Text, TouchableOpacity, View} from "react-native";
+import Slider from "@react-native-community/slider";
+import {GameViewStyles} from "../../styles/GameViewStyles";
+import {CameraService} from "../../services/camera/cameraService";
+
+interface ZoomCameraViewProps {
+    isExpanded?: boolean;
+    onToggleExpand?: () => void;
+}
+
+export default function ZoomCameraView({isExpanded = false, onToggleExpand}: ZoomCameraViewProps) {
+    const {hasPermission, requestPermission} = useCameraPermission();
+    const [zoom, setZoom] = useState(1); 
+    const cameraRef = useRef<Camera>(null);
+    const device = useCameraDevice('back');
+    const cameraService = CameraService.getInstance();
+
+    const screenDimensions = Dimensions.get('window');
+    const scale = useRef(new Animated.Value(0)).current;
+
+    const safeBottomPadding = 100;
+
+    const minZoom = 1;
+    const maxZoom = 3;
+    const neutralZoom = 1;
+
+    useEffect(() => {
+        setZoom(neutralZoom);
+    }, [device]);
+
+    useEffect(() => {
+        console.log('ZoomCameraView mounted, setting camera ref...');
+        if (cameraRef.current && device) {
+            console.log('Camera ref is available, setting in service');
+            cameraService.setCameraRef(cameraRef.current);
+            cameraService.setDevice(device);
+        } else {
+            console.log('Camera ref not yet available');
+        }
+    }, [cameraService, device]);
+
+    useEffect(() => {
+        if (cameraRef.current && device) {
+            console.log('Camera ref updated, setting in service');
+            cameraService.setCameraRef(cameraRef.current);
+            cameraService.setDevice(device);
+        }
+    }, [cameraRef.current, device]);
+
+    useEffect(() => {
+        Animated.timing(scale, {
+            toValue: isExpanded ? 1 : 0,
+            duration: 300,
+            useNativeDriver: false,
+        }).start();
+    }, [isExpanded, scale]);
+
+    if (hasPermission === null) {
+        return <View/>;
+    }
+
+    if (!hasPermission) {
+        return (
+            <View style={GameViewStyles.permissionContainer}>
+                <Text style={GameViewStyles.permissionMessage}>
+                    We need your permission to show the camera
+                </Text>
+                <TouchableOpacity
+                    style={GameViewStyles.permissionButton}
+                    onPress={requestPermission}
+                >
+                    <Text style={GameViewStyles.permissionButtonText}>Grant Permission</Text>
+                </TouchableOpacity>
+            </View>
+        );
+    }
+
+    if (!device) {
+        return (
+            <View style={GameViewStyles.permissionContainer}>
+                <Text style={GameViewStyles.permissionMessage}>
+                    No camera device found
+                </Text>
+            </View>);
+    }
+    const handleZoom = (zoomLevel: number) => {
+        const clampedZoom = Math.max(minZoom, Math.min(maxZoom, zoomLevel));
+        setZoom(clampedZoom);
+    };
+
+    const containerStyle = [
+        GameViewStyles.zoomCameraContainer,
+        isExpanded ? GameViewStyles.zoomCameraContainerExpanded : GameViewStyles.zoomCameraContainerCompact,
+        isExpanded ? {width: screenDimensions.width, height: screenDimensions.height} : {}
+    ];
+
+    return (
+        <Animated.View style={containerStyle}>
+            <TouchableOpacity
+                style={GameViewStyles.camera}
+                onPress={onToggleExpand} activeOpacity={1}
+            >
+                <Camera
+                    ref={cameraRef}
+                    style={GameViewStyles.camera}
+                    device={device}
+                    isActive={true}
+                    photo={true}
+                    zoom={zoom}
+                />
+                <View style={GameViewStyles.cameraOverlay}/> </TouchableOpacity> {isExpanded && (
+                <Animated.View
+                    style={[
+                        GameViewStyles.zoomSliderContainer,
+                        {
+                            opacity: scale,
+                            bottom: safeBottomPadding,
+                            transform: [{
+                                translateY: scale.interpolate({
+                                    inputRange: [0, 1],
+                                    outputRange: [50, 0],
+                                })
+                            }]
+                        }
+                    ]}
+                >
+                    <Slider
+                        style={GameViewStyles.zoomSlider}
+                        minimumValue={minZoom}
+                        maximumValue={maxZoom}
+                        value={zoom}
+                        onValueChange={handleZoom}
+                        minimumTrackTintColor="#10b981"
+                        maximumTrackTintColor="#e5e7eb"
+                        thumbTintColor="#10b981"
+                    />
+                    <Text style={GameViewStyles.zoomText}>
+                        {`${Math.round(zoom * 10) / 10}x`}
+                    </Text>
+                </Animated.View>
+            )}
+        </Animated.View>
+    );
+}
