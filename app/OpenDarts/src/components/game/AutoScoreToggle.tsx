@@ -1,25 +1,16 @@
-import React, {useState} from "react";
+import React from "react";
 import {Text, TouchableOpacity} from "react-native";
 import {Feather} from "@expo/vector-icons";
+import {useGameStore} from "@/src/stores/gameStore";
 
-interface AutoScoreToggleProps {
+export default function AutoScoreToggle() {
 
-}
-
-
-export default function AutoScoreToggle(props: AutoScoreToggleProps) {
-
-    const [isAutoscore, setAutoscore] = useState(false);
-
-    function toggleAutoScore() {
-        setAutoscore(!isAutoscore);
-    }
-
+    const {isAutoScoreEnabled, toggleAutoScore} = useGameStore();
     return (
         <TouchableOpacity
-            onPress={() => toggleAutoScore()}
+            onPress={toggleAutoScore}
         >
-            {isAutoscore ? <Feather name="camera" size={24} color="black"/> :
+            {isAutoScoreEnabled ? <Feather name="camera" size={24} color="black"/> :
                 <Feather name="camera-off" size={24} color="black"/>}
 
 
