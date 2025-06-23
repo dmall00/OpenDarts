@@ -24,7 +24,6 @@ export const useGameCapture = ({
 
     const handleCameraCapture = useCallback(async () => {
         try {
-            console.log('Camera frame capture starting...');
             const success = await cameraService.captureAndSend(
                 sendBinary,
                 {
@@ -32,12 +31,6 @@ export const useGameCapture = ({
                     skipProcessing: CAMERA_CONFIG.SKIP_PROCESSING,
                 }
             );
-
-            if (!success) {
-                console.warn('Failed to capture and send camera frame');
-            } else {
-                console.log('Camera frame captured and sent successfully');
-            }
         } catch (error) {
             console.error('Camera capture error:', error);
         }
@@ -49,7 +42,6 @@ export const useGameCapture = ({
             cameraService.startVideoRecording();
             startCapture(handleCameraCapture);
         } else {
-            console.log('Camera not ready yet, waiting...');
             setTimeout(startCaptureWhenReady, 500);
         }
     }, [cameraService, startCapture, handleCameraCapture]);
@@ -61,10 +53,7 @@ export const useGameCapture = ({
         stopCapture();
     }, [cameraService, stopCapture]);
     useEffect(() => {
-        console.log('GameCapture useEffect - isConnected:', isConnected, 'isCapturing:', isCapturing, 'isAutoScoreEnabled:', isAutoScoreEnabled);
-
         if (isConnected && !isCapturing && isAutoScoreEnabled) {
-            console.log('Starting capture with delay...');
             setIsCapturing(true);
             setTimeout(startCaptureWhenReady, 1000);
         } else if ((!isConnected || !isAutoScoreEnabled) && isCapturing) {
@@ -78,8 +67,6 @@ export const useGameCapture = ({
     }, [isConnected, isCapturing, isAutoScoreEnabled, startCaptureWhenReady, stopCaptureAndRecording]);
     useEffect(() => {
         const handleAppStateChange = (nextAppState: string) => {
-            console.log('App state changed to:', nextAppState);
-
             if (nextAppState === 'background') {
                 console.log('App going to background, pausing capture...');
                 stopCaptureAndRecording();

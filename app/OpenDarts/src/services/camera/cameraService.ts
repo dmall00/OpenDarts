@@ -23,23 +23,19 @@ export class CameraService {
     }
 
     public setCameraRef(ref: Camera | null): void {
-    console.log('CameraService: Setting camera ref:', !!ref);
         this.cameraRef = ref;
-    if (ref) {
-      console.log('CameraService: Camera ref successfully set');
-    } else {
-      console.log('CameraService: Camera ref cleared');
-        this.stopVideoRecording();
+        if (!ref) {
+            this.stopVideoRecording();
+        }
     }
-  }
 
     public setDevice(device: CameraDevice | null): void {
         this.device = device;
     }
 
-  public isCameraReady(): boolean {
-    return this.cameraRef !== null;
-  }
+    public isCameraReady(): boolean {
+        return this.cameraRef !== null;
+    }
 
     public async startVideoRecording(): Promise<boolean> {
         if (!this.cameraRef || !this.device || this.isRecording) {
@@ -100,12 +96,10 @@ export class CameraService {
         config: CameraConfig = {}
     ): Promise<boolean> {
         try {
-            console.log('Starting camera capture from stream...');
-
             if (!this.cameraRef || !this.device) {
                 console.error('Camera reference or device not set - cannot capture');
-            return false;
-          }
+                return false;
+            }
 
             const blob = await this.captureFrameFromStream(config);
 
@@ -114,11 +108,8 @@ export class CameraService {
                 return false;
             }
 
-            console.log('Frame captured from stream, size:', blob.size, 'type:', blob.type);
 
-          const result = sendBinaryFunction(blob);
-          console.log('Send binary result:', result);
-          return result;
+            return sendBinaryFunction(blob);
         } catch (error) {
             console.error('Failed to capture and send camera data:', error);
             return false;

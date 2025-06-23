@@ -47,8 +47,6 @@ export const useWebSocket = (config: WebSocketConfig) => {
                 stopHeartbeat();
                 if (event.code !== 1000 && event.code !== 1001) {
                     setError(`Connection lost: ${event.reason || 'Unknown error'}`);
-                } else if (event.code === 1001) {
-                    console.log('WebSocket closed due to app going away (background/navigation)');
                 }
             },
             onError: (event) => {
@@ -56,15 +54,11 @@ export const useWebSocket = (config: WebSocketConfig) => {
                 setError('WebSocket connection failed');
                 stopHeartbeat();
             }, shouldReconnect: (closeEvent) => {
-                const shouldReconnect = closeEvent.code !== 1000;
-                console.log('Should reconnect:', shouldReconnect, 'Code:', closeEvent.code, 'Reason:', closeEvent.reason);
-                return shouldReconnect;
+                return closeEvent.code !== 1000;
             },
             reconnectAttempts,
             reconnectInterval: (attemptNumber) => {
-                const delay = Math.min(reconnectDelay * Math.pow(1.5, attemptNumber), 30000);
-                console.log(`Reconnect attempt ${attemptNumber}, delay: ${delay}ms`);
-                return delay;
+                return Math.min(reconnectDelay * Math.pow(1.5, attemptNumber), 30000);
             },
         },
         autoConnect
@@ -137,12 +131,9 @@ export const useWebSocket = (config: WebSocketConfig) => {
         const ws = getWebSocket();
         if (ws && readyState === ReadyState.OPEN) {
             try {
-                console.log('Sending binary data, type:', typeof data, 'size:', data instanceof ArrayBuffer ? data.byteLength : data instanceof Blob ? data.size : data.length);
                 (ws as WebSocket).send(data);
-                console.log('Binary data sent successfully');
                 return true;
             } catch (error) {
-                console.error('Failed to send binary WebSocket data:', error);
                 setError('Failed to send data');
                 return false;
             }
@@ -162,18 +153,14 @@ export const useWebSocket = (config: WebSocketConfig) => {
             clearInterval(captureIntervalRef.current);
         }
         const intervalMs = 1000 / fps;
-        console.log('Starting capture interval with FPS:', fps, 'interval:', intervalMs + 'ms');
         captureIntervalRef.current = setInterval(async () => {
             const isConnectedNow = readyState === ReadyState.OPEN;
             if (isConnectedNow && onCaptureRef.current) {
                 try {
-                    console.log('Triggering camera capture... WebSocket state:', readyState);
                     await onCaptureRef.current();
                 } catch (error) {
                     console.error('Capture failed:', error);
                 }
-            } else {
-                console.log('Skipping capture - connected:', isConnectedNow, 'WebSocket state:', readyState, 'capture function:', !!onCaptureRef.current);
             }
         }, intervalMs);
     }, [fps, readyState]);

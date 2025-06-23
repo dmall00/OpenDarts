@@ -29,19 +29,14 @@ export default function ZoomCameraView() {
     }, [device]);
 
     useEffect(() => {
-        console.log('ZoomCameraView mounted, setting camera ref...');
         if (cameraRef.current && device) {
-            console.log('Camera ref is available, setting in service');
             cameraService.setCameraRef(cameraRef.current);
             cameraService.setDevice(device);
-        } else {
-            console.log('Camera ref not yet available');
         }
     }, [cameraService, device]);
 
     useEffect(() => {
         if (cameraRef.current && device) {
-            console.log('Camera ref updated, setting in service');
             cameraService.setCameraRef(cameraRef.current);
             cameraService.setDevice(device);
         }
