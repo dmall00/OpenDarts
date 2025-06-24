@@ -12,7 +12,8 @@ export const useGameWebSocket = ({
                                      websocketUrl,
                                      fps = WEBSOCKET_CONFIG.DEFAULT_FPS
                                  }: UseGameWebSocketProps) => {
-    const wsUrl = websocketUrl || WEBSOCKET_CONFIG.DEFAULT_URL;
+    const baseWsUrl = websocketUrl || WEBSOCKET_CONFIG.DEFAULT_URL;
+    const wsUrl = `${baseWsUrl}/${gameId}`;
 
     const webSocket = useWebSocket({
         url: wsUrl,

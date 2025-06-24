@@ -28,11 +28,18 @@ class AppWebSocketHandler(
         logger.info { "Received message from app with size in MB: ${String.format("%.2f", sizeInMB)}" }
 
         try {
+            val gameId = extractGameIdFromSession(session)
             val imageBytes = message.payload.array()
-            autoScoreService.sendPipelineDetectionRequest(imageBytes)
+            autoScoreService.sendPipelineDetectionRequest(imageBytes, gameId)
         } catch (e: Exception) {
             logger.error(e) { "Failed to process binary message from app" }
         }
+    }
+
+    private fun extractGameIdFromSession(session: WebSocketSession): String {
+        val uri = session.uri.toString()
+        val pathSegments = uri.split("/")
+        return pathSegments.lastOrNull() ?: throw IllegalStateException("No gameId found in WebSocket path")
     }
 
     override fun afterConnectionClosed(session: WebSocketSession, status: CloseStatus) {

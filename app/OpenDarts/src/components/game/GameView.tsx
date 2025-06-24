@@ -1,6 +1,5 @@
 import React from "react";
 import {View} from "react-native";
-import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import CameraSection from "./CameraSection";
 import {GlobalStyles} from "../../styles/GlobalStyles";
 import {useGameWebSocket} from "../../hooks/useGameWebSocket";
@@ -17,7 +16,6 @@ interface GameViewProps {
 }
 
 export default function GameView({gameId, websocketUrl, fps}: GameViewProps) {
-    const insets = useSafeAreaInsets();
     const isAutoScoreEnabled = useGameStore((state) => state.isAutoScoreEnabled);
 
     const webSocket = useGameWebSocket({gameId, websocketUrl, fps});

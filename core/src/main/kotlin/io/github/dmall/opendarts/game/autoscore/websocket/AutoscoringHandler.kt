@@ -22,7 +22,7 @@ class AutoscoringHandler(
 
     public override fun handleTextMessage(session: WebSocketSession, message: TextMessage) {
         val result = objectMapper.readValue(message.payload, PipelineDetectionResponse::class.java)
-        logger.info { result }
+        logger.info { result.id }
     }
 
     override fun afterConnectionClosed(session: WebSocketSession, status: CloseStatus) {

@@ -14,14 +14,18 @@ class AutoScoreService(
     @SnakeCase private val objectMapper: ObjectMapper
 ) {
     private val logger = KotlinLogging.logger {}
-    fun sendPipelineDetectionRequest(imageBytes: ByteArray, requestId: String = UUID.randomUUID().toString()) {
+    fun sendPipelineDetectionRequest(
+        imageBytes: ByteArray,
+        gameId: String,
+        requestId: String = UUID.randomUUID().toString()
+    ) {
         try {
             val base64Image = Base64.getEncoder().encodeToString(imageBytes)
-            val request = PipelineDetectionRequest(requestId, base64Image)
+            val request = PipelineDetectionRequest(gameId, base64Image)
             val jsonString = objectMapper.writeValueAsString(request)
             val jsonBytes = jsonString.toByteArray(Charsets.UTF_8)
             autoScoreSocketClient.autoscoreImage(jsonBytes)
-            logger.info { "Sent PipelineDetectionRequest with ID: $requestId and image size: ${imageBytes.size} bytes" }
+            logger.info { "Sent PipelineDetectionRequest with ID: $requestId, gameId: $gameId and image size: ${imageBytes.size} bytes" }
         } catch (e: Exception) {
             logger.error(e) { "Failed to send PipelineDetectionRequest" }
         }
