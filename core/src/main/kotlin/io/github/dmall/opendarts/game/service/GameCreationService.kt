@@ -13,7 +13,7 @@ import org.springframework.transaction.annotation.Transactional
 
 @Service
 @Transactional
-class GameService @Autowired constructor(
+class GameCreationService @Autowired constructor(
     val gameRepository: GameRepository,
     val gameSessionRepository: GameSessionRepository,
     val playerRepository: PlayerRepository
@@ -26,7 +26,7 @@ class GameService @Autowired constructor(
         val savedGame = gameRepository.save(game)
         val players = gameConfig.players.map { player ->
             playerRepository.findByName(player)
-                ?: throw IllegalStateException("Player ${player} not found")
+                ?: throw IllegalStateException("Player $player not found")
         }
         val gameSession = GameSession().apply {
             this.game = savedGame

@@ -8,7 +8,7 @@ import org.springframework.transaction.annotation.Transactional
 
 @Service
 @Transactional
-class PlayerService @Autowired constructor(private val playerRepository: PlayerRepository) {
+class PlayerCreationService @Autowired constructor(private val playerRepository: PlayerRepository) {
 
     fun createPlayer(userName: String) {
         val player = Player().apply {
