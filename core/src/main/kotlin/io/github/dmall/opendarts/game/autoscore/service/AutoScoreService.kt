@@ -1,7 +1,7 @@
 package io.github.dmall.opendarts.game.autoscore.service
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import io.github.dmall.opendarts.config.SnakeCase
+import io.github.dmall.opendarts.common.config.SnakeCase
 import io.github.dmall.opendarts.game.autoscore.model.PipelineDetectionRequest
 import io.github.dmall.opendarts.game.autoscore.websocket.AutoScoreSocketClient
 import io.github.oshai.kotlinlogging.KotlinLogging

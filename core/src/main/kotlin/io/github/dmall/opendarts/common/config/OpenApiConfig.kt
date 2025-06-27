@@ -1,4 +1,4 @@
-package io.github.dmall.opendarts.config
+package io.github.dmall.opendarts.common.config
 
 import io.swagger.v3.oas.models.OpenAPI
 import io.swagger.v3.oas.models.info.Info

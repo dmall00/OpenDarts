@@ -1,4 +1,4 @@
-package io.github.dmall.opendarts.config
+package io.github.dmall.opendarts.common.config
 
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper

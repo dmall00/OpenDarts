@@ -1,4 +1,4 @@
-package io.github.dmall.opendarts.config
+package io.github.dmall.opendarts.common.config
 
 import org.springframework.beans.factory.annotation.Qualifier
 
