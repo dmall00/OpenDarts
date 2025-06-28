@@ -15,7 +15,8 @@ class Game {
     var id: Long? = null
 
     @Enumerated(EnumType.STRING)
-    var gameMode: GameMode? = null
+    @Column(nullable = false)
+    lateinit var gameMode: GameMode
 }
 
 @Entity
@@ -24,7 +25,8 @@ class Player {
     @GeneratedValue
     var id: Long? = null
 
-    var name: String? = null
+    @Column(nullable = false)
+    lateinit var name: String
 
     @ManyToMany(mappedBy = "players")
     val gameSessions: MutableList<GameSession> = mutableListOf()
@@ -36,8 +38,9 @@ class GameSession {
     @GeneratedValue(strategy = GenerationType.UUID)
     var id: String? = null
 
-    @ManyToOne
-    var game: Game? = null
+    @ManyToOne(optional = false)
+    @JoinColumn(nullable = false)
+    lateinit var game: Game
 
     @OneToMany(mappedBy = "gameSession", cascade = [CascadeType.ALL])
     val legs: MutableList<Leg> = mutableListOf()
@@ -57,8 +60,9 @@ class Leg {
     @GeneratedValue
     var id: Long? = null
 
-    @ManyToOne
-    var gameSession: GameSession? = null
+    @ManyToOne(optional = false)
+    @JoinColumn(nullable = false)
+    lateinit var gameSession: GameSession
 
     @OneToMany(mappedBy = "leg", cascade = [CascadeType.ALL])
     val turns: MutableList<Turn> = mutableListOf()
@@ -70,11 +74,13 @@ class Turn {
     @GeneratedValue
     var id: Long? = null
 
-    @ManyToOne
-    var player: Player? = null
+    @ManyToOne(optional = false)
+    @JoinColumn(nullable = false)
+    lateinit var player: Player
 
-    @ManyToOne
-    var leg: Leg? = null
+    @ManyToOne(optional = false)
+    @JoinColumn(nullable = false)
+    lateinit var leg: Leg
 
     @OneToMany(mappedBy = "turn", cascade = [CascadeType.ALL])
     val darts: MutableList<Dart> = mutableListOf()
@@ -89,6 +95,7 @@ class Dart {
     var score: Int = 0
     var multiplier: Int = 1
 
-    @ManyToOne
-    var turn: Turn? = null
+    @ManyToOne(optional = false)
+    @JoinColumn(nullable = false)
+    lateinit var turn: Turn
 }
