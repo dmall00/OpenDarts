@@ -4,6 +4,7 @@ import io.github.dmall.opendarts.game.autoscore.rest.model.GameConfigTo
 import io.github.dmall.opendarts.game.autoscore.rest.model.GameSessionResponse
 import io.github.dmall.opendarts.game.model.Game
 import io.github.dmall.opendarts.game.model.GameSession
+import io.github.dmall.opendarts.game.model.X01Config
 import io.github.dmall.opendarts.game.repository.GameRepository
 import io.github.dmall.opendarts.game.repository.GameSessionRepository
 import io.github.dmall.opendarts.game.repository.PlayerRepository
@@ -16,13 +17,19 @@ import org.springframework.transaction.annotation.Transactional
 class GameCreationService @Autowired constructor(
     val gameRepository: GameRepository,
     val gameSessionRepository: GameSessionRepository,
-    val playerRepository: PlayerRepository
+    val playerRepository: PlayerRepository,
+    val gameModeRegistry: GameModeRegistry
 ) {
 
     fun createGame(gameConfig: GameConfigTo): GameSessionResponse {
-        val game = Game().apply {
-            gameMode = gameConfig.gameMode
+        val x01Config = X01Config().apply {
+            this.startingScore = gameConfig.score
         }
+        val game = Game().apply {
+            this.gameMode = gameConfig.gameMode
+            this.gameConfig = x01Config
+        }
+
         val savedGame = gameRepository.save(game)
         val players = gameConfig.players.map { player ->
             playerRepository.findByName(player)
@@ -32,7 +39,9 @@ class GameCreationService @Autowired constructor(
             this.game = savedGame
             this.players.addAll(players)
         }
-        gameSessionRepository.save(gameSession)
-        return GameSessionResponse(gameSession.id!!)
+        val savedGameSession = gameSessionRepository.save(gameSession)
+        val gameHandler = gameModeRegistry.getGameHandler(gameConfig.gameMode)
+        gameHandler.initializeGame(savedGameSession)
+        return GameSessionResponse(savedGameSession.id!!)
     }
 }

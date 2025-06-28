@@ -3,10 +3,40 @@ package io.github.dmall.opendarts.game.model
 import jakarta.persistence.*
 
 enum class GameMode {
-    X01,
-    AROUND_THE_WORLD,
-    PRACTICE
+    X01
 }
+
+@Entity
+@Inheritance(strategy = InheritanceType.JOINED)
+@DiscriminatorColumn(name = "config_type", discriminatorType = DiscriminatorType.STRING)
+abstract class GameConfig {
+    @Id
+    @GeneratedValue
+    var id: Long? = null
+}
+
+@Entity
+@DiscriminatorValue("X01")
+class X01Config(
+    @Column
+    var startingScore: Int = 501,
+
+    @Column
+    var doubleIn: Boolean = false,
+
+    @Column
+    var doubleOut: Boolean = true,
+
+    @Column
+    var masterOut: Boolean = false,
+
+    @Column
+    var legs: Int = 1,
+
+    @Column
+    var sets: Int = 1
+) : GameConfig()
+
 
 @Entity
 class Game {
@@ -17,6 +47,10 @@ class Game {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     lateinit var gameMode: GameMode
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "game_config_id", nullable = false)
+    lateinit var gameConfig: GameConfig
 }
 
 @Entity
@@ -59,6 +93,10 @@ class Leg {
     @Id
     @GeneratedValue
     var id: Long? = null
+
+    @ManyToOne
+    @JoinColumn(name = "winner_id")
+    var winner: Player? = null
 
     @ManyToOne(optional = false)
     @JoinColumn(nullable = false)
