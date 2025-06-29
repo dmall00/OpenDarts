@@ -23,7 +23,8 @@ class BaseRequest(ABC, BaseModel):
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
     request_type: RequestType
-    id: str
+    session_id: str
+    player_id: str | None = None
 
 
 class PingRequest(BaseRequest):

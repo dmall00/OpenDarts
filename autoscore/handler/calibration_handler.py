@@ -34,22 +34,23 @@ class CalibrationHandler(BaseHandler[CalibrationRequest, CalibrationResponse]):
 
     async def handle(self, websocket: ServerConnection, calibration_request: CalibrationRequest) -> None:
         """Handle calibration requests."""
-        request_id = calibration_request.id
+        session_id = calibration_request.session_id
         try:
-            logger.info("Received calibration request with ID: %s", request_id)
+            logger.info("Received calibration request with ID: %s", session_id)
 
             calibration_result = self.calibration_service.calibrate_board_from_image(
                 image=DartImage(raw_image=base64_to_numpy(calibration_request.image))
             )
             response = CalibrationResponse(
                 request_type=RequestType.CALIBRATION,
-                id=request_id,
+                session_id=session_id,
+                player_id=calibration_request.player_id,
                 status=Status.SUCCESS,
                 calibration_result=calibration_result,
             )
             await self.send_response(websocket, response)
-            logger.info("Calibration completed for request %s", request_id)
+            logger.info("Calibration completed for request %s", session_id)
 
         except Exception as e:
             logger.exception("Calibration error")
-            await self.send_error(websocket, f"Calibration failed: {e!s}", request_id)
+            await self.send_error(websocket, f"Calibration failed: {e!s}", session_id)

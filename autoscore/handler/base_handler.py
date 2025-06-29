@@ -36,8 +36,9 @@ class BaseHandler(Generic[REQ, RES], ABC):
         self,
         websocket: ServerConnection,
         error_message: str,
-        request_id: str | None,
+        request_id: str,
     ) -> None:
         """Send an error response to the websocket."""
-        response = ErrorResponse(request_type=self.get_request_type(), id=request_id, status=Status.ERROR, message=error_message)
+        response = ErrorResponse(request_type=self.get_request_type(), session_id=request_id, status=Status.ERROR, message=error_message,
+                                 )
         await websocket.send(response.model_dump_json())

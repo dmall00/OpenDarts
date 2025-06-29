@@ -31,19 +31,18 @@ class BaseResponse(ABC, BaseModel):
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
     request_type: RequestType
-    id: Optional[str]
+    session_id: str
     status: Status
-
+    message: Optional[str] = None
+    player_id: str | None = None
 
 class ErrorResponse(BaseResponse):
     """Response model for error responses."""
 
-    message: str
 
 
 class PingResponse(BaseResponse):
     """Response model for ping responses."""
-
     message: str = "pong"
 
 

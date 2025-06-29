@@ -50,7 +50,7 @@ async def test_separate_pipeline() -> None:
     uri = "ws://localhost:8765"
     async with websockets.connect(uri) as websocket:
         # Test ping
-        ping_request = PingRequest(request_type=RequestType.PING, id="test")
+        ping_request = PingRequest(request_type=RequestType.PING, session_id="test")
         await websocket.send(ping_request.model_dump_json())
         response = await websocket.recv()
         response_data = PingResponse(**json.loads(response))
@@ -60,7 +60,7 @@ async def test_separate_pipeline() -> None:
 
         # Test calibration
         image = send_image_base64(Path(__file__).parent / "img.png")
-        calibration_request = CalibrationRequest(request_type=RequestType.CALIBRATION, id="test", image=image)
+        calibration_request = CalibrationRequest(request_type=RequestType.CALIBRATION, session_id="test", image=image)
         await websocket.send(calibration_request.model_dump_json())
         response = await websocket.recv()
         calibration_response = CalibrationResponse(**json.loads(response))
@@ -70,7 +70,7 @@ async def test_separate_pipeline() -> None:
 
         # Test scoring
         scoring_request = ScoringRequest(
-            request_type=RequestType.SCORING, id="test", image=image, calibration_result=calibration_response.calibration_result
+            request_type=RequestType.SCORING, session_id="test", image=image, calibration_result=calibration_response.calibration_result
         )
         await websocket.send(scoring_request.model_dump_json())
         response = await websocket.recv()
@@ -93,7 +93,7 @@ async def test_full_pipeline() -> None:
     uri = "ws://localhost:8765"
     async with websockets.connect(uri) as websocket:
         # Test ping
-        ping_request = PingRequest(request_type=RequestType.PING, id="test")
+        ping_request = PingRequest(request_type=RequestType.PING, session_id="test")
         await websocket.send(ping_request.model_dump_json())
         response = await websocket.recv()
         response_data = PingResponse(**json.loads(response))
@@ -103,7 +103,7 @@ async def test_full_pipeline() -> None:
 
         # Test calibration
         image = send_image_base64(Path(__file__).parent / "img.png")
-        full_request = PipelineDetectionRequest(id="test", image=image, request_type=RequestType.FULL)
+        full_request = PipelineDetectionRequest(session_id="test", image=image, request_type=RequestType.FULL)
         await websocket.send(full_request.model_dump_json())
 
         response = await websocket.recv()

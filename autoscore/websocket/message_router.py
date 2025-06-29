@@ -112,7 +112,7 @@ class MessageRouter:
     async def _process_message(self, websocket: ServerConnection, request: BaseRequest) -> None:
         """Process a parsed message and route it to the appropriate handler."""
         message_type = request.request_type
-        request_id = request.id
+        request_id = request.session_id
 
         if not message_type:
             await self._send_error(websocket, "Missing message type", request_id)
@@ -128,13 +128,13 @@ class MessageRouter:
     async def _send_error(
         self,
         websocket: ServerConnection,
-        error_message: str,
+        error_message: str ,
         request_id: str | None,
     ) -> None:
         try:
             response = ErrorResponse(
                 request_type=RequestType.NONE,
-                id=request_id or "unknown",
+                session_id=request_id or "unknown",
                 status=Status.ERROR,
                 message=error_message,
             )

@@ -36,7 +36,7 @@ class ScoringHandler(BaseHandler[ScoringRequest, ScoringResponse]):
     async def handle(self, websocket: ServerConnection, scoring_request: ScoringRequest) -> None:
         """Handle scoring requests."""
         try:
-            logger.info("Received scoring request: %s", scoring_request.id)
+            logger.info("Received scoring request: %s", scoring_request.session_id)
             scoring_result: ScoringResult = self.scoring_service.calculate_scores_from_image(
                 calibration_result=scoring_request.calibration_result,
                 image=DartImage(raw_image=base64_to_numpy(scoring_request.image)),
@@ -44,13 +44,14 @@ class ScoringHandler(BaseHandler[ScoringRequest, ScoringResponse]):
 
             response = ScoringResponse(
                 request_type=RequestType.SCORING,
-                id=scoring_request.id,
+                session_id=scoring_request.session_id,
                 status=Status.SUCCESS,
                 scoring_result=scoring_result,
+                player_id=scoring_request.player_id,
             )
             await self.send_response(websocket, response)
-            logger.info("Scoring completed for request %s", scoring_request.id)
+            logger.info("Scoring completed for request %s", scoring_request.session_id)
 
         except Exception as e:
             logger.exception("Scoring error")
-            await self.send_error(websocket, f"Scoring failed: {e!s}", scoring_request.id)
+            await self.send_error(websocket, f"Scoring failed: {e!s}", scoring_request.session_id)

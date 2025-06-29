@@ -19,5 +19,7 @@ class PingHandler(BaseHandler[PingRequest, PingResponse]):
 
     async def handle(self, websocket: ServerConnection, request: PingRequest) -> None:
         """Handle ping requests."""
-        response = PingResponse(request_type=RequestType.PING, id=request.id, status=Status.SUCCESS)
+        response = PingResponse(
+            request_type=RequestType.PING, session_id=request.session_id, status=Status.SUCCESS, player_id=request.player_id
+        )
         await self.send_response(websocket, response)

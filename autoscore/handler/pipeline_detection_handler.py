@@ -29,18 +29,22 @@ class PipelineDetectionHandler(BaseHandler[PipelineDetectionRequest, PipelineDet
         """Handle pipeline detection requests."""
         try:
             detection_result = self.__dart_detection_service.detect_and_score(image=DartImage(raw_image=base64_to_numpy(request.image)))
-            if detection_result.result_code != ResultCode.SUCCESS:
-                saved_image_path = save_base64_as_png(request.image)
-                msg = f"Saved incoming image to: {saved_image_path} (result code: {detection_result.result_code})"
-                self.logger.info(msg)
+
+            saved_image_path = save_base64_as_png(request.image)
+            msg = f"Saved incoming image to: {saved_image_path} (result code: {detection_result.result_code})"
+            self.logger.info(msg)
 
             await self.send_response(
                 websocket,
                 PipelineDetectionResponse(
-                    request_type=RequestType.FULL, id=request.id, status=Status.SUCCESS, detection_result=detection_result
+                    request_type=RequestType.FULL,
+                    session_id=request.session_id,
+                    status=Status.SUCCESS,
+                    detection_result=detection_result,
+                    player_id=request.player_id,
                 ),
             )
 
         except Exception as e:
             self.logger.exception("Pipeline detection error")
-            await self.send_error(websocket, f"Pipeline detection failed: {e!s}", request.id)
+            await self.send_error(websocket, f"Pipeline detection failed: {e!s}", request.session_id)
