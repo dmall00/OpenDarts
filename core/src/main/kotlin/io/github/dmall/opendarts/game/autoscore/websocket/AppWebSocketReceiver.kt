@@ -1,6 +1,6 @@
 package io.github.dmall.opendarts.game.autoscore.websocket
 
-import io.github.dmall.opendarts.game.autoscore.service.AutoScoreService
+import io.github.dmall.opendarts.game.autoscore.service.AutoscoreImageTransmitter
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.stereotype.Component
 import org.springframework.web.socket.BinaryMessage
@@ -10,8 +10,9 @@ import org.springframework.web.socket.handler.BinaryWebSocketHandler
 import java.util.concurrent.ConcurrentHashMap
 
 @Component
-class AppWebSocketHandler(private val autoScoreService: AutoScoreService) :
-    BinaryWebSocketHandler() {
+class AppWebSocketReceiver(
+    private val autoscoreImageTransmitter: AutoscoreImageTransmitter
+) : BinaryWebSocketHandler() {
     private val sessions: MutableSet<WebSocketSession?> =
         ConcurrentHashMap.newKeySet<WebSocketSession?>()
 
@@ -30,19 +31,25 @@ class AppWebSocketHandler(private val autoScoreService: AutoScoreService) :
         }
 
         try {
-            val gameId = extractGameIdFromSession(session)
+            val (playerId, gameSessionId) = extractIdsFromSession(session)
             val imageBytes = message.payload.array()
-            autoScoreService.sendPipelineDetectionRequest(imageBytes, gameId)
+            autoscoreImageTransmitter.sendPipelineDetectionRequest(
+                imageBytes,
+                playerId,
+                gameSessionId,
+            )
         } catch (e: Exception) {
             logger.error(e) { "Failed to process binary message from app" }
         }
     }
 
-    private fun extractGameIdFromSession(session: WebSocketSession): String {
+    private fun extractIdsFromSession(session: WebSocketSession): Pair<String, String> {
         val uri = session.uri.toString()
-        val pathSegments = uri.split("/")
-        return pathSegments.lastOrNull()
-            ?: throw IllegalStateException("No gameId found in WebSocket path")
+        val path = uri.substringAfterLast("ws/", "")
+        val segments = path.split("/").filter { it.isNotEmpty() }
+        val gameSessionId = segments.last()
+        val playerId = segments[segments.size - 2]
+        return playerId to gameSessionId
     }
 
     override fun afterConnectionClosed(session: WebSocketSession, status: CloseStatus) {

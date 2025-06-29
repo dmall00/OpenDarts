@@ -1,7 +1,7 @@
-package io.github.dmall.opendarts.game.autoscore.rest.controller
+package io.github.dmall.opendarts.game.controller
 
-import io.github.dmall.opendarts.game.autoscore.rest.model.GameConfigTo
-import io.github.dmall.opendarts.game.autoscore.rest.model.GameSessionResponse
+import io.github.dmall.opendarts.game.model.GameConfigTo
+import io.github.dmall.opendarts.game.model.GameSessionResponse
 import io.github.dmall.opendarts.game.service.GameCreationService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation.PostMapping

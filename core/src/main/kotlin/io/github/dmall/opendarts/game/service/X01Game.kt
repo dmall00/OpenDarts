@@ -23,7 +23,7 @@ class X01Game @Autowired constructor(val gameSessionRepository: GameSessionRepos
         val newScore = currentScore - throwScore
 
         if (isBust(newScore, config, dartThrow)) {
-            currentTurn.darts.clear()
+            fillMissDarts(currentTurn)
             val nextPlayer = getNextPlayer(gameSession, currentPlayer)
             createNewTurnIfNeeded(currentLeg, nextPlayer!!, gameSession)
 
@@ -87,6 +87,17 @@ class X01Game @Autowired constructor(val gameSessionRepository: GameSessionRepos
             remainingScore = newScore,
             nextPlayer = nextPlayer,
         )
+    }
+
+    private fun fillMissDarts(currentTurn: Turn) {
+        while (currentTurn.darts.size < 3) {
+            val dart = Dart().apply {
+                this.score = 0
+                this.multiplier = 0
+                this.turn = currentTurn
+            }
+            currentTurn.darts.add(dart)
+        }
     }
 
     private fun getCurrentTurn(currentLeg: Leg, currentPlayer: Player): Turn =

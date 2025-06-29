@@ -1,10 +1,6 @@
 package io.github.dmall.opendarts.game.service
 
-import io.github.dmall.opendarts.game.autoscore.rest.model.GameConfigTo
-import io.github.dmall.opendarts.game.autoscore.rest.model.GameSessionResponse
-import io.github.dmall.opendarts.game.model.Game
-import io.github.dmall.opendarts.game.model.GameSession
-import io.github.dmall.opendarts.game.model.X01Config
+import io.github.dmall.opendarts.game.model.*
 import io.github.dmall.opendarts.game.repository.GameRepository
 import io.github.dmall.opendarts.game.repository.GameSessionRepository
 import io.github.dmall.opendarts.game.repository.PlayerRepository

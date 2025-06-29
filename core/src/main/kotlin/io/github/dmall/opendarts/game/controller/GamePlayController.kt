@@ -1,6 +1,6 @@
-package io.github.dmall.opendarts.game.autoscore.rest.controller
+package io.github.dmall.opendarts.game.controller
 
-import io.github.dmall.opendarts.game.autoscore.rest.mapper.GameMapper
+import io.github.dmall.opendarts.game.mapper.GameMapper
 import io.github.dmall.opendarts.game.model.DartThrow
 import io.github.dmall.opendarts.game.model.GameResultTo
 import io.github.dmall.opendarts.game.model.GameStateTo

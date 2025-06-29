@@ -1,4 +1,4 @@
-package io.github.dmall.opendarts.game.autoscore.rest.mapper
+package io.github.dmall.opendarts.game.mapper
 
 import io.github.dmall.opendarts.game.model.*
 import org.springframework.stereotype.Component

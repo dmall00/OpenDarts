@@ -13,7 +13,7 @@ import org.springframework.web.socket.client.standard.StandardWebSocketClient
 import java.util.concurrent.atomic.AtomicReference
 
 @Component
-class AutoScoreSocketClient(
+class AutoscoreWebSocketClient(
     private val autoScoreProperties: AutoScoreProperties,
     @SnakeCase private val objectMapper: ObjectMapper,
 ) {
@@ -36,7 +36,7 @@ class AutoScoreSocketClient(
     private fun connect() {
         try {
             val client = StandardWebSocketClient()
-            val handler = AutoscoringHandler(this, objectMapper)
+            val handler = AutoscoreWebSocketReceiver(this, objectMapper)
             client.execute(handler, "ws://${autoScoreProperties.host}:${autoScoreProperties.port}")
             logger.info {
                 "Connecting to autoscoring server at ws://${autoScoreProperties.host}:${autoScoreProperties.port}"

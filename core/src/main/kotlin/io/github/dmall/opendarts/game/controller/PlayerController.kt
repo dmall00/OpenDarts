@@ -1,4 +1,4 @@
-package io.github.dmall.opendarts.game.autoscore.rest.controller
+package io.github.dmall.opendarts.game.controller
 
 import io.github.dmall.opendarts.game.service.PlayerCreationService
 import org.springframework.beans.factory.annotation.Autowired
