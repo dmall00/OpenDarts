@@ -13,6 +13,19 @@ abstract class GameConfig {
     @Id
     @GeneratedValue
     var id: Long? = null
+
+    @ManyToOne
+    @JoinColumn(name = "starting_player_id")
+    lateinit var startingPlayer: Player
+
+    @ElementCollection
+    @CollectionTable(
+        name = "game_config_player_order",
+        joinColumns = [JoinColumn(name = "game_config_id")]
+    )
+    @Column(name = "player_id")
+    @OrderColumn(name = "turn_order")
+    val playerOrder: MutableList<Long> = mutableListOf()
 }
 
 @Entity
@@ -22,13 +35,7 @@ class X01Config(
     var startingScore: Int = 501,
 
     @Column
-    var doubleIn: Boolean = false,
-
-    @Column
     var doubleOut: Boolean = true,
-
-    @Column
-    var masterOut: Boolean = false,
 
     @Column
     var legs: Int = 1,
@@ -77,7 +84,7 @@ class GameSession {
     lateinit var game: Game
 
     @OneToMany(mappedBy = "gameSession", cascade = [CascadeType.ALL])
-    val legs: MutableList<Leg> = mutableListOf()
+    val sets: MutableList<Set> = mutableListOf()
 
     @ManyToMany
     @JoinTable(
@@ -87,6 +94,25 @@ class GameSession {
     )
     val players: MutableList<Player> = mutableListOf()
 }
+
+@Entity
+class Set {
+    @Id
+    @GeneratedValue
+    var id: Long? = null
+
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "game_session_id", nullable = false)
+    lateinit var gameSession: GameSession
+
+    @ManyToOne
+    @JoinColumn(name = "winner_id")
+    var winner: Player? = null
+
+    @OneToMany(mappedBy = "set", cascade = [CascadeType.ALL])
+    val legs: MutableList<Leg> = mutableListOf()
+}
+
 
 @Entity
 class Leg {
@@ -100,7 +126,7 @@ class Leg {
 
     @ManyToOne(optional = false)
     @JoinColumn(nullable = false)
-    lateinit var gameSession: GameSession
+    lateinit var set: Set
 
     @OneToMany(mappedBy = "leg", cascade = [CascadeType.ALL])
     val turns: MutableList<Turn> = mutableListOf()
@@ -120,6 +146,10 @@ class Turn {
     @JoinColumn(nullable = false)
     lateinit var leg: Leg
 
+    // Track the order of this turn within the leg (0-based index)
+    @Column(nullable = false)
+    var turnOrderIndex: Int = 0
+
     @OneToMany(mappedBy = "turn", cascade = [CascadeType.ALL])
     val darts: MutableList<Dart> = mutableListOf()
 }
@@ -130,7 +160,10 @@ class Dart {
     @GeneratedValue
     var id: Long? = null
 
+    @Column(nullable = false)
     var score: Int = 0
+
+    @Column(nullable = false)
     var multiplier: Int = 1
 
     @ManyToOne(optional = false)
