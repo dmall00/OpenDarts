@@ -30,11 +30,4 @@ class GameOrchestrator @Autowired constructor(
         val gameHandler = gameModeRegistry.getGameHandler(gameSession.game.gameMode)
         return gameHandler.getGameState(gameSession)
     }
-
-    fun getPossibleCheckouts(gameId: String, playerId: Long): List<String> {
-        val gameSession = gameSessionRepository.findById(gameId).orElseThrow()
-        val player = playerRepository.findById(playerId).orElseThrow()
-        val gameHandler = gameModeRegistry.getGameHandler(gameSession.game.gameMode)
-        return gameHandler.getPossibleCheckouts(gameSession, player)
-    }
 }

@@ -84,7 +84,7 @@ class GameSession {
     lateinit var game: Game
 
     @OneToMany(mappedBy = "gameSession", cascade = [CascadeType.ALL])
-    val sets: MutableList<Set> = mutableListOf()
+    val dartSets: MutableList<DartSet> = mutableListOf()
 
     @ManyToMany
     @JoinTable(
@@ -96,7 +96,7 @@ class GameSession {
 }
 
 @Entity
-class Set {
+class DartSet {
     @Id
     @GeneratedValue
     var id: Long? = null
@@ -109,7 +109,7 @@ class Set {
     @JoinColumn(name = "winner_id")
     var winner: Player? = null
 
-    @OneToMany(mappedBy = "set", cascade = [CascadeType.ALL])
+    @OneToMany(mappedBy = "dartSet", cascade = [CascadeType.ALL])
     val legs: MutableList<Leg> = mutableListOf()
 }
 
@@ -126,7 +126,7 @@ class Leg {
 
     @ManyToOne(optional = false)
     @JoinColumn(nullable = false)
-    lateinit var set: Set
+    lateinit var dartSet: DartSet
 
     @OneToMany(mappedBy = "leg", cascade = [CascadeType.ALL])
     val turns: MutableList<Turn> = mutableListOf()

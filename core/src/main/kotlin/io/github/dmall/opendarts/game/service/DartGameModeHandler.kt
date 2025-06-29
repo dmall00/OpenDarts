@@ -23,22 +23,7 @@ interface DartGameModeHandler {
     fun initializeGame(gameSession: GameSession)
 
     /**
-     * Check if a throw is valid according to game rules
-     */
-    fun isValidThrow(gameSession: GameSession, currentPlayer: Player, dartThrow: DartThrow): Boolean
-
-    /**
-     * Calculate possible checkouts for current player (mainly for X01)
-     */
-    fun getPossibleCheckouts(gameSession: GameSession, player: Player): List<String> = emptyList()
-
-    /**
      * Get game mode
      */
     fun getGameMode(): GameMode
-
-    /**
-     * Get suggested next dart for auto-scoring assistance
-     */
-    fun getSuggestedNextDart(gameSession: GameSession, player: Player): DartThrow? = null
 }

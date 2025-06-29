@@ -26,12 +26,4 @@ class GamePlayController @Autowired constructor(
     fun getGameState(@PathVariable gameId: String): GameState {
         return gameOrchestrator.getGameState(gameId)
     }
-
-    @GetMapping("/{gameId}/checkouts")
-    fun getPossibleCheckouts(
-        @PathVariable gameId: String,
-        @RequestParam playerId: Long
-    ): List<String> {
-        return gameOrchestrator.getPossibleCheckouts(gameId, playerId)
-    }
 }
