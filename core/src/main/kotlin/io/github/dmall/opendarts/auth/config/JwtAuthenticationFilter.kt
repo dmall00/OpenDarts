@@ -14,11 +14,17 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.web.filter.OncePerRequestFilter
 import java.io.IOException
 
-class JwtAuthenticationFilter(private val jwtUtil: JwtUtil, private val userDetailsService: CustomUserDetailsService) :
-    OncePerRequestFilter() {
+class JwtAuthenticationFilter(
+    private val jwtUtil: JwtUtil,
+    private val userDetailsService: CustomUserDetailsService,
+) : OncePerRequestFilter() {
 
     @Throws(ServletException::class, IOException::class)
-    override fun doFilterInternal(request: HttpServletRequest, response: HttpServletResponse, chain: FilterChain) {
+    override fun doFilterInternal(
+        request: HttpServletRequest,
+        response: HttpServletResponse,
+        chain: FilterChain,
+    ) {
         val tokenInfo = extractJwtTokenFromRequest(request)
 
         if (tokenInfo.username != null && isAuthenticationRequired()) {
@@ -53,17 +59,11 @@ class JwtAuthenticationFilter(private val jwtUtil: JwtUtil, private val userDeta
     }
 
     private fun setAuthenticationContext(userDetails: UserDetails, request: HttpServletRequest) {
-        val authentication = UsernamePasswordAuthenticationToken(
-            userDetails,
-            null,
-            userDetails.authorities
-        )
+        val authentication =
+            UsernamePasswordAuthenticationToken(userDetails, null, userDetails.authorities)
         authentication.details = WebAuthenticationDetailsSource().buildDetails(request)
         SecurityContextHolder.getContext().authentication = authentication
     }
 
-    private data class TokenInfo(
-        val token: String?,
-        val username: String?
-    )
+    private data class TokenInfo(val token: String?, val username: String?)
 }

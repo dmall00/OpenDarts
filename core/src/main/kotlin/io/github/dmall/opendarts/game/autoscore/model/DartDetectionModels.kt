@@ -5,60 +5,41 @@ enum class RequestType {
     SCORING,
     FULL,
     PING,
-    NONE
+    NONE,
 }
+
 enum class AutoScoringResultCode(val code: Int) {
     SUCCESS(0),
     YOLO_ERROR(1),
     HOMOGRAPHY(2),
     MISSING_CALIBRATION_POINTS(3),
     INVALID_INPUT(4),
-    UNKNOWN(100)
+    UNKNOWN(100),
 }
 
 data class CalibrationResult(
     val homographyMatrix: Array<IntArray>,
     val calibrationPoints: List<CalibrationPoint>,
-    val preprocessingResult: PreprocessingResult
+    val preprocessingResult: PreprocessingResult,
 )
 
-data class PreprocessingResult(
-    val cropInfo: CropInformation?
-)
+data class PreprocessingResult(val cropInfo: CropInformation?)
 
-data class CropInformation(
-    val xOffset: Int,
-    val yOffset: Int,
-    val width: Int,
-    val height: Int
-)
+data class CropInformation(val xOffset: Int, val yOffset: Int, val width: Int, val height: Int)
 
-data class CalibrationPoint(
-    val classId: Int,
-    val pointType: String,
-    val message: String
-)
+data class CalibrationPoint(val classId: Int, val pointType: String, val message: String)
 
-data class ScoringResult(
-    val dartDetections: List<DartDetection>
-)
+data class ScoringResult(val dartDetections: List<DartDetection>)
 
 data class DartDetection(
     val dartScore: DartScore,
     val originalPosition: DartPosition,
-    val transformedPosition: DartPosition
+    val transformedPosition: DartPosition,
 )
 
-data class DartPosition(
-    val x: Int,
-    val y: Int
-)
+data class DartPosition(val x: Int, val y: Int)
 
-data class DartScore(
-    val scoreString: String,
-    val scoreValue: Int
-)
-
+data class DartScore(val scoreString: String, val scoreValue: Int)
 
 data class DetectionResult(
     val preprocessing: PreprocessingResult?,

@@ -8,7 +8,9 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/app/player")
-class PlayerController @Autowired constructor(private val playerCreationService: PlayerCreationService) {
+class PlayerController
+@Autowired
+constructor(private val playerCreationService: PlayerCreationService) {
 
     @PostMapping
     fun createPlayer(userName: String) {

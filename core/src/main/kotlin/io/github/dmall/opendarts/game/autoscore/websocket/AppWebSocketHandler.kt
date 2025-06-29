@@ -10,10 +10,10 @@ import org.springframework.web.socket.handler.BinaryWebSocketHandler
 import java.util.concurrent.ConcurrentHashMap
 
 @Component
-class AppWebSocketHandler(
-    private val autoScoreService: AutoScoreService
-) : BinaryWebSocketHandler() {
-    private val sessions: MutableSet<WebSocketSession?> = ConcurrentHashMap.newKeySet<WebSocketSession?>()
+class AppWebSocketHandler(private val autoScoreService: AutoScoreService) :
+    BinaryWebSocketHandler() {
+    private val sessions: MutableSet<WebSocketSession?> =
+        ConcurrentHashMap.newKeySet<WebSocketSession?>()
 
     private val logger = KotlinLogging.logger {}
 
@@ -25,7 +25,9 @@ class AppWebSocketHandler(
     override fun handleBinaryMessage(session: WebSocketSession, message: BinaryMessage) {
         val sizeInBytes = message.payload.remaining()
         val sizeInMB = sizeInBytes / (1024.0 * 1024.0)
-        logger.info { "Received message from app with size in MB: ${String.format("%.2f", sizeInMB)}" }
+        logger.info {
+            "Received message from app with size in MB: ${String.format("%.2f", sizeInMB)}"
+        }
 
         try {
             val gameId = extractGameIdFromSession(session)
@@ -39,7 +41,8 @@ class AppWebSocketHandler(
     private fun extractGameIdFromSession(session: WebSocketSession): String {
         val uri = session.uri.toString()
         val pathSegments = uri.split("/")
-        return pathSegments.lastOrNull() ?: throw IllegalStateException("No gameId found in WebSocket path")
+        return pathSegments.lastOrNull()
+            ?: throw IllegalStateException("No gameId found in WebSocket path")
     }
 
     override fun afterConnectionClosed(session: WebSocketSession, status: CloseStatus) {

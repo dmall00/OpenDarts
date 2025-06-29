@@ -21,7 +21,7 @@ abstract class GameConfig {
     @ElementCollection
     @CollectionTable(
         name = "game_config_player_order",
-        joinColumns = [JoinColumn(name = "game_config_id")]
+        joinColumns = [JoinColumn(name = "game_config_id")],
     )
     @Column(name = "player_id")
     @OrderColumn(name = "turn_order")
@@ -31,19 +31,11 @@ abstract class GameConfig {
 @Entity
 @DiscriminatorValue("X01")
 class X01Config(
-    @Column
-    var startingScore: Int = 501,
-
-    @Column
-    var doubleOut: Boolean = true,
-
-    @Column
-    var legs: Int = 1,
-
-    @Column
-    var sets: Int = 1
+    @Column var startingScore: Int = 501,
+    @Column var doubleOut: Boolean = true,
+    @Column var legs: Int = 1,
+    @Column var sets: Int = 1,
 ) : GameConfig()
-
 
 @Entity
 class Game {
@@ -90,7 +82,7 @@ class GameSession {
     @JoinTable(
         name = "game_session_players",
         joinColumns = [JoinColumn(name = "game_session_id")],
-        inverseJoinColumns = [JoinColumn(name = "player_id")]
+        inverseJoinColumns = [JoinColumn(name = "player_id")],
     )
     val players: MutableList<Player> = mutableListOf()
 }
@@ -112,7 +104,6 @@ class DartSet {
     @OneToMany(mappedBy = "dartSet", cascade = [CascadeType.ALL])
     val legs: MutableList<Leg> = mutableListOf()
 }
-
 
 @Entity
 class Leg {

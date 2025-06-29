@@ -15,7 +15,7 @@ data class GameResult(
     val winner: Player? = null,
     val nextPlayer: Player? = null,
     val message: String? = null,
-    val bust: Boolean = false
+    val bust: Boolean = false,
 )
 
 data class GameState(
@@ -26,7 +26,5 @@ data class GameState(
     val legsWon: Map<Player, Int> = emptyMap(),
     val setsWon: Map<Player, Int> = emptyMap(),
     val dartsThrown: Int = 0,
-    val turnsPlayed: Int = 0
+    val turnsPlayed: Int = 0,
 )
-
-

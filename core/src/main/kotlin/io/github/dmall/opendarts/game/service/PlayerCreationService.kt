@@ -11,9 +11,7 @@ import org.springframework.transaction.annotation.Transactional
 class PlayerCreationService @Autowired constructor(private val playerRepository: PlayerRepository) {
 
     fun createPlayer(userName: String) {
-        val player = Player().apply {
-            name = userName
-        }
+        val player = Player().apply { name = userName }
         playerRepository.save(player)
     }
 }

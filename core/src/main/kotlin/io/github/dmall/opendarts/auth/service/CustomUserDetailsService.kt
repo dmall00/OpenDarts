@@ -10,19 +10,15 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.stereotype.Service
 
 @Service
-class CustomUserDetailsService @Autowired constructor(
-    private val userRepository: UserRepository
-) : UserDetailsService {
+class CustomUserDetailsService @Autowired constructor(private val userRepository: UserRepository) :
+    UserDetailsService {
 
     @Throws(UsernameNotFoundException::class)
     override fun loadUserByUsername(username: String): UserDetails {
-        val user = userRepository.findByUsername(username)
-            ?: throw UsernameNotFoundException("User not found with username: $username")
+        val user =
+            userRepository.findByUsername(username)
+                ?: throw UsernameNotFoundException("User not found with username: $username")
 
-        return User(
-            user.username,
-            user.password,
-            ArrayList<GrantedAuthority>()
-        )
+        return User(user.username, user.password, ArrayList<GrantedAuthority>())
     }
 }

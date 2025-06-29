@@ -8,14 +8,14 @@ import io.github.dmall.opendarts.game.repository.PlayerRepository
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
-/**
- * Main entry point to route dart throws to the current game
- */
+/** Main entry point to route dart throws to the current game */
 @Service
-class GameOrchestrator @Autowired constructor(
+class GameOrchestrator
+@Autowired
+constructor(
     val gameSessionRepository: GameSessionRepository,
     val playerRepository: PlayerRepository,
-    val gameModeRegistry: GameModeRegistry
+    val gameModeRegistry: GameModeRegistry,
 ) {
 
     fun submitDartThrow(gameId: String, playerId: Long, dartThrow: DartThrow): GameResult {

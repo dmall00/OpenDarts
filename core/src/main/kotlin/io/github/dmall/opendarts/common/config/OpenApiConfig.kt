@@ -11,11 +11,6 @@ class OpenApiConfig {
     @Bean
     fun customOpenAPI(): OpenAPI {
         return OpenAPI()
-            .info(
-                Info()
-                    .title("opendarts API")
-                    .version("1.0")
-                    .description("API documentation")
-            )
+            .info(Info().title("opendarts API").version("1.0").description("API documentation"))
     }
 }

@@ -31,17 +31,11 @@ class JwtUtil {
     }
 
     fun extractAllClaims(token: String): Claims {
-        return Jwts.parser()
-            .verifyWith(getSigningKey())
-            .build()
-            .parseSignedClaims(token)
-            .payload
+        return Jwts.parser().verifyWith(getSigningKey()).build().parseSignedClaims(token).payload
     }
 
     fun validateToken(token: String?, userDetails: UserDetails): Boolean =
-        token?.let {
-            extractUsername(it) == userDetails.username && !isTokenExpired(it)
-        } ?: false
+        token?.let { extractUsername(it) == userDetails.username && !isTokenExpired(it) } ?: false
 
     private fun isTokenExpired(token: String): Boolean {
         return extractExpiration(token).before(Date())
@@ -67,6 +61,7 @@ class JwtUtil {
             .issuedAt(now)
             .expiration(expirationTime)
             .and()
-            .signWith(getSigningKey(), Jwts.SIG.HS256).compact()
+            .signWith(getSigningKey(), Jwts.SIG.HS256)
+            .compact()
     }
 }

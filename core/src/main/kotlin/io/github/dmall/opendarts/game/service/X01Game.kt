@@ -287,7 +287,9 @@ class X01Game @Autowired constructor(val gameSessionRepository: GameSessionRepos
 
     private fun getLegsWonByPlayer(gameSession: GameSession): Map<Player, Int> {
         return gameSession.players.associateWith { player ->
-            gameSession.dartSets.sumOf { set -> set.legs.count { leg -> leg.winner?.id == player.id } }
+            gameSession.dartSets.sumOf { set ->
+                set.legs.count { leg -> leg.winner?.id == player.id }
+            }
         }
     }
 

@@ -9,10 +9,12 @@ import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 
 @Service
-class UserService @Autowired constructor(
+class UserService
+@Autowired
+constructor(
     val userRepository: UserRepository,
     val passwordEncoder: PasswordEncoder,
-    val userMapper: UserMapper
+    val userMapper: UserMapper,
 ) {
 
     fun save(user: UserDto): User {

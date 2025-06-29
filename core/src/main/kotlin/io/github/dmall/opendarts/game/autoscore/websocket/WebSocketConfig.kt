@@ -11,9 +11,7 @@ import org.springframework.web.socket.server.standard.ServletServerContainerFact
 
 @Configuration
 @EnableWebSocket
-class WebSocketConfig(
-    private val appWebSocketHandler: AppWebSocketHandler
-) : WebSocketConfigurer {
+class WebSocketConfig(private val appWebSocketHandler: AppWebSocketHandler) : WebSocketConfigurer {
     @Override
     override fun registerWebSocketHandlers(registry: WebSocketHandlerRegistry) {
         registry.addHandler(appWebSocketHandler, "/ws/app/{gameId}").setAllowedOrigins("*")

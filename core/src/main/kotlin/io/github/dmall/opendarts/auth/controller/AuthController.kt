@@ -15,10 +15,14 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/auth")
-class AuthController @Autowired constructor(val jwtService: JwtService, val userService: UserService) {
+class AuthController
+@Autowired
+constructor(val jwtService: JwtService, val userService: UserService) {
 
     @PostMapping("/login")
-    fun createAuthenticationToken(@RequestBody authenticationRequest: AuthenticationRequest): ResponseEntity<*> {
+    fun createAuthenticationToken(
+        @RequestBody authenticationRequest: AuthenticationRequest
+    ): ResponseEntity<*> {
         val jwt = jwtService.createJwtToken(authenticationRequest)
         return ResponseEntity.ok<AuthenticationResponse?>(AuthenticationResponse(jwt))
     }

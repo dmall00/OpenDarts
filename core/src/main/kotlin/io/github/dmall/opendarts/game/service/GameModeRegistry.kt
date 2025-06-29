@@ -10,9 +10,7 @@ class GameModeRegistry @Autowired constructor(gameModeHandlers: Set<DartGameMode
     private val gameModeHandlerMap: MutableMap<GameMode, DartGameModeHandler> = mutableMapOf()
 
     init {
-        gameModeHandlers.forEach {
-            gameModeHandlerMap.put(it.getGameMode(), it)
-        }
+        gameModeHandlers.forEach { gameModeHandlerMap.put(it.getGameMode(), it) }
     }
 
     fun getGameHandler(gameMode: GameMode): DartGameModeHandler = gameModeHandlerMap[gameMode]!!

@@ -9,15 +9,13 @@ import org.springframework.web.bind.annotation.*
 
 @RestController
 @RequestMapping("/app/game")
-class GamePlayController @Autowired constructor(
-    private val gameOrchestrator: GameOrchestrator
-) {
+class GamePlayController @Autowired constructor(private val gameOrchestrator: GameOrchestrator) {
 
     @PostMapping("/{gameId}/throw")
     fun submitDartThrow(
         @PathVariable gameId: String,
         @RequestParam playerId: Long,
-        @RequestBody dartThrow: DartThrow
+        @RequestBody dartThrow: DartThrow,
     ): GameResult {
         return gameOrchestrator.submitDartThrow(gameId, playerId, dartThrow)
     }

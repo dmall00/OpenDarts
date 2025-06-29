@@ -15,9 +15,10 @@ import java.util.concurrent.atomic.AtomicReference
 @Component
 class AutoScoreSocketClient(
     private val autoScoreProperties: AutoScoreProperties,
-    @SnakeCase private val objectMapper: ObjectMapper
+    @SnakeCase private val objectMapper: ObjectMapper,
 ) {
-    private val pythonSession: AtomicReference<WebSocketSession?> = AtomicReference<WebSocketSession?>()
+    private val pythonSession: AtomicReference<WebSocketSession?> =
+        AtomicReference<WebSocketSession?>()
     private val logger = KotlinLogging.logger {}
 
     @PostConstruct
@@ -37,7 +38,9 @@ class AutoScoreSocketClient(
             val client = StandardWebSocketClient()
             val handler = AutoscoringHandler(this, objectMapper)
             client.execute(handler, "ws://${autoScoreProperties.host}:${autoScoreProperties.port}")
-            logger.info { "Connecting to autoscoring server at ws://${autoScoreProperties.host}:${autoScoreProperties.port}" }
+            logger.info {
+                "Connecting to autoscoring server at ws://${autoScoreProperties.host}:${autoScoreProperties.port}"
+            }
         } catch (e: Exception) {
             logger.error(e) { "Failed to connect to autoscoring server" }
         }
@@ -76,7 +79,9 @@ class AutoScoreSocketClient(
                 logger.error(e) { "Failed to send JSON message to autoscore server: ${e.message}" }
             }
         } else {
-            logger.warn { "Could not send JSON message to autoscore server - session not available" }
+            logger.warn {
+                "Could not send JSON message to autoscore server - session not available"
+            }
         }
     }
 }

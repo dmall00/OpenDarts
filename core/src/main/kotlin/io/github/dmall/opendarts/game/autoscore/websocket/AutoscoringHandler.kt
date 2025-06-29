@@ -10,7 +10,7 @@ import org.springframework.web.socket.handler.TextWebSocketHandler
 
 class AutoscoringHandler(
     private val autoScoreSocketClient: AutoScoreSocketClient,
-    private val objectMapper: ObjectMapper
+    private val objectMapper: ObjectMapper,
 ) : TextWebSocketHandler() {
 
     val logger = KotlinLogging.logger {}
@@ -27,7 +27,9 @@ class AutoscoringHandler(
 
     override fun afterConnectionClosed(session: WebSocketSession, status: CloseStatus) {
         autoScoreSocketClient.clearSession()
-        logger.warn { "Websocket connection to python server closed with status: ${status.code} - ${status.reason}" }
+        logger.warn {
+            "Websocket connection to python server closed with status: ${status.code} - ${status.reason}"
+        }
     }
 
     override fun handleTransportError(session: WebSocketSession, exception: Throwable) {

@@ -7,18 +7,20 @@ import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.stereotype.Service
 
-
 @Service
-class JwtService @Autowired constructor(
+class JwtService
+@Autowired
+constructor(
     val authenticationManager: AuthenticationManager,
     val userDetailsService: CustomUserDetailsService,
-    val jwtUtil: JwtUtil
+    val jwtUtil: JwtUtil,
 ) {
 
     fun createJwtToken(authenticationRequest: AuthenticationRequest): String {
         authenticationManager.authenticate(
             UsernamePasswordAuthenticationToken(
-                authenticationRequest.username, authenticationRequest.password
+                authenticationRequest.username,
+                authenticationRequest.password,
             )
         )
 

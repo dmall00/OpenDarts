@@ -16,5 +16,4 @@ class GameController @Autowired constructor(private val gameCreationService: Gam
     @PostMapping
     fun createGame(@RequestBody gameConfig: GameConfigTo): GameSessionResponse =
         gameCreationService.createGame(gameConfig)
-
 }
