@@ -36,7 +36,7 @@ class AppWebSocketReceiver(
             autoscoreImageTransmitter.sendPipelineDetectionRequest(
                 imageBytes,
                 playerId,
-                gameSessionId,
+                playerId.toLong(),
             )
         } catch (e: Exception) {
             logger.error(e) { "Failed to process binary message from app" }

@@ -1,12 +1,19 @@
 package io.github.dmall.opendarts.game.autoscore.model
 
-abstract class BaseRequest(val requestType: RequestType, val id: String)
+abstract class BaseRequest(val requestType: RequestType, val sessionId: String, val playerId: Long)
 
-class PingRequest(id: String, val message: String) : BaseRequest(RequestType.PING, id)
+class PingRequest(sessionId: String, playerId: Long, val message: String) :
+    BaseRequest(RequestType.PING, sessionId, playerId)
 
-class ScoringRequest(id: String, val image: String, val calibrationResult: CalibrationResult) :
-    BaseRequest(RequestType.SCORING, id)
+class ScoringRequest(
+    sessionId: String,
+    playerId: Long,
+    val image: String,
+    val calibrationResult: CalibrationResult,
+) : BaseRequest(RequestType.SCORING, sessionId, playerId)
 
-class CalibrationRequest(id: String, val image: String) : BaseRequest(RequestType.CALIBRATION, id)
+class CalibrationRequest(sessionId: String, playerId: Long, val image: String) :
+    BaseRequest(RequestType.CALIBRATION, sessionId, playerId)
 
-class PipelineDetectionRequest(id: String, val image: String) : BaseRequest(RequestType.FULL, id)
+class PipelineDetectionRequest(sessionId: String, playerId: Long, val image: String) :
+    BaseRequest(RequestType.FULL, sessionId, playerId)

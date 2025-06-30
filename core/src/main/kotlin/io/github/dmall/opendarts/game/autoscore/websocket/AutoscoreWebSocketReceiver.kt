@@ -2,6 +2,7 @@ package io.github.dmall.opendarts.game.autoscore.websocket
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.github.dmall.opendarts.game.autoscore.model.PipelineDetectionResponse
+import io.github.dmall.opendarts.game.autoscore.service.AutoScoreStabilizer
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.web.socket.CloseStatus
 import org.springframework.web.socket.TextMessage
@@ -11,6 +12,7 @@ import org.springframework.web.socket.handler.TextWebSocketHandler
 class AutoscoreWebSocketReceiver(
     private val autoScoreWebSocketClient: AutoscoreWebSocketClient,
     private val objectMapper: ObjectMapper,
+    private val autoScoreStabilizer: AutoScoreStabilizer
 ) : TextWebSocketHandler() {
 
     val logger = KotlinLogging.logger {}
@@ -21,8 +23,9 @@ class AutoscoreWebSocketReceiver(
     }
 
     public override fun handleTextMessage(session: WebSocketSession, message: TextMessage) {
-        val result = objectMapper.readValue(message.payload, PipelineDetectionResponse::class.java)
-        logger.info { result.id }
+        val detection = objectMapper.readValue(message.payload, PipelineDetectionResponse::class.java)
+        logger.debug { "Received result: $detection" }
+        autoScoreStabilizer.processDartDetectionResult(detection)
     }
 
     override fun afterConnectionClosed(session: WebSocketSession, status: CloseStatus) {

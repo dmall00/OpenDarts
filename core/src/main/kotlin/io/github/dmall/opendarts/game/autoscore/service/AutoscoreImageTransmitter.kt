@@ -17,17 +17,17 @@ class AutoscoreImageTransmitter(
 
     fun sendPipelineDetectionRequest(
         imageBytes: ByteArray,
-        gameId: String,
-        playerId: String,
+        gameSessionId: String,
+        playerId: Long,
     ) {
         try {
             val base64Image = Base64.getEncoder().encodeToString(imageBytes)
-            val request = PipelineDetectionRequest(gameId, base64Image)
+            val request = PipelineDetectionRequest(gameSessionId, playerId, base64Image)
             val jsonString = objectMapper.writeValueAsString(request)
             val jsonBytes = jsonString.toByteArray(Charsets.UTF_8)
             autoScoreWebSocketClient.autoscoreImage(jsonBytes)
             logger.debug {
-                "Sent PipelineDetectionRequest with gameId: $gameId and $playerId size: ${imageBytes.size} bytes"
+                "Sent PipelineDetectionRequest with gameId: $gameSessionId and $playerId size: ${imageBytes.size} bytes"
             }
         } catch (e: Exception) {
             logger.error(e) { "Failed to send PipelineDetectionRequest" }

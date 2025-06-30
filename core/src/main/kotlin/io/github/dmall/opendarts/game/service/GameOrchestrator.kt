@@ -13,13 +13,13 @@ import org.springframework.stereotype.Service
 class GameOrchestrator
 @Autowired
 constructor(
-    val gameSessionRepository: GameSessionRepository,
-    val playerRepository: PlayerRepository,
-    val gameModeRegistry: GameModeRegistry,
+    private val gameSessionRepository: GameSessionRepository,
+    private val playerRepository: PlayerRepository,
+    private val gameModeRegistry: GameModeRegistry,
 ) {
 
-    fun submitDartThrow(gameId: String, playerId: Long, dartThrow: DartThrow): GameResult {
-        val gameSession = gameSessionRepository.findById(gameId).orElseThrow()
+    fun submitDartThrow(sessionId: String, playerId: Long, dartThrow: DartThrow): GameResult {
+        val gameSession = gameSessionRepository.findById(sessionId).orElseThrow()
         val currentPlayer = playerRepository.findById(playerId).orElseThrow()
         val gameHandler = gameModeRegistry.getGameHandler(gameSession.game.gameMode)
         return gameHandler.processDartThrow(gameSession, currentPlayer, dartThrow)
