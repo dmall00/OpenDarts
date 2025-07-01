@@ -14,7 +14,11 @@ enum class AutoScoringResultCode(val code: Int) {
     HOMOGRAPHY(2),
     MISSING_CALIBRATION_POINTS(3),
     INVALID_INPUT(4),
-    UNKNOWN(100),
+    UNKNOWN(100);
+
+    fun isSuccess() = this == SUCCESS
+    fun isYoloError() = this == YOLO_ERROR
+    fun isMissingCalibration() = this == MISSING_CALIBRATION_POINTS
 }
 
 data class CalibrationResult(

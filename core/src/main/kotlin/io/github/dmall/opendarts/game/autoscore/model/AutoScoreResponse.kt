@@ -1,8 +1,11 @@
 package io.github.dmall.opendarts.game.autoscore.model
 
+
 enum class Status(val code: Int) {
     SUCCESS(0),
-    ERROR(1),
+    ERROR(1);
+
+    fun isSuccess() = this == Status.SUCCESS
 }
 
 sealed class AutoScoreResponse(

@@ -3,6 +3,7 @@ package io.github.dmall.opendarts.game.autoscore.websocket
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.github.dmall.opendarts.common.config.SnakeCase
 import io.github.dmall.opendarts.game.autoscore.model.AutoScoreProperties
+import io.github.dmall.opendarts.game.autoscore.service.AutoScoreStabilizer
 import io.github.oshai.kotlinlogging.KotlinLogging
 import jakarta.annotation.PostConstruct
 import jakarta.annotation.PreDestroy
@@ -16,6 +17,7 @@ import java.util.concurrent.atomic.AtomicReference
 class AutoscoreWebSocketClient(
     private val autoScoreProperties: AutoScoreProperties,
     @SnakeCase private val objectMapper: ObjectMapper,
+    private val autoScoreStabilizer: AutoScoreStabilizer
 ) {
     private val pythonSession: AtomicReference<WebSocketSession?> =
         AtomicReference<WebSocketSession?>()
@@ -36,7 +38,7 @@ class AutoscoreWebSocketClient(
     private fun connect() {
         try {
             val client = StandardWebSocketClient()
-            val handler = AutoscoreWebSocketReceiver(this, objectMapper)
+            val handler = AutoscoreWebSocketReceiver(this, objectMapper, autoScoreStabilizer)
             client.execute(handler, "ws://${autoScoreProperties.host}:${autoScoreProperties.port}")
             logger.info {
                 "Connecting to autoscoring server at ws://${autoScoreProperties.host}:${autoScoreProperties.port}"
