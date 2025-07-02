@@ -13,7 +13,8 @@ class WebSocketConfig(private val appWebSocketReceiver: AppWebSocketReceiver) : 
 
     @Override
     override fun registerWebSocketHandlers(registry: WebSocketHandlerRegistry) {
-        registry.addHandler(appWebSocketReceiver, "/ws/app/{playerId}/{gameId}").setAllowedOrigins("*")
+        registry.addHandler(appWebSocketReceiver, "/ws/app/4c223842-2b9a-4c3f-86a2-8a0d4f064def/{gameId}")
+            .setAllowedOrigins("*")
     }
 
     @Bean

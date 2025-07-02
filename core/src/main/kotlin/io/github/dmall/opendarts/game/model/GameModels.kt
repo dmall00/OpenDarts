@@ -19,12 +19,12 @@ data class GameResult(
 )
 
 data class GameStateTo(
-    val currentPlayer: Long,
-    val scores: Map<Long, Int>,
+    val currentPlayer: String,
+    val scores: Map<String, Int>,
     val currentLeg: Int = 1,
     val currentSet: Int = 1,
-    val legsWon: Map<Long, Int> = emptyMap(),
-    val setsWon: Map<Long, Int> = emptyMap(),
+    val legsWon: Map<String, Int> = emptyMap(),
+    val setsWon: Map<String, Int> = emptyMap(),
     val dartsThrown: Int = 0,
     val turnsPlayed: Int = 0,
 )
@@ -47,8 +47,8 @@ data class GameResultTo(
     val isLegWon: Boolean = false,
     val isSetWon: Boolean = false,
     val isGameWon: Boolean = false,
-    val winner: Long? = null,
-    val nextPlayer: Long? = null,
+    val winner: String? = null,
+    val nextPlayer: String? = null,
     val message: String? = null,
     val bust: Boolean = false,
 )

@@ -34,7 +34,7 @@ class GameMapper {
         )
     }
 
-    private fun convertPlayerMapToIdMap(playerMap: Map<Player, Int>): Map<Long, Int> {
+    private fun convertPlayerMapToIdMap(playerMap: Map<Player, Int>): Map<String, Int> {
         return playerMap.mapKeys { (player, _) ->
             player.id ?: throw IllegalArgumentException("Player ID cannot be null")
         }

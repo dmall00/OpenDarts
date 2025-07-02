@@ -35,8 +35,8 @@ class AppWebSocketReceiver(
             val imageBytes = message.payload.array()
             autoscoreImageTransmitter.sendPipelineDetectionRequest(
                 imageBytes,
+                gameSessionId,
                 playerId,
-                playerId.toLong(),
             )
         } catch (e: Exception) {
             logger.error(e) { "Failed to process binary message from app" }

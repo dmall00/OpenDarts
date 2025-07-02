@@ -18,7 +18,7 @@ class AutoscoreImageTransmitter(
     fun sendPipelineDetectionRequest(
         imageBytes: ByteArray,
         gameSessionId: String,
-        playerId: Long,
+        playerId: String,
     ) {
         try {
             val base64Image = Base64.getEncoder().encodeToString(imageBytes)

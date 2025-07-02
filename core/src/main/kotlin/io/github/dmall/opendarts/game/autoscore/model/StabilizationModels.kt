@@ -11,13 +11,13 @@ enum class DartState {
 
 data class StableDart(
     val id: UUID,
-    val position: DartPosition,
+    val position: TransformedPosition,
     val state: DartState,
     val detectionHistory: List<DetectionRecord>
 )
 
 data class DetectionRecord(
-    val position: DartPosition,
+    val position: TransformedPosition,
     val confidence: Float
 )
 

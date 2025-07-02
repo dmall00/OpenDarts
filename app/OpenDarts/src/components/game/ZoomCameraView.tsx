@@ -18,7 +18,8 @@ export default function ZoomCameraView() {
     const screenDimensions = Dimensions.get('window');
     const scale = useRef(new Animated.Value(0)).current;
 
-    const safeBottomPadding = 100;
+    // Position slider with safe padding from bottom when camera is expanded
+    const sliderBottomPosition = 80;
 
     const minZoom = 1;
     const maxZoom = 3;
@@ -109,7 +110,7 @@ export default function ZoomCameraView() {
                     GameViewStyles.zoomSliderContainer,
                     {
                         opacity: scale,
-                        bottom: safeBottomPadding,
+                        bottom: sliderBottomPosition,
                         transform: [{
                             translateY: scale.interpolate({
                                 inputRange: [0, 1],

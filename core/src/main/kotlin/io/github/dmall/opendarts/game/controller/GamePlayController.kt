@@ -18,7 +18,7 @@ class GamePlayController @Autowired constructor(
     @PostMapping("/{gameId}/throw")
     fun submitDartThrow(
         @PathVariable gameId: String,
-        @RequestParam playerId: Long,
+        @RequestParam playerId: String,
         @RequestBody dartThrow: DartThrow,
     ): GameResultTo {
         val gameResult = gameOrchestrator.submitDartThrow(gameId, playerId, dartThrow)

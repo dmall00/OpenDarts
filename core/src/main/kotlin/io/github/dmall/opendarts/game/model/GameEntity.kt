@@ -25,7 +25,7 @@ abstract class GameConfig {
     )
     @Column(name = "player_id")
     @OrderColumn(name = "turn_order")
-    val playerOrder: MutableList<Long> = mutableListOf()
+    val playerOrder: MutableList<String> = mutableListOf()
 }
 
 @Entity
@@ -55,8 +55,8 @@ class Game {
 @Entity
 class Player {
     @Id
-    @GeneratedValue
-    var id: Long? = null
+    @GeneratedValue(strategy = GenerationType.UUID)
+    var id: String? = null
 
     @Column(nullable = false)
     lateinit var name: String

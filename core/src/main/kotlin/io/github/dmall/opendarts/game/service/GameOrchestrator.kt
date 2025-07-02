@@ -18,7 +18,7 @@ constructor(
     private val gameModeRegistry: GameModeRegistry,
 ) {
 
-    fun submitDartThrow(sessionId: String, playerId: Long, dartThrow: DartThrow): GameResult {
+    fun submitDartThrow(sessionId: String, playerId: String, dartThrow: DartThrow): GameResult {
         val gameSession = gameSessionRepository.findById(sessionId).orElseThrow()
         val currentPlayer = playerRepository.findById(playerId).orElseThrow()
         val gameHandler = gameModeRegistry.getGameHandler(gameSession.game.gameMode)

@@ -1,11 +1,13 @@
 package io.github.dmall.opendarts.game.autoscore.service
 
+import io.github.dmall.opendarts.game.autoscore.model.DetectionResult
 import io.github.dmall.opendarts.game.autoscore.model.DetectionState
 import io.github.dmall.opendarts.game.autoscore.model.PipelineDetectionResponse
 import io.github.dmall.opendarts.game.service.GameOrchestrator
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
+import java.util.*
 
 @Service
 class AutoScoreStabilizer @Autowired constructor(private val orchestrator: GameOrchestrator) {
@@ -13,7 +15,7 @@ class AutoScoreStabilizer @Autowired constructor(private val orchestrator: GameO
     private val logger = KotlinLogging.logger {}
 
 
-    private val detectionStates: MutableMap<String, DetectionState> = mutableMapOf()
+    private val detectionStates: MutableMap<String, DetectionState> = Collections.synchronizedMap(mutableMapOf())
 
     fun processDartDetectionResult(detection: PipelineDetectionResponse) {
         if (!detection.status.isSuccess()) {
@@ -22,7 +24,7 @@ class AutoScoreStabilizer @Autowired constructor(private val orchestrator: GameO
         }
 
         val detectionResult = detection.detectionResult
-        val resultCode = detectionResult.resultCode
+        val resultCode = detectionResult!!.resultCode
         val id = "${detection.playerId}/${detection.sessionId}"
         val detectionState = detectionStates.getOrPut(id) { DetectionState() }
 
@@ -37,6 +39,16 @@ class AutoScoreStabilizer @Autowired constructor(private val orchestrator: GameO
         }
 
 
+        associateDetectionsWithTrackedDarts(detectionResult)
+
+
+
+    }
+
+    private fun associateDetectionsWithTrackedDarts(detectionResult: DetectionResult) {
+
+        //val scoringResult = detectionResult.scoringResult!!
+        //scoringResult.dartDetections
 
 
     }

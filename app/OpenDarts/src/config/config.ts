@@ -36,7 +36,7 @@ export const API_ENDPOINTS = {
 };
 
 export const WEBSOCKET_CONFIG = {
-    DEFAULT_URL: 'ws://192.168.178.34:8080/ws/app',
+    DEFAULT_URL: 'ws://192.168.178.34:8080/ws/app/4c223842-2b9a-4c3f-86a2-8a0d4f064def',
     DEFAULT_FPS: 1,
     RECONNECT_ATTEMPTS: 10,
     RECONNECT_DELAY: 2000,

@@ -22,26 +22,39 @@ enum class AutoScoringResultCode(val code: Int) {
 }
 
 data class CalibrationResult(
-    val homographyMatrix: Array<IntArray>,
+    val homographyMatrix: HomographyMatrix?,
     val calibrationPoints: List<CalibrationPoint>,
-    val preprocessingResult: PreprocessingResult,
+    val preprocessingResult: PreprocessingResult?,
+)
+
+data class HomographyMatrix(
+    val matrix: Array<Array<Double>>,
+    val calibrationPointCount: Int
 )
 
 data class PreprocessingResult(val cropInfo: CropInformation?)
 
 data class CropInformation(val xOffset: Int, val yOffset: Int, val width: Int, val height: Int)
 
-data class CalibrationPoint(val classId: Int, val pointType: String, val message: String)
+data class CalibrationPoint(
+    val x: Double,
+    val y: Double,
+    val confidence: Double,
+    val classId: Int,
+    val message: String
+)
 
 data class ScoringResult(val dartDetections: List<DartDetection>)
 
 data class DartDetection(
     val dartScore: DartScore,
-    val originalPosition: DartPosition,
-    val transformedPosition: DartPosition,
+    val originalPosition: OriginalPosition,
+    val transformedPosition: TransformedPosition,
 )
 
-data class DartPosition(val x: Int, val y: Int)
+data class TransformedPosition(val x: Int, val y: Int)
+
+data class OriginalPosition(val x: Int, val y: Int, val confidence: Float)
 
 data class DartScore(val scoreString: String, val scoreValue: Int)
 
