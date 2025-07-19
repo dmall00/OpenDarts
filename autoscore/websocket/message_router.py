@@ -37,21 +37,35 @@ class MessageRouter:
     def __init__(
         self,
     ) -> None:
-        yolo_dart_image_processor = YoloDartImageProcessor(ProcessingConfig())
-        image_preprocessor = ImagePreprocessor(ProcessingConfig())
+        config = ProcessingConfig()
+        yolo_dart_image_processor = YoloDartImageProcessor(config)
+        image_preprocessor = ImagePreprocessor(config)
+
         calibration_service = DartBoardCalibrationService(
-            yolo_image_processor=yolo_dart_image_processor, image_preprocessor=image_preprocessor
+            config=config,
+            yolo_image_processor=yolo_dart_image_processor,
+            image_preprocessor=image_preprocessor,
         )
-        scoring_service = DartScoringService(yolo_image_processor=yolo_dart_image_processor, image_preprocessor=image_preprocessor)
+        scoring_service = DartScoringService(
+            config=config,
+            yolo_image_processor=yolo_dart_image_processor,
+            image_preprocessor=image_preprocessor,
+        )
+
         self.calibration_handler = CalibrationHandler(calibration_service=calibration_service)
         self.scoring_handler = ScoringHandler(scoring_service=scoring_service)
         self.ping_handler = PingHandler()
+
+        dart_scoring_service = DartInImageScoringService(
+            config=config,
+            yolo_image_processor=yolo_dart_image_processor,
+            calibration_service=calibration_service,
+            dart_scoring_service=scoring_service,
+            image_preprocessor=image_preprocessor,
+        )
+
         self.detection_handler = PipelineDetectionHandler(
-            DartInImageScoringService(
-                yolo_image_processor=yolo_dart_image_processor,
-                calibration_service=calibration_service,
-                dart_scoring_service=scoring_service,
-            )
+            dart_detection_service=dart_scoring_service
         )
 
         self.handlers: Dict[RequestType, BaseHandler] = {

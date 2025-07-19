@@ -43,6 +43,7 @@ class ErrorResponse(BaseResponse):
 
 class PingResponse(BaseResponse):
     """Response model for ping responses."""
+
     message: str = "pong"
 
 
