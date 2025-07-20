@@ -22,14 +22,9 @@ enum class AutoScoringResultCode(val code: Int) {
 }
 
 data class CalibrationResult(
-    val homographyMatrix: HomographyMatrix?,
+    val homographyMatrix: Array<IntArray>,
     val calibrationPoints: List<CalibrationPoint>,
-    val preprocessingResult: PreprocessingResult?,
-)
-
-data class HomographyMatrix(
-    val matrix: Array<Array<Double>>,
-    val calibrationPointCount: Int
+    val preprocessingResult: PreprocessingResult,
 )
 
 data class PreprocessingResult(val cropInfo: CropInformation?)
