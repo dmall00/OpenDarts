@@ -47,9 +47,9 @@ data class DartDetection(
     val transformedPosition: TransformedPosition,
 )
 
-data class TransformedPosition(val x: Int, val y: Int)
+data class TransformedPosition(val x: Float, val y: Float)
 
-data class OriginalPosition(val x: Int, val y: Int, val confidence: Float)
+data class OriginalPosition(val x: Float, val y: Float, val confidence: Float)
 
 data class DartScore(val scoreString: String, val scoreValue: Int)
 
