@@ -1,5 +1,6 @@
 package io.github.dmall.opendarts.game.autoscore.service
 
+import TurnSwitchDetector
 import io.github.dmall.opendarts.game.autoscore.model.DetectionResult
 import io.github.dmall.opendarts.game.autoscore.model.DetectionState
 import io.github.dmall.opendarts.game.autoscore.model.PipelineDetectionResponse
@@ -13,10 +14,13 @@ import kotlin.math.sqrt
 
 private const val distanceThreshold = 10.0
 
-private const val confidenceThreshold = 0.8
+private const val confidenceThreshold = 0.1
 
 @Service
-class AutoScoreStabilizer @Autowired constructor(private val orchestrator: GameOrchestrator) {
+class AutoScoreStabilizer @Autowired constructor(
+    private val orchestrator: GameOrchestrator,
+    private val turnSwitchDetector: TurnSwitchDetector
+) {
 
     private val logger = KotlinLogging.logger {}
 
@@ -47,6 +51,7 @@ class AutoScoreStabilizer @Autowired constructor(private val orchestrator: GameO
 
         associateDetectionsWithTrackedDarts(
             detectionResult,
+            detectionState,
             id,
             detection.playerId,
             detection.sessionId
@@ -55,6 +60,7 @@ class AutoScoreStabilizer @Autowired constructor(private val orchestrator: GameO
 
     private fun associateDetectionsWithTrackedDarts(
         detectionResult: DetectionResult,
+        detectionState: DetectionState,
         id: String,
         playerId: String,
         sessionId: String
@@ -63,6 +69,8 @@ class AutoScoreStabilizer @Autowired constructor(private val orchestrator: GameO
         val darts = scoringResult.dartDetections
         val stableDarts = stableDartsPerSession.getOrPut(id) { mutableListOf() }
         val currentStableDarts = mutableListOf<Pair<Double, Double>>()
+
+        var newDartsCount = 0
 
         for (dart in darts) {
             val transformed = dart.transformedPosition
@@ -84,13 +92,36 @@ class AutoScoreStabilizer @Autowired constructor(private val orchestrator: GameO
             if (confidence > confidenceThreshold) {
                 val pos = transformed.x.toDouble() to transformed.y.toDouble()
                 if (newDarts.contains(pos)) {
+
+                    val multiplier = dart.dartScore.scoreString.toInt()
+                    val score = dart.dartScore.scoreValue
+                    logger.info { "Detected new dart with score $score $multiplier = ${multiplier * score}" }
                     orchestrator.submitDartThrow(
                         sessionId,
                         playerId,
-                        DartThrow(dart.dartScore.scoreString.toInt(), dart.dartScore.scoreValue)
+                        DartThrow(multiplier, score)
                     )
+                    newDartsCount++
+                    stableDarts.add(pos)
                 }
             }
         }
+
+        val turnSwitched = turnSwitchDetector.isTurnSwitch(
+            playerId = playerId,
+            sessionId = sessionId,
+            currentYoloErrors = detectionState.yoloErrors,
+            currentMissingCalibrations = detectionState.missingCalibrations,
+            currentDetectedDarts = stableDarts.size,
+            dartThreshold = 3
+        )
+
+        if (turnSwitched) {
+            stableDarts.clear()
+            detectionState.yoloErrors = 0
+            detectionState.missingCalibrations = 0
+            logger.info { "Turn switch detected for player $playerId in session $sessionId. Resetting tracked darts and error counts." }
+        }
     }
+
 }
