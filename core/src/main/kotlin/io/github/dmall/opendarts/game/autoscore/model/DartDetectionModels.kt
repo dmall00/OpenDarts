@@ -22,7 +22,7 @@ enum class AutoScoringResultCode(val code: Int) {
 }
 
 data class CalibrationResult(
-    val homographyMatrix: Array<IntArray>,
+   // val homographyMatrix: Array<IntArray>,
     val calibrationPoints: List<CalibrationPoint>,
     val preprocessingResult: PreprocessingResult,
 )
@@ -55,7 +55,7 @@ data class DartScore(val scoreString: String, val scoreValue: Int)
 
 data class DetectionResult(
     val preprocessing: PreprocessingResult?,
-    val calibrationResult: CalibrationResult?,
+    //val calibrationResult: CalibrationResult?,
     val scoringResult: ScoringResult?,
     val resultCode: AutoScoringResultCode,
     val message: String?,

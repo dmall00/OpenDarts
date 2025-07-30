@@ -12,11 +12,11 @@ enum class GameMode {
 abstract class GameConfig {
     @Id
     @GeneratedValue
-    var id: Long? = null
+    open var id: Long? = null
 
     @ManyToOne
     @JoinColumn(name = "starting_player_id")
-    lateinit var startingPlayer: Player
+    open lateinit var startingPlayer: Player
 
     @ElementCollection
     @CollectionTable(
@@ -25,7 +25,7 @@ abstract class GameConfig {
     )
     @Column(name = "player_id")
     @OrderColumn(name = "turn_order")
-    val playerOrder: MutableList<String> = mutableListOf()
+    open var playerOrder: MutableList<String> = mutableListOf()
 }
 
 @Entity
@@ -62,7 +62,7 @@ class Player {
     lateinit var name: String
 
     @ManyToMany(mappedBy = "players")
-    val gameSessions: MutableList<GameSession> = mutableListOf()
+    var gameSessions: MutableList<GameSession> = mutableListOf()
 }
 
 @Entity
@@ -76,7 +76,7 @@ class GameSession {
     lateinit var game: Game
 
     @OneToMany(mappedBy = "gameSession", cascade = [CascadeType.ALL])
-    val dartSets: MutableList<DartSet> = mutableListOf()
+    var dartSets: MutableList<DartSet> = mutableListOf()
 
     @ManyToMany
     @JoinTable(
@@ -84,7 +84,7 @@ class GameSession {
         joinColumns = [JoinColumn(name = "game_session_id")],
         inverseJoinColumns = [JoinColumn(name = "player_id")],
     )
-    val players: MutableList<Player> = mutableListOf()
+    var players: MutableList<Player> = mutableListOf()
 }
 
 @Entity
@@ -102,7 +102,7 @@ class DartSet {
     var winner: Player? = null
 
     @OneToMany(mappedBy = "dartSet", cascade = [CascadeType.ALL])
-    val legs: MutableList<Leg> = mutableListOf()
+    var legs: MutableList<Leg> = mutableListOf()
 }
 
 @Entity
@@ -120,7 +120,7 @@ class Leg {
     lateinit var dartSet: DartSet
 
     @OneToMany(mappedBy = "leg", cascade = [CascadeType.ALL])
-    val turns: MutableList<Turn> = mutableListOf()
+    var turns: MutableList<Turn> = mutableListOf()
 }
 
 @Entity

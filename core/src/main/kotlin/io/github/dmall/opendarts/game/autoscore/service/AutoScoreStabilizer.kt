@@ -93,7 +93,14 @@ class AutoScoreStabilizer @Autowired constructor(
                 val pos = transformed.x.toDouble() to transformed.y.toDouble()
                 if (newDarts.contains(pos)) {
 
-                    val multiplier = dart.dartScore.scoreString.toInt()
+                    val firstChar = dart.dartScore.scoreString.first()
+
+                    val multiplier = when (firstChar) {
+                        'S' -> 1
+                        'D' -> 2
+                        'T' -> 3
+                        else -> throw IllegalArgumentException("Unexpected character: $firstChar")
+                    }
                     val score = dart.dartScore.scoreValue
                     logger.info { "Detected new dart with score $score $multiplier = ${multiplier * score}" }
                     orchestrator.submitDartThrow(
