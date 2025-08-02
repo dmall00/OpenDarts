@@ -132,7 +132,7 @@ wheels = [
 [[package]]
 name = "dart-detection"
 version = "0.1.6"
-source = { git = "https://github.com/dmall00/dart-detection.git#85299bbf4c47d9889e16f7702527af3789df2e31" }
+source = { git = "https://github.com/dmall00/dart-detection.git#d31b412539d6765388552e3d2db15877ec659438" }
 dependencies = [
     { name = "click" },
     { name = "numpy" },
