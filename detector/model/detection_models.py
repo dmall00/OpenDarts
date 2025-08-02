@@ -118,9 +118,8 @@ class CalibrationPoint(YoloPoint):
 class DartScore(BaseModel):
     """Represents the score of a dart based on its position."""
 
-    score_string: str
-    score_value: int
-
+    multiplier: int
+    single_value: int
 
 class DartDetection(BaseModel):
     """Dart detection and scoring result of a single dart."""

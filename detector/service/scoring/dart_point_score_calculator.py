@@ -36,27 +36,26 @@ class DartPointScoreCalculator:
         return dart_score_result
 
     def __calculate_single_dart_score(self, position: DartPosition) -> DartScore:
-        """Calculate score for a single dart."""
         position_array = self.__adjust_center_position(position.to_array())
         angle = self.__calculate_angle(position_array)
 
         segment_number = self._board.get_segment_number(angle, position_array)
         scoring_region = self._board.get_scoring_region(position_array)
 
-        score_string, score_value = self.__calculate_score(segment_number, scoring_region)
+        multiplier, single_value = self.__calculate_score(segment_number, scoring_region)
 
-        return DartScore(score_string=score_string, score_value=score_value)
+        return DartScore(multiplier=multiplier, single_value=single_value)
 
     @staticmethod
-    def __calculate_score(segment_number: int, scoring_region: str) -> Tuple[str, int]:
+    def __calculate_score(segment_number: int, scoring_region: str) -> tuple[int, int]:
         """Calculate the final score for a dart."""
         scoring_rules = {
-            "DB": ("DB", DOUBLE_BULL_SCORE),
-            "SB": ("SB", SINGLE_BULL_SCORE),
-            "S": (f"S{segment_number}", segment_number),
-            "T": (f"T{segment_number}", segment_number * 3),
-            "D": (f"D{segment_number}", segment_number * 2),
-            "miss": ("miss", MISS_SCORE),
+            "DB": (2, 25),
+            "SB": (1, 25),
+            "S": (1, segment_number),
+            "T": (3, segment_number),
+            "D": (2, segment_number),
+            "miss": (0, 0),
         }
         return scoring_rules[scoring_region]
 
