@@ -76,7 +76,7 @@ class AutoscoreWebSocketClient(
                 val jsonString = String(jsonData, Charsets.UTF_8)
                 val message = TextMessage(jsonString)
                 session.sendMessage(message)
-                logger.info { "Sent JSON message to Python server, size: ${jsonData.size} bytes" }
+                logger.debug { "Sent JSON message to Python server, size: ${jsonData.size} bytes" }
             } catch (e: Exception) {
                 logger.error(e) { "Failed to send JSON message to autoscore server: ${e.message}" }
             }

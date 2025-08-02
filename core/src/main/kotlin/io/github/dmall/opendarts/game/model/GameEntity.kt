@@ -47,7 +47,7 @@ class Game {
     @Column(nullable = false)
     lateinit var gameMode: GameMode
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "game_config_id", nullable = false)
     lateinit var gameConfig: GameConfig
 }
@@ -75,7 +75,7 @@ class GameSession {
     @JoinColumn(nullable = false)
     lateinit var game: Game
 
-    @OneToMany(mappedBy = "gameSession", cascade = [CascadeType.ALL])
+    @OneToMany(mappedBy = "gameSession", cascade = [CascadeType.ALL], fetch = FetchType.EAGER)
     var dartSets: MutableList<DartSet> = mutableListOf()
 
     @ManyToMany

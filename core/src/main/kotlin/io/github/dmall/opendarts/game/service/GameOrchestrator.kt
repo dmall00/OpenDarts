@@ -5,6 +5,7 @@ import io.github.dmall.opendarts.game.model.GameResult
 import io.github.dmall.opendarts.game.model.GameState
 import io.github.dmall.opendarts.game.repository.GameSessionRepository
 import io.github.dmall.opendarts.game.repository.PlayerRepository
+import jakarta.transaction.Transactional
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
@@ -18,6 +19,7 @@ constructor(
     private val gameModeRegistry: GameModeRegistry,
 ) {
 
+    @Transactional
     fun submitDartThrow(sessionId: String, playerId: String, dartThrow: DartThrow): GameResult {
         val gameSession = gameSessionRepository.findById(sessionId).orElseThrow()
         val currentPlayer = playerRepository.findById(playerId).orElseThrow()

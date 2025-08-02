@@ -1,6 +1,5 @@
 package io.github.dmall.opendarts.game.autoscore.service
 
-import TurnSwitchDetector
 import io.github.dmall.opendarts.game.autoscore.model.DetectionResult
 import io.github.dmall.opendarts.game.autoscore.model.DetectionState
 import io.github.dmall.opendarts.game.autoscore.model.PipelineDetectionResponse
@@ -12,7 +11,7 @@ import org.springframework.stereotype.Service
 import java.util.*
 import kotlin.math.sqrt
 
-private const val distanceThreshold = 10.0
+private const val distanceThreshold = 0.1
 
 private const val confidenceThreshold = 0.1
 
@@ -72,6 +71,7 @@ class AutoScoreStabilizer @Autowired constructor(
 
         var newDartsCount = 0
 
+        logger.info { "Recognized ${darts.size} darts on board: $darts" }
         for (dart in darts) {
             val transformed = dart.transformedPosition
             currentStableDarts.add(transformed.x.toDouble() to transformed.y.toDouble())
@@ -79,10 +79,7 @@ class AutoScoreStabilizer @Autowired constructor(
 
         val newDarts = currentStableDarts.filter { current ->
             stableDarts.none { previous ->
-                val dx = current.first - previous.first
-                val dy = current.second - previous.second
-                val distance = sqrt(dx * dx + dy * dy)
-                distance < distanceThreshold
+                isSameDart(current, previous)
             }
         }
 
@@ -99,10 +96,10 @@ class AutoScoreStabilizer @Autowired constructor(
                         'S' -> 1
                         'D' -> 2
                         'T' -> 3
-                        else -> throw IllegalArgumentException("Unexpected character: $firstChar")
+                        else -> 1
                     }
                     val score = dart.dartScore.scoreValue
-                    logger.info { "Detected new dart with score $score $multiplier = ${multiplier * score}" }
+                    logger.info { "Detected new dart with score $score - $multiplier = ${multiplier * score}" }
                     orchestrator.submitDartThrow(
                         sessionId,
                         playerId,
@@ -114,21 +111,25 @@ class AutoScoreStabilizer @Autowired constructor(
             }
         }
 
-        val turnSwitched = turnSwitchDetector.isTurnSwitch(
-            playerId = playerId,
-            sessionId = sessionId,
-            currentYoloErrors = detectionState.yoloErrors,
-            currentMissingCalibrations = detectionState.missingCalibrations,
-            currentDetectedDarts = stableDarts.size,
-            dartThreshold = 3
-        )
-
-        if (turnSwitched) {
+        if (turnSwitchDetector.isTurnSwitch(
+                id, detectionState
+            )
+        ) {
             stableDarts.clear()
             detectionState.yoloErrors = 0
             detectionState.missingCalibrations = 0
             logger.info { "Turn switch detected for player $playerId in session $sessionId. Resetting tracked darts and error counts." }
         }
+    }
+
+    private fun isSameDart(
+        current: Pair<Double, Double>,
+        previous: Pair<Double, Double>
+    ): Boolean {
+        val dx = current.first - previous.first
+        val dy = current.second - previous.second
+        val distance = sqrt(dx * dx + dy * dy)
+        return distance < distanceThreshold
     }
 
 }

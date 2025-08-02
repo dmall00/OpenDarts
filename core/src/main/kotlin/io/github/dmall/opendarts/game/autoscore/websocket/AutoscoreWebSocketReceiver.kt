@@ -24,7 +24,7 @@ class AutoscoreWebSocketReceiver(
 
     public override fun handleTextMessage(session: WebSocketSession, message: TextMessage) {
         val detection = objectMapper.readValue(message.payload, PipelineDetectionResponse::class.java)
-        logger.info { "$detection" }
+        logger.debug { "$detection" }
         autoScoreStabilizer.processDartDetectionResult(detection)
     }
 

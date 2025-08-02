@@ -2,12 +2,16 @@ package io.github.dmall.opendarts.game.service
 
 import io.github.dmall.opendarts.game.model.*
 import io.github.dmall.opendarts.game.repository.GameSessionRepository
+import io.github.oshai.kotlinlogging.KotlinLogging
+import jakarta.transaction.Transactional
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
 @Service
 class X01Game @Autowired constructor(val gameSessionRepository: GameSessionRepository) :
     DartGameModeHandler {
+
+        private val logger = KotlinLogging.logger {}
 
     override fun processDartThrow(
         gameSession: GameSession,
@@ -23,8 +27,10 @@ class X01Game @Autowired constructor(val gameSessionRepository: GameSessionRepos
         val newScore = currentScore - throwScore
 
         if (isBust(newScore, config, dartThrow)) {
+            logger.info { "Bust detected" }
             fillMissDarts(currentTurn)
             val nextPlayer = getNextPlayer(gameSession, currentPlayer)
+            logger.info { "Next player is $nextPlayer" }
             createNewTurnIfNeeded(currentLeg, nextPlayer!!, gameSession)
 
             return GameResult(
@@ -38,19 +44,22 @@ class X01Game @Autowired constructor(val gameSessionRepository: GameSessionRepos
         }
 
         if (isFinishLeg(config, newScore, dartThrow)) {
+            logger.info { "Leg is finished" }
             handleDartThrow(gameSession, dartThrow, currentTurn)
             val (isSetWon, isGameWon) = handleLegWin(gameSession, currentPlayer, currentLeg)
 
             var nextPlayer: Player? = null
             if (!isGameWon) {
                 if (isSetWon) {
+                    logger.info { "Set is won" }
                     createNewSet(gameSession)
                 } else {
+                    logger.info { "Leg is won" }
                     createNewLeg(gameSession, gameSession.dartSets.last())
                 }
                 nextPlayer = getStartingPlayerForNewLeg(gameSession, config)
             }
-
+            logger.info { "Game is won" }
             return GameResult(
                 isValidThrow = true,
                 scoreChange = throwScore,
@@ -74,6 +83,7 @@ class X01Game @Autowired constructor(val gameSessionRepository: GameSessionRepos
         val shouldSwitch = shouldSwitchPlayer(currentTurn)
         val nextPlayer =
             if (shouldSwitch) {
+                logger.info { "Turn completed switching player" }
                 val next = getNextPlayer(gameSession, currentPlayer)!!
                 createNewTurnIfNeeded(currentLeg, next, gameSession)
                 next
@@ -106,6 +116,7 @@ class X01Game @Autowired constructor(val gameSessionRepository: GameSessionRepos
             .lastOrNull { it.darts.size < 3 } ?: error("No active turn found for current player")
 
     private fun handleDartThrow(gameSession: GameSession, dartThrow: DartThrow, currentTurn: Turn) {
+        logger.info { "Handling new throw ${dartThrow.computedScore}" }
         if (currentTurn.darts.count() < 3) {
             val dart =
                 Dart().apply {
@@ -115,6 +126,7 @@ class X01Game @Autowired constructor(val gameSessionRepository: GameSessionRepos
                 }
             currentTurn.darts.add(dart)
         }
+        logger.info { "Currently ${currentTurn.darts.count()} darts in turn" }
         gameSessionRepository.save(gameSession)
     }
 
@@ -253,6 +265,7 @@ class X01Game @Autowired constructor(val gameSessionRepository: GameSessionRepos
             currentLeg.turns.find { it.player.id == nextPlayer.id && it.darts.size < 3 }
 
         if (existingTurn == null) {
+            logger.info { "Creating new turn" }
             val nextTurnOrder = currentLeg.turns.maxOfOrNull { it.turnOrderIndex } ?: -1
             val newTurn =
                 Turn().apply {
