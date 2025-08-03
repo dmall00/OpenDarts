@@ -185,7 +185,7 @@ class CalibrationVisualizer:
 
         for _i, ((x, y), score) in enumerate(zip(pixel_coords, dart_scores, strict=False)):
             cv2.circle(image, (int(x), int(y)), VISUALIZATION_DART_CIRCLE_RADIUS, (0, 0, 255), 2)
-            score_text = score.score_string if hasattr(score, "score_string") else str(score)
+            score_text = score.dart_score_str
             cv2.putText(
                 image,
                 score_text,

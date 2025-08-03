@@ -57,15 +57,16 @@ def main(image_path: Path, config_path: Path | None, config: ProcessingConfig) -
                 if detection.dart_score:
                     pos = detection.transformed_position or detection.original_position
                     logger.info(
-                        "  🎯 Dart %d: %s (%d pts) at (%.2f, %.2f) [Confidence: %.1f%%]",
+                        "  🎯 Dart %d: %dx%d (%d pts) at (%.2f, %.2f) [Confidence: %.1f%%]",
                         i + 1,
-                        detection.dart_score.score_string,
-                        detection.dart_score.score_value,
+                        detection.dart_score.single_value,
+                        detection.dart_score.multiplier,
+                        detection.dart_score.computed_score,
                         pos.x,
                         pos.y,
                         detection.confidence * 100,
                     )
-                    total_score += detection.dart_score.score_value
+                    total_score += detection.dart_score.computed_score
                 else:
                     pos = detection.transformed_position or detection.original_position
                     logger.info(

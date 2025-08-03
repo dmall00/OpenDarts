@@ -56,7 +56,9 @@ class DartInImageScoringService:
             scoring_result = self.__dart_scoring_service.calculate_scores(calibration_result, detections.original_positions)
             processing_time = round(time.time() - start_time, 3)
             self.logger.info("Full detection pipeline took %s seconds", processing_time)
-            return self.__create_success_result(scoring_result, calibration_result, preprocessing_result.preprocessing_result, processing_time)
+            return self.__create_success_result(
+                scoring_result, calibration_result, preprocessing_result.preprocessing_result, processing_time
+            )
         except DartDetectionError as e:
             self.logger.exception("Dart detection failed")
             return self.__create_error_result(e.error_code, e.message)

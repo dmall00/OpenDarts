@@ -121,6 +121,19 @@ class DartScore(BaseModel):
     multiplier: int
     single_value: int
 
+    @property
+    def computed_score(self) -> int:
+        """Get computed dart score"""
+        return self.multiplier * self.single_value
+
+    @property
+    def dart_score_str(self) -> str:
+        """Convert the DartScore to its string representation (e.g., 'S12', 'D20', 'T5')."""
+        prefix = {1: "S", 2: "D", 3: "T"}.get(self.multiplier, "S")
+
+        return f"{prefix}{self.single_value}"
+
+
 class DartDetection(BaseModel):
     """Dart detection and scoring result of a single dart."""
 
@@ -172,11 +185,11 @@ class ScoringResult(AbstractResult):
     @property
     def total_score(self) -> int:
         """Calculate the total score from all dart scores."""
-        return sum(dart_score.score_value for score in self.dart_detections if (dart_score := score.dart_score) is not None)
+        return sum(dart_score.computed_score for score in self.dart_detections if (dart_score := score.dart_score) is not None)
 
     def __str__(self) -> str:
         darts_info = [
-            f"Dart {i + 1}: {dart.dart_score.score_string} ({dart.confidence:.2f})" for i, dart in enumerate(self.dart_detections)
+            f"Dart {i + 1}: {dart.dart_score.computed_score} ({dart.confidence:.2f})" for i, dart in enumerate(self.dart_detections)
         ]
         return f"Score: {self.total_score} | Darts: {', '.join(darts_info) if darts_info else 'None'}"
 
