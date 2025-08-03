@@ -18,7 +18,6 @@ class JwtAuthenticationFilter(
     private val jwtUtil: JwtUtil,
     private val userDetailsService: CustomUserDetailsService,
 ) : OncePerRequestFilter() {
-
     @Throws(ServletException::class, IOException::class)
     override fun doFilterInternal(
         request: HttpServletRequest,
@@ -46,11 +45,12 @@ class JwtAuthenticationFilter(
         return TokenInfo(null, null)
     }
 
-    private fun isAuthenticationRequired(): Boolean {
-        return SecurityContextHolder.getContext().authentication == null
-    }
+    private fun isAuthenticationRequired(): Boolean = SecurityContextHolder.getContext().authentication == null
 
-    private fun authenticateUser(tokenInfo: TokenInfo, request: HttpServletRequest) {
+    private fun authenticateUser(
+        tokenInfo: TokenInfo,
+        request: HttpServletRequest,
+    ) {
         val userDetails = userDetailsService.loadUserByUsername(tokenInfo.username!!)
 
         if (jwtUtil.validateToken(tokenInfo.token, userDetails)) {
@@ -58,12 +58,18 @@ class JwtAuthenticationFilter(
         }
     }
 
-    private fun setAuthenticationContext(userDetails: UserDetails, request: HttpServletRequest) {
+    private fun setAuthenticationContext(
+        userDetails: UserDetails,
+        request: HttpServletRequest,
+    ) {
         val authentication =
             UsernamePasswordAuthenticationToken(userDetails, null, userDetails.authorities)
         authentication.details = WebAuthenticationDetailsSource().buildDetails(request)
         SecurityContextHolder.getContext().authentication = authentication
     }
 
-    private data class TokenInfo(val token: String?, val username: String?)
+    private data class TokenInfo(
+        val token: String?,
+        val username: String?,
+    )
 }

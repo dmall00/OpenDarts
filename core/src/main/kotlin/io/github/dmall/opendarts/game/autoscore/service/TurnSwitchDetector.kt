@@ -6,10 +6,9 @@ import java.util.*
 
 @Service
 class TurnSwitchDetector {
-
     fun isTurnSwitch(
         key: String,
-        detectionState: DetectionState
+        detectionState: DetectionState,
     ): Boolean {
         val yoloErrors = detectionState.yoloErrors
         val missingCalibrations = detectionState.missingCalibrations
@@ -20,5 +19,4 @@ class TurnSwitchDetector {
 
         return enoughDarts && !tooManyErrors
     }
-
 }

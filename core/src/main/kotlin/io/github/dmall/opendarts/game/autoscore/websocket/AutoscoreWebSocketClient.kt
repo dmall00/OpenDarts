@@ -17,7 +17,7 @@ import java.util.concurrent.atomic.AtomicReference
 class AutoscoreWebSocketClient(
     private val autoScoreProperties: AutoScoreProperties,
     @SnakeCase private val objectMapper: ObjectMapper,
-    private val autoScoreStabilizer: AutoScoreStabilizer
+    private val autoScoreStabilizer: AutoScoreStabilizer,
 ) {
     private val pythonSession: AtomicReference<WebSocketSession?> =
         AtomicReference<WebSocketSession?>()

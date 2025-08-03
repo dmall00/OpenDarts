@@ -12,9 +12,8 @@ import org.springframework.web.socket.handler.TextWebSocketHandler
 class AutoscoreWebSocketReceiver(
     private val autoScoreWebSocketClient: AutoscoreWebSocketClient,
     private val objectMapper: ObjectMapper,
-    private val autoScoreStabilizer: AutoScoreStabilizer
+    private val autoScoreStabilizer: AutoScoreStabilizer,
 ) : TextWebSocketHandler() {
-
     val logger = KotlinLogging.logger {}
 
     override fun afterConnectionEstablished(session: WebSocketSession) {
@@ -22,20 +21,29 @@ class AutoscoreWebSocketReceiver(
         logger.info { "Websocket connection to python server established" }
     }
 
-    public override fun handleTextMessage(session: WebSocketSession, message: TextMessage) {
+    public override fun handleTextMessage(
+        session: WebSocketSession,
+        message: TextMessage,
+    ) {
         val detection = objectMapper.readValue(message.payload, PipelineDetectionResponse::class.java)
         logger.debug { "$detection" }
         autoScoreStabilizer.processDartDetectionResult(detection)
     }
 
-    override fun afterConnectionClosed(session: WebSocketSession, status: CloseStatus) {
+    override fun afterConnectionClosed(
+        session: WebSocketSession,
+        status: CloseStatus,
+    ) {
         autoScoreWebSocketClient.clearSession()
         logger.warn {
             "Websocket connection to python server closed with status: ${status.code} - ${status.reason}"
         }
     }
 
-    override fun handleTransportError(session: WebSocketSession, exception: Throwable) {
+    override fun handleTransportError(
+        session: WebSocketSession,
+        exception: Throwable,
+    ) {
         logger.error(exception) { "Transport error in websocket connection to python server" }
     }
 }

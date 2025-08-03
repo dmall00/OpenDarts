@@ -3,7 +3,7 @@ package io.github.dmall.opendarts.game.model
 import jakarta.persistence.*
 
 enum class GameMode {
-    X01
+    X01,
 }
 
 @Entity

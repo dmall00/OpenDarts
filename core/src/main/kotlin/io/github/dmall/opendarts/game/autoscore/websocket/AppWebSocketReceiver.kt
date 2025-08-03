@@ -11,7 +11,7 @@ import java.util.concurrent.ConcurrentHashMap
 
 @Component
 class AppWebSocketReceiver(
-    private val autoscoreImageTransmitter: AutoscoreImageTransmitter
+    private val autoscoreImageTransmitter: AutoscoreImageTransmitter,
 ) : BinaryWebSocketHandler() {
     private val sessions: MutableSet<WebSocketSession?> =
         ConcurrentHashMap.newKeySet<WebSocketSession?>()
@@ -23,7 +23,10 @@ class AppWebSocketReceiver(
         sessions.add(session)
     }
 
-    override fun handleBinaryMessage(session: WebSocketSession, message: BinaryMessage) {
+    override fun handleBinaryMessage(
+        session: WebSocketSession,
+        message: BinaryMessage,
+    ) {
         val sizeInBytes = message.payload.remaining()
         val sizeInMB = sizeInBytes / (1024.0 * 1024.0)
         logger.debug {
@@ -52,7 +55,10 @@ class AppWebSocketReceiver(
         return playerId to gameSessionId
     }
 
-    override fun afterConnectionClosed(session: WebSocketSession, status: CloseStatus) {
+    override fun afterConnectionClosed(
+        session: WebSocketSession,
+        status: CloseStatus,
+    ) {
         logger.info { "App connection closed $status" }
         sessions.remove(session)
     }

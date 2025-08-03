@@ -22,69 +22,63 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 @Configuration
 @EnableWebSecurity
 class SecurityConfig
-@Autowired
-constructor(val jwtUtil: JwtUtil, val userDetailsService: CustomUserDetailsService) {
+    @Autowired
+    constructor(
+        val jwtUtil: JwtUtil,
+        val userDetailsService: CustomUserDetailsService,
+    ) {
+        @Bean
+        fun corsConfigurationSource(): CorsConfigurationSource {
+            val configuration = CorsConfiguration()
+            configuration.allowedOriginPatterns = listOf("*")
+            configuration.allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
+            configuration.allowedHeaders = listOf("*")
+            configuration.allowCredentials = true
 
-    @Bean
-    fun corsConfigurationSource(): CorsConfigurationSource {
-        val configuration = CorsConfiguration()
-        configuration.allowedOriginPatterns = listOf("*")
-        configuration.allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
-        configuration.allowedHeaders = listOf("*")
-        configuration.allowCredentials = true
+            val source = UrlBasedCorsConfigurationSource()
+            source.registerCorsConfiguration("/**", configuration)
+            return source
+        }
 
-        val source = UrlBasedCorsConfigurationSource()
-        source.registerCorsConfiguration("/**", configuration)
-        return source
+        @Bean
+        @Throws(Exception::class)
+        fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
+            http
+                .csrf { it.disable() }
+                .cors { cors -> cors.configurationSource(corsConfigurationSource()) }
+                .authorizeHttpRequests { authorize ->
+                    authorize
+                        .requestMatchers(
+                            "/auth/**",
+                            "/swagger-ui.html",
+                            "/swagger-ui/**",
+                            "/v3/api-docs/**",
+                        ).permitAll()
+                        .requestMatchers("/ws/**")
+                        .permitAll()
+                        .requestMatchers("/app/**")
+                        .permitAll()
+                        .requestMatchers(HttpMethod.OPTIONS, "/**")
+                        .permitAll()
+                        .anyRequest()
+                        .authenticated()
+                }.sessionManagement { session ->
+                    session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                }.headers { headers -> headers.frameOptions().sameOrigin() }
+
+            http.addFilterBefore(
+                JwtAuthenticationFilter(jwtUtil, userDetailsService),
+                UsernamePasswordAuthenticationFilter::class.java,
+            )
+
+            return http.build()
+        }
+
+        @Bean
+        @Throws(Exception::class)
+        fun authenticationManager(authenticationConfiguration: AuthenticationConfiguration): AuthenticationManager =
+            authenticationConfiguration.authenticationManager
+
+        @Bean
+        fun passwordEncoder(): PasswordEncoder = BCryptPasswordEncoder()
     }
-
-    @Bean
-    @Throws(Exception::class)
-    fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
-        http
-            .csrf { it.disable() }
-            .cors { cors -> cors.configurationSource(corsConfigurationSource()) }
-            .authorizeHttpRequests { authorize ->
-                authorize
-                    .requestMatchers(
-                        "/auth/**",
-                        "/swagger-ui.html",
-                        "/swagger-ui/**",
-                        "/v3/api-docs/**",
-                    )
-                    .permitAll()
-                    .requestMatchers("/ws/**")
-                    .permitAll()
-                    .requestMatchers("/app/**")
-                    .permitAll()
-                    .requestMatchers(HttpMethod.OPTIONS, "/**")
-                    .permitAll()
-                    .anyRequest()
-                    .authenticated()
-            }
-            .sessionManagement { session ->
-                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            }
-            .headers { headers -> headers.frameOptions().sameOrigin() }
-
-        http.addFilterBefore(
-            JwtAuthenticationFilter(jwtUtil, userDetailsService),
-            UsernamePasswordAuthenticationFilter::class.java,
-        )
-
-        return http.build()
-    }
-
-    @Bean
-    @Throws(Exception::class)
-    fun authenticationManager(
-        authenticationConfiguration: AuthenticationConfiguration
-    ): AuthenticationManager {
-        return authenticationConfiguration.authenticationManager
-    }
-
-    @Bean
-    fun passwordEncoder(): PasswordEncoder {
-        return BCryptPasswordEncoder()
-    }
-}
