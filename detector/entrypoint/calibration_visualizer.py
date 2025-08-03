@@ -8,7 +8,8 @@ and homography matrix transformations are applied.
 import logging
 from pathlib import Path
 from typing import List, Optional, Tuple
-
+import os
+os.environ["QT_QPA_PLATFORM"] = "xcb"
 import cv2
 import numpy as np
 from numpy import ndarray
@@ -318,9 +319,15 @@ class CalibrationVisualizer:
         cv2.putText(comparison, "Transformed", (split_point + 30, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2)
 
     def __display_result(self, comparison: np.ndarray) -> None:
+        cv2.namedWindow(self.window_name, cv2.WINDOW_NORMAL)
+        cv2.resizeWindow(self.window_name, 1200, 600)
         cv2.imshow(self.window_name, comparison)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
+        while True:
+            if cv2.getWindowProperty(self.window_name, cv2.WND_PROP_VISIBLE) < 1:
+                break
+            if cv2.waitKey(100) != -1:
+                break
+        cv2.destroyWindow(self.window_name)
 
     def __load_image(self, image_path: Path) -> DartImage | None:
         image = load_image(image_path)
