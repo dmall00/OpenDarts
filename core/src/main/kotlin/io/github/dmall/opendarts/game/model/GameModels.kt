@@ -1,7 +1,13 @@
 package io.github.dmall.opendarts.game.model
 
-data class DartThrow(val multiplier: Int, val score: Int) {
+import com.fasterxml.jackson.annotation.JsonIgnore
+
+data class DartThrow(
+    val multiplier: Int,
+    val score: Int,
+) {
     val computedScore: Int
+        @JsonIgnore
         get() = score * multiplier
 }
 
@@ -20,7 +26,8 @@ data class GameResult(
 
 data class GameStateTo(
     val currentPlayer: String,
-    val scores: Map<String, Int>,
+    val currentRemainingScores: Map<String, Int>,
+    val currentLegDarts: List<DartThrow>,
     val currentLeg: Int = 1,
     val currentSet: Int = 1,
     val legsWon: Map<String, Int> = emptyMap(),
@@ -31,7 +38,8 @@ data class GameStateTo(
 
 data class GameState(
     val currentPlayer: Player,
-    val scores: Map<Player, Int>,
+    val currentRemainingScores: Map<Player, Int>,
+    val currentLegDarts: List<DartThrow>,
     val currentLeg: Int = 1,
     val currentSet: Int = 1,
     val legsWon: Map<Player, Int> = emptyMap(),

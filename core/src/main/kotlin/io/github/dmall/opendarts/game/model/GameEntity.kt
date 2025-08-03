@@ -63,6 +63,8 @@ class Player {
 
     @ManyToMany(mappedBy = "players")
     var gameSessions: MutableList<GameSession> = mutableListOf()
+
+    override fun toString(): String = "Player(name='$name')"
 }
 
 @Entity

@@ -5,9 +5,8 @@ import org.springframework.stereotype.Component
 
 @Component
 class GameMapper {
-
-    fun toGameResultTo(gameResult: GameResult): GameResultTo {
-        return GameResultTo(
+    fun toGameResultTo(gameResult: GameResult): GameResultTo =
+        GameResultTo(
             isValidThrow = gameResult.isValidThrow,
             scoreChange = gameResult.scoreChange,
             remainingScore = gameResult.remainingScore,
@@ -17,27 +16,24 @@ class GameMapper {
             winner = gameResult.winner?.id,
             nextPlayer = gameResult.nextPlayer?.id,
             message = gameResult.message,
-            bust = gameResult.bust
+            bust = gameResult.bust,
         )
-    }
 
-    fun toGameStateTo(gameState: GameState): GameStateTo {
-        return GameStateTo(
+    fun toGameStateTo(gameState: GameState): GameStateTo =
+        GameStateTo(
             currentPlayer = gameState.currentPlayer.id!!,
-            scores = convertPlayerMapToIdMap(gameState.scores),
+            currentRemainingScores = convertPlayerMapToIdMap(gameState.currentRemainingScores),
+            currentLegDarts = gameState.currentLegDarts,
             currentLeg = gameState.currentLeg,
             currentSet = gameState.currentSet,
             legsWon = convertPlayerMapToIdMap(gameState.legsWon),
             setsWon = convertPlayerMapToIdMap(gameState.setsWon),
             dartsThrown = gameState.dartsThrown,
-            turnsPlayed = gameState.turnsPlayed
+            turnsPlayed = gameState.turnsPlayed,
         )
-    }
 
-    private fun convertPlayerMapToIdMap(playerMap: Map<Player, Int>): Map<String, Int> {
-        return playerMap.mapKeys { (player, _) ->
+    private fun convertPlayerMapToIdMap(playerMap: Map<Player, Int>): Map<String, Int> =
+        playerMap.mapKeys { (player, _) ->
             player.id ?: throw IllegalArgumentException("Player ID cannot be null")
         }
-    }
-
 }

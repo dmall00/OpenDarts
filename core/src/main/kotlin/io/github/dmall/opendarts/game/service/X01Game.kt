@@ -202,12 +202,27 @@ class X01Game
             return GameState(
                 currentLeg = gameSession.dartSets.sumOf { it.legs.size },
                 currentSet = gameSession.dartSets.size,
-                scores = playerToRemainingScoreMap,
+                currentRemainingScores = playerToRemainingScoreMap,
                 currentPlayer = currentPlayer,
                 legsWon = getLegsWonByPlayer(gameSession),
                 setsWon = getSetsWonByPlayer(gameSession),
                 dartsThrown = getDartsThrown(currentLeg, currentPlayer),
+                currentLegDarts = getCurrentTurnDarts(currentPlayer, currentLeg),
             )
+        }
+
+        private fun getCurrentTurnDarts(
+            currentPlayer: Player,
+            currentLeg: Leg,
+        ): List<DartThrow> {
+            val currentTurn =
+                currentLeg.turns
+                    .filter { it.player == currentPlayer }
+                    .maxByOrNull { it.turnOrderIndex } ?: return emptyList()
+
+            return currentTurn.darts.map { dart ->
+                DartThrow(score = dart.score, multiplier = dart.multiplier)
+            }
         }
 
         private fun getRemainingScore(
