@@ -1,5 +1,6 @@
 package io.github.dmall.opendarts.game.autoscore.service
 
+import io.github.dmall.opendarts.game.autoscore.model.DartDetection
 import io.github.dmall.opendarts.game.autoscore.model.DetectionResult
 import io.github.dmall.opendarts.game.autoscore.model.DetectionState
 import io.github.dmall.opendarts.game.autoscore.model.PipelineDetectionResponse
@@ -8,7 +9,7 @@ import io.github.dmall.opendarts.game.service.GameOrchestrator
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
-import java.util.Collections
+import java.util.*
 import kotlin.math.sqrt
 
 private const val DISTANCE_THRESHOLD = 0.1
@@ -28,33 +29,41 @@ class AutoScoreStabilizer
             Collections.synchronizedMap(mutableMapOf())
 
         fun processDartDetectionResult(detection: PipelineDetectionResponse) {
-            if (!detection.status.isSuccess()) {
+            if (!isValidDetection(detection)) {
                 logger.info { "Invalid autoscore result received" }
                 return
             }
 
-            val detectionResult = detection.detectionResult
-            val resultCode = detectionResult.resultCode
-            val id = "${detection.playerId}/${detection.sessionId}"
+            val id = composeId(detection.playerId, detection.sessionId)
             val detectionState = detectionStates.getOrPut(id) { DetectionState() }
 
-            if (resultCode.isYoloError()) {
-                detectionState.yoloErrors++
-                return
+            when {
+                detection.detectionResult.resultCode.isYoloError() -> handleYoloError(detectionState)
+                detection.detectionResult.resultCode.isMissingCalibration() -> handleMissingCalibration(detectionState)
+                else ->
+                    associateDetectionsWithTrackedDarts(
+                        detection.detectionResult,
+                        detectionState,
+                        id,
+                        detection.playerId,
+                        detection.sessionId,
+                    )
             }
+        }
 
-            if (resultCode.isMissingCalibration()) {
-                detectionState.missingCalibrations++
-                return
-            }
+        private fun isValidDetection(detection: PipelineDetectionResponse): Boolean = detection.status.isSuccess()
 
-            associateDetectionsWithTrackedDarts(
-                detectionResult,
-                detectionState,
-                id,
-                detection.playerId,
-                detection.sessionId,
-            )
+        private fun composeId(
+            playerId: String,
+            sessionId: String,
+        ): String = "$playerId/$sessionId"
+
+        private fun handleYoloError(detectionState: DetectionState) {
+            detectionState.yoloErrors++
+        }
+
+        private fun handleMissingCalibration(detectionState: DetectionState) {
+            detectionState.missingCalibrations++
         }
 
         private fun associateDetectionsWithTrackedDarts(
@@ -64,57 +73,67 @@ class AutoScoreStabilizer
             playerId: String,
             sessionId: String,
         ) {
-            val scoringResult = detectionResult.scoringResult ?: return
-            val darts = scoringResult.dartDetections
-            val recognizedStableDarts = stableDartsPerSession.getOrPut(id) { mutableListOf() }
-            val currentImageDarts = mutableListOf<Pair<Double, Double>>()
-
-            var newDartsCount = 0
+            val darts = detectionResult.scoringResult?.dartDetections ?: return
 
             logger.info { "Recognized ${darts.size} darts on board: $darts" }
-            for (dart in darts) {
-                val transformed = dart.transformedPosition
-                currentImageDarts.add(transformed.x.toDouble() to transformed.y.toDouble())
+
+            val stableDarts = stableDartsPerSession.getOrPut(id) { mutableListOf() }
+            val currentImageDarts = extractDartPositions(darts)
+
+            val newDartPositions = findNewDarts(currentImageDarts, stableDarts)
+
+            submitNewDarts(newDartPositions, darts, stableDarts, playerId, sessionId)
+
+            if (turnSwitchDetector.isTurnSwitch(id, detectionState)) {
+                resetStateForNewTurn(playerId, sessionId, stableDarts, detectionState)
+            }
+        }
+
+        private fun extractDartPositions(darts: List<DartDetection>): List<Pair<Double, Double>> =
+            darts.map { dart ->
+                dart.transformedPosition.x.toDouble() to dart.transformedPosition.y.toDouble()
             }
 
-            val newDarts =
-                currentImageDarts.filter { current ->
-                    recognizedStableDarts.none { existingDart ->
-                        isSameDart(current, existingDart)
-                    }
-                }
+        private fun findNewDarts(
+            currentPositions: List<Pair<Double, Double>>,
+            stablePositions: List<Pair<Double, Double>>,
+        ): List<Pair<Double, Double>> =
+            currentPositions.filter { current ->
+                stablePositions.none { stable -> isSameDart(current, stable) }
+            }
 
-            for (dart in darts) {
-                val transformed = dart.transformedPosition
+        private fun submitNewDarts(
+            newDartPositions: List<Pair<Double, Double>>,
+            allDarts: List<DartDetection>,
+            stableDarts: MutableList<Pair<Double, Double>>,
+            playerId: String,
+            sessionId: String,
+        ) {
+            for (dart in allDarts) {
+                val pos = dart.transformedPosition.x.toDouble() to dart.transformedPosition.y.toDouble()
                 val confidence = dart.originalPosition.confidence
-                if (confidence > CONFIDENCE_THRESHOLD) {
-                    val pos = transformed.x.toDouble() to transformed.y.toDouble()
-                    if (newDarts.contains(pos)) {
-                        val multiplier = dart.dartScore.multiplier
-                        val score = dart.dartScore.singleValue
-                        logger.info { "Detected new dart with score $score - $multiplier = ${multiplier * score}" }
 
-                        orchestrator.submitDartThrow(
-                            sessionId,
-                            playerId,
-                            DartThrow(multiplier, score),
-                        )
-                        newDartsCount++
-                        recognizedStableDarts.add(pos)
-                    }
+                if (confidence > CONFIDENCE_THRESHOLD && newDartPositions.contains(pos)) {
+                    val multiplier = dart.dartScore.multiplier
+                    val score = dart.dartScore.singleValue
+                    logger.info { "Detected new dart with score $score - $multiplier = ${multiplier * score}" }
+
+                    orchestrator.submitDartThrow(sessionId, playerId, DartThrow(multiplier, score))
+                    stableDarts.add(pos)
                 }
             }
+        }
 
-            if (turnSwitchDetector.isTurnSwitch(
-                    id,
-                    detectionState,
-                )
-            ) {
-                recognizedStableDarts.clear()
-                detectionState.yoloErrors = 0
-                detectionState.missingCalibrations = 0
-                logger.info { "Turn switch detected for player $playerId in session $sessionId. Resetting tracked darts and error counts." }
-            }
+        private fun resetStateForNewTurn(
+            playerId: String,
+            sessionId: String,
+            stableDarts: MutableList<Pair<Double, Double>>,
+            detectionState: DetectionState,
+        ) {
+            stableDarts.clear()
+            detectionState.yoloErrors = 0
+            detectionState.missingCalibrations = 0
+            logger.info { "Turn switch detected for player $playerId in session $sessionId. Resetting tracked darts and error counts." }
         }
 
         private fun isSameDart(
