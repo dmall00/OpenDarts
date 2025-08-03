@@ -3,7 +3,6 @@ package io.github.dmall.opendarts.game.service
 import io.github.dmall.opendarts.game.model.*
 import io.github.dmall.opendarts.game.repository.GameSessionRepository
 import io.github.oshai.kotlinlogging.KotlinLogging
-import jakarta.transaction.Transactional
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
@@ -81,6 +80,7 @@ class X01Game
             }
 
             handleDartThrow(gameSession, dartThrow, currentTurn)
+            logger.info { "Current game state after throw: $newScore" }
 
             val shouldSwitch = shouldSwitchPlayer(currentTurn)
             val nextPlayer =

@@ -35,7 +35,7 @@ class AutoscoreWebSocketClient(
         disconnect()
     }
 
-    private fun connect() {
+    fun connect() {
         try {
             val client = StandardWebSocketClient()
             val handler = AutoscoreWebSocketReceiver(this, objectMapper, autoScoreStabilizer)
@@ -83,6 +83,7 @@ class AutoscoreWebSocketClient(
         } else {
             logger.warn {
                 "Could not send JSON message to autoscore server - session not available"
+                connect()
             }
         }
     }

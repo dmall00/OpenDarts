@@ -4,7 +4,6 @@ import io.github.dmall.opendarts.game.model.*
 
 /** Defines any dart game mode with enhanced functionality */
 interface DartGameModeHandler {
-
     /** Process a dart throw and return the result */
     fun processDartThrow(
         gameSession: GameSession,

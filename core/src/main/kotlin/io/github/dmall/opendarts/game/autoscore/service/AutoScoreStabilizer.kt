@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service
 import java.util.*
 import kotlin.math.sqrt
 
-private const val DISTANCE_THRESHOLD = 0.1
+private const val DISTANCE_THRESHOLD = 0.01
 private const val CONFIDENCE_THRESHOLD = 0.1
 
 @Service
@@ -25,7 +25,7 @@ class AutoScoreStabilizer
         private val logger = KotlinLogging.logger {}
 
         private val detectionStates: MutableMap<String, DetectionState> = Collections.synchronizedMap(mutableMapOf())
-        private val stableDartsPerSession: MutableMap<String, MutableList<Pair<Double, Double>>> =
+        private val confirmedDartsPerSession: MutableMap<String, MutableList<Pair<Double, Double>>> =
             Collections.synchronizedMap(mutableMapOf())
 
         fun processDartDetectionResult(detection: PipelineDetectionResponse) {
@@ -73,19 +73,19 @@ class AutoScoreStabilizer
             playerId: String,
             sessionId: String,
         ) {
-            val darts = detectionResult.scoringResult?.dartDetections ?: return
+            val imageDarts = detectionResult.scoringResult?.dartDetections ?: return
 
-            logger.info { "Recognized ${darts.size} darts on board: $darts" }
+            logger.info { "Recognized ${imageDarts.size} darts on board: $imageDarts" }
 
-            val stableDarts = stableDartsPerSession.getOrPut(id) { mutableListOf() }
-            val currentImageDarts = extractDartPositions(darts)
+            val confirmedDarts = confirmedDartsPerSession.getOrPut(id) { mutableListOf() }
+            val currentImageDarts = extractDartPositions(imageDarts)
 
-            val newDartPositions = findNewDarts(currentImageDarts, stableDarts)
+            val newDartPositions = findNewDarts(currentImageDarts, confirmedDarts)
 
-            submitNewDarts(newDartPositions, darts, stableDarts, playerId, sessionId)
+            submitNewDarts(newDartPositions, imageDarts, confirmedDarts, playerId, sessionId)
 
-            if (turnSwitchDetector.isTurnSwitch(id, detectionState)) {
-                resetStateForNewTurn(playerId, sessionId, stableDarts, detectionState)
+            if (turnSwitchDetector.isTurnSwitch(detectionState, confirmedDarts.size, currentImageDarts.size)) {
+                resetStateForNewTurn(playerId, sessionId, confirmedDarts, detectionState)
             }
         }
 
@@ -104,12 +104,12 @@ class AutoScoreStabilizer
 
         private fun submitNewDarts(
             newDartPositions: List<Pair<Double, Double>>,
-            allDarts: List<DartDetection>,
-            stableDarts: MutableList<Pair<Double, Double>>,
+            imageDarts: List<DartDetection>,
+            confirmedDarts: MutableList<Pair<Double, Double>>,
             playerId: String,
             sessionId: String,
         ) {
-            for (dart in allDarts) {
+            for (dart in imageDarts) {
                 val pos = dart.transformedPosition.x.toDouble() to dart.transformedPosition.y.toDouble()
                 val confidence = dart.originalPosition.confidence
 
@@ -119,7 +119,7 @@ class AutoScoreStabilizer
                     logger.info { "Detected new dart with score $score - $multiplier = ${multiplier * score}" }
 
                     orchestrator.submitDartThrow(sessionId, playerId, DartThrow(multiplier, score))
-                    stableDarts.add(pos)
+                    confirmedDarts.add(pos)
                 }
             }
         }
