@@ -81,7 +81,7 @@ async def test_separate_pipeline() -> None:
         scoring_result = scoring_response.scoring_result
         assert scoring_result.dart_detections
         assert len(scoring_result.dart_detections) > 0
-        assert all(dart.dart_score.score_value > 0 for dart in scoring_result.dart_detections)
+        assert all(dart.dart_score.single_value > 0 for dart in scoring_result.dart_detections)
         assert all(dart.confidence > 0 for dart in scoring_result.dart_detections)
         assert scoring_result.total_score == EXPECTED_TOTAL_SCORE
 
@@ -112,7 +112,7 @@ async def test_full_pipeline() -> None:
         assert scoring_result is not None, "scoring_result is None"
         assert scoring_result.dart_detections
         assert len(scoring_result.dart_detections) > 0
-        assert all(dart.dart_score.score_value > 0 for dart in scoring_result.dart_detections)
+        assert all(dart.dart_score.single_value > 0 for dart in scoring_result.dart_detections)
         assert all(dart.confidence > 0 for dart in scoring_result.dart_detections)
         assert scoring_result.total_score == EXPECTED_TOTAL_SCORE
 

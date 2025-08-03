@@ -16,7 +16,7 @@ def base64_to_numpy(base64_data: bytes | bytearray | str) -> np.ndarray:
     image_buffer = BytesIO(image_bytes)
     pil_image = Image.open(image_buffer)
     if pil_image.mode != "RGB":
-        pil_image = pil_image.convert("RGB")
+        pil_image = pil_image.convert("RGB")  # type: ignore
     rgb_array = np.array(pil_image)
     return cv2.cvtColor(rgb_array, cv2.COLOR_RGB2BGR)
 
