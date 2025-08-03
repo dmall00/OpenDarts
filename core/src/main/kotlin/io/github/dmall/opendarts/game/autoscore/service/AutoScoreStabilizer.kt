@@ -89,17 +89,10 @@ class AutoScoreStabilizer @Autowired constructor(
             if (confidence > confidenceThreshold) {
                 val pos = transformed.x.toDouble() to transformed.y.toDouble()
                 if (newDarts.contains(pos)) {
-
-                    val firstChar = dart.dartScore.scoreString.first()
-
-                    val multiplier = when (firstChar) {
-                        'S' -> 1
-                        'D' -> 2
-                        'T' -> 3
-                        else -> 1
-                    }
-                    val score = dart.dartScore.scoreValue
+                    val multiplier = dart.dartScore.multiplier
+                    val score = dart.dartScore.singleValue
                     logger.info { "Detected new dart with score $score - $multiplier = ${multiplier * score}" }
+
                     orchestrator.submitDartThrow(
                         sessionId,
                         playerId,
