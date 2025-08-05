@@ -118,7 +118,8 @@ class AutoScoreStabilizer
                     val score = dart.dartScore.singleValue
                     logger.info { "Detected new dart with score $score - $multiplier = ${multiplier * score}" }
 
-                    orchestrator.submitDartThrow(sessionId, playerId, DartThrow(multiplier, score))
+                    val dartThrow = DartThrow(multiplier, score)
+                    orchestrator.submitDartThrow(sessionId, playerId, dartThrow)
                     confirmedDarts.add(pos)
                 }
             }

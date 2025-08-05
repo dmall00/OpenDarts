@@ -1,26 +1,33 @@
 package io.github.dmall.opendarts.game.autoscore.websocket
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.github.dmall.opendarts.game.autoscore.service.AutoscoreImageTransmitter
+import io.github.dmall.opendarts.game.model.DartTrackedTo
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.stereotype.Component
 import org.springframework.web.socket.BinaryMessage
 import org.springframework.web.socket.CloseStatus
+import org.springframework.web.socket.TextMessage
 import org.springframework.web.socket.WebSocketSession
 import org.springframework.web.socket.handler.BinaryWebSocketHandler
 import java.util.concurrent.ConcurrentHashMap
 
 @Component
-class AppWebSocketReceiver(
+class AppWebSocketHandler(
     private val autoscoreImageTransmitter: AutoscoreImageTransmitter,
 ) : BinaryWebSocketHandler() {
-    private val sessions: MutableSet<WebSocketSession?> =
-        ConcurrentHashMap.newKeySet<WebSocketSession?>()
+    private val sessions: MutableMap<String, WebSocketSession> = ConcurrentHashMap<String, WebSocketSession>()
 
     private val logger = KotlinLogging.logger {}
 
+    private val objectMapper: ObjectMapper = jacksonObjectMapper()
+
+    private fun Pair<String, String>.joinWith(delimiter: String = "-"): String = "${first}${delimiter}$second"
+
     override fun afterConnectionEstablished(session: WebSocketSession) {
         logger.info { "App connection established" }
-        sessions.add(session)
+        sessions[extractIdsFromSession(session).joinWith()] = session
     }
 
     override fun handleBinaryMessage(
@@ -60,6 +67,21 @@ class AppWebSocketReceiver(
         status: CloseStatus,
     ) {
         logger.info { "App connection closed $status" }
-        sessions.remove(session)
+        sessions.remove(extractIdsFromSession(session).joinWith())
+    }
+
+    fun sendDartDetected(
+        dartTracked: DartTrackedTo,
+        id: String,
+    ) {
+        val session = sessions[id] ?: throw IllegalStateException("No session found for id")
+        if (session.isOpen) {
+            try {
+                val json = objectMapper.writeValueAsString(dartTracked)
+                session.sendMessage(TextMessage(json))
+            } catch (e: Exception) {
+                logger.error(e) { "Error sending object as text message" }
+            }
+        }
     }
 }

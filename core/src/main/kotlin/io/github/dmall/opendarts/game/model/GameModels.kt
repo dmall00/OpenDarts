@@ -36,6 +36,12 @@ data class GameStateTo(
     val turnsPlayed: Int = 0,
 )
 
+data class DartTrackedTo(
+    val currentPlayer: String,
+    val remainingScore: Int,
+    val trackedDart: DartThrow,
+)
+
 data class GameState(
     val currentPlayer: Player,
     val currentRemainingScores: Map<Player, Int>,
