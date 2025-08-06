@@ -15,7 +15,7 @@ class WebSocketConfig(
     @Override
     override fun registerWebSocketHandlers(registry: WebSocketHandlerRegistry) {
         registry
-            .addHandler(appWebSocketHandler, "/ws/app/6466fa44-a5e3-4b34-b7d1-217e6c211025/{gameId}")
+            .addHandler(appWebSocketHandler, "/ws/app/{playerId}/{gameId}")
             .setAllowedOrigins("*")
     }
 

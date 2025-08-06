@@ -53,11 +53,9 @@ class SecurityConfig
                             "/swagger-ui.html",
                             "/swagger-ui/**",
                             "/v3/api-docs/**",
+                            "/ws/**",
+                            "/app/**",
                         ).permitAll()
-                        .requestMatchers("/ws/**")
-                        .permitAll()
-                        .requestMatchers("/app/**")
-                        .permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**")
                         .permitAll()
                         .anyRequest()

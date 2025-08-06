@@ -48,8 +48,30 @@ export interface GameStats {
     totalGames: number;
     wins: number;
     losses: number;
-    averageScore: number;
-    bestFinish: number;
+}
+
+export interface DartThrow {
+    score: number;
+    multiplier: number;
+    segment: number;
+}
+
+export interface DartTrackedTo {
+    currentPlayer: string;
+    remainingScore: number;
+    trackedDart: DartThrow;
+}
+
+export interface WebSocketMessage<T = any> {
+    type: string;
+    timestamp?: number;
+    data?: T;
+}
+
+export type MessageHandler<T = any> = (data: T) => void;
+
+export interface MessageHandlers {
+    [messageType: string]: MessageHandler;
 }
 
 export interface ApiError {
