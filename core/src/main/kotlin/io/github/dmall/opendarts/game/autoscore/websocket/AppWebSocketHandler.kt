@@ -26,8 +26,10 @@ class AppWebSocketHandler(
     private fun Pair<String, String>.joinWith(delimiter: String = "-"): String = "${first}${delimiter}$second"
 
     override fun afterConnectionEstablished(session: WebSocketSession) {
-        logger.info { "App connection established" }
-        sessions[extractIdsFromSession(session).joinWith()] = session
+        val sessionId = extractIdsFromSession(session).joinWith()
+        logger.info { "App connection established with session ID: $sessionId" }
+        sessions[sessionId] = session
+        logger.info { "Active sessions count: ${sessions.size}" }
     }
 
     override fun handleBinaryMessage(
@@ -75,13 +77,18 @@ class AppWebSocketHandler(
         id: String,
     ) {
         val session = sessions[id] ?: throw IllegalStateException("No session found for id")
+        logger.info { "Attempting to send dart detection to session with id: $id" }
         if (session.isOpen) {
             try {
                 val json = objectMapper.writeValueAsString(dartTracked)
+                logger.info { "Sending dart detection message: $json" }
                 session.sendMessage(TextMessage(json))
+                logger.info { "Successfully sent dart detection message" }
             } catch (e: Exception) {
                 logger.error(e) { "Error sending object as text message" }
             }
+        } else {
+            logger.warn { "Session $id is not open, cannot send dart detection" }
         }
     }
 }

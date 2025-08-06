@@ -7,33 +7,39 @@ export interface UseWebSocketMessagesConfig extends WebSocketConfig {
 }
 
 export const useWebSocketMessages = (config: UseWebSocketMessagesConfig) => {
-    const messageServiceRef = useRef<WebSocketMessageService>(new WebSocketMessageService());
+    const messageServiceRef = useRef<WebSocketMessageService | null>(null);
+    
+    if (!messageServiceRef.current) {
+        messageServiceRef.current = new WebSocketMessageService();
+    }
+    
+    const messageService = messageServiceRef.current;
     const webSocket = useWebSocket(config);
 
     useEffect(() => {
         if (webSocket.lastMessage) {
-            messageServiceRef.current.handleMessage(webSocket.lastMessage);
+            messageService.handleMessage(webSocket.lastMessage);
         }
-    }, [webSocket.lastMessage]);
+    }, [webSocket.lastMessage, messageService]);
 
     const onMessage = useCallback(<T>(messageType: string, handler: MessageHandler<T>) => {
-        return messageServiceRef.current.onMessage(messageType, handler);
-    }, []);
+        return messageService.onMessage(messageType, handler);
+    }, [messageService]);
 
     const onAnyMessage = useCallback((handler: MessageHandler<any>) => {
-        return messageServiceRef.current.onAnyMessage(handler);
-    }, []);
+        return messageService.onAnyMessage(handler);
+    }, [messageService]);
 
     useEffect(() => {
         return () => {
-            messageServiceRef.current.clearHandlers();
+            messageService.clearHandlers();
         };
-    }, []);
+    }, [messageService]);
 
     return {
         ...webSocket,
         onMessage,
         onAnyMessage,
-        messageService: messageServiceRef.current,
+        messageService: messageService,
     };
 };

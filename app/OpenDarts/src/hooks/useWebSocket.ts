@@ -43,7 +43,13 @@ export const useWebSocket = (config: WebSocketConfig) => {
                     reconnectTimeoutRef.current = null;
                 }
             }, onClose: (event) => {
-                console.log('WebSocket disconnected:', event.code, event.reason);
+                console.log('WebSocket disconnected - Code:', event.code, 'Reason:', event.reason);
+                console.log('Close event details:', {
+                    code: event.code,
+                    reason: event.reason,
+                    wasClean: event.wasClean,
+                    timestamp: new Date().toISOString()
+                });
                 stopHeartbeat();
                 if (event.code !== 1000 && event.code !== 1001) {
                     setError(`Connection lost: ${event.reason || 'Unknown error'}`);

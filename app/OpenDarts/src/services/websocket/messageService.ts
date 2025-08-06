@@ -6,15 +6,26 @@ import { WebSocketMessage, MessageHandler, MessageHandlers } from '../../types/a
 export class WebSocketMessageService {
     private handlers: MessageHandlers = {};
     private globalHandlers: MessageHandler[] = [];
+    private readonly instanceId: string;
+    private messageQueue: any[] = [];
+
+    constructor() {
+        this.instanceId = Math.random().toString(36).substr(2, 9);
+        console.log('🏗️ WebSocketMessageService instance created:', this.instanceId);
+    }
 
     /**
      * Register a handler for a specific message type
      */
     onMessage<T>(messageType: string, handler: MessageHandler<T>): () => void {
+        console.log('📝 Instance', this.instanceId, '- Registering handler for message type:', messageType);
         this.handlers[messageType] = handler;
+        console.log('📝 Instance', this.instanceId, '- Current registered handlers:', Object.keys(this.handlers));
+
+        this.processQueuedMessages(messageType);
         
-        // Return unsubscribe function
         return () => {
+            console.log('🗑️ Instance', this.instanceId, '- Unregistering handler for message type:', messageType);
             delete this.handlers[messageType];
         };
     }
@@ -38,15 +49,17 @@ export class WebSocketMessageService {
      * Process incoming WebSocket message
      */
     handleMessage(message: MessageEvent): void {
+        console.log('📥 Instance', this.instanceId, '- WebSocket message received:', message.data);
         try {
             let parsedMessage: any;
 
             // Try to parse as JSON first
             try {
                 parsedMessage = JSON.parse(message.data);
+                console.log('📋 Instance', this.instanceId, '- Parsed message:', parsedMessage);
             } catch {
                 // If parsing fails, treat as plain text or handle differently
-                console.warn('Received non-JSON message:', message.data);
+                console.warn('Instance', this.instanceId, '- Received non-JSON message:', message.data);
                 this.notifyGlobalHandlers(message.data);
                 return;
             }
@@ -77,30 +90,40 @@ export class WebSocketMessageService {
     }
 
     private handleDirectMessage(message: any): void {
-        // Try to infer message type from object structure
         const messageType = this.inferMessageType(message);
+
         if (messageType) {
             const handler = this.handlers[messageType];
             if (handler) {
                 handler(message);
+            } else {
+                this.messageQueue.push({ type: messageType, message: message, timestamp: Date.now() });
             }
+        } else {
+            console.warn('Instance', this.instanceId, '- Could not infer message type for:', message);
+        }
+    }
+
+    private processQueuedMessages(messageType: string): void {
+        const handler = this.handlers[messageType];
+        if (!handler) return;
+
+        const messagesToProcess = this.messageQueue.filter(item => item.type === messageType);
+        if (messagesToProcess.length > 0) {
+            messagesToProcess.forEach(item => {
+                handler(item.message);
+            });
+            
+            this.messageQueue = this.messageQueue.filter(item => item.type !== messageType);
         }
     }
 
     private inferMessageType(message: any): string | null {
-        // Infer DartTrackedTo messages
-        if (message.currentPlayer && 
+        if (message.currentPlayer &&
             typeof message.remainingScore === 'number' && 
             message.trackedDart) {
             return 'dartTracked';
         }
-
-        // Infer heartbeat/ping messages
-        if (message.type === 'ping' || message.type === 'pong') {
-            return message.type;
-        }
-
-        // Add more inference logic here for other message types
         return null;
     }
 

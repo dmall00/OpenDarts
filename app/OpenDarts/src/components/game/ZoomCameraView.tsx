@@ -9,7 +9,7 @@ import {useCameraUI} from "@/src/hooks/useCameraUI";
 export default function ZoomCameraView() {
     const {hasPermission, requestPermission} = useCameraPermission();
     const [zoom, setZoom] = useState(1);
-    const cameraRef = useRef<Camera>(null);
+    const cameraRef = useRef<Camera | null>(null);
     const device = useCameraDevice('back');
     const cameraService = CameraService.getInstance();
 
@@ -104,7 +104,9 @@ export default function ZoomCameraView() {
                     photo={true}
                     zoom={zoom}
                 />
-                <View style={GameViewStyles.cameraOverlay}/> </TouchableOpacity> {isCameraExpanded && (
+                <View style={GameViewStyles.cameraOverlay}/>
+            </TouchableOpacity>
+            {isCameraExpanded && (
             <Animated.View
                 style={[
                     GameViewStyles.zoomSliderContainer,

@@ -50,7 +50,6 @@ export const useDartTracking = ({ gameId, playerId, websocketUrl }: UseDartTrack
         onScoreUpdate: handleScoreUpdate,
     });
 
-    // Clear tracking data
     const clearTrackingData = useCallback(() => {
         setTrackingState({
             currentScore: null,
@@ -60,30 +59,25 @@ export const useDartTracking = ({ gameId, playerId, websocketUrl }: UseDartTrack
         });
     }, []);
 
-    // Send camera image for dart detection
     const sendCameraFrame = useCallback((imageData: string | ArrayBuffer | Blob) => {
         return webSocket.sendImageData(imageData);
     }, [webSocket]);
 
     return {
-        // WebSocket connection info
         isConnected: webSocket.isConnected,
         isConnecting: webSocket.isConnecting,
         connectionError: webSocket.error,
         
-        // Dart tracking data
         currentScore: trackingState.currentScore,
         lastDart: trackingState.lastDart,
         dartHistory: trackingState.dartHistory,
         isGameActive: trackingState.isGameActive,
         
-        // Actions
         connect: webSocket.connect,
         disconnect: webSocket.disconnect,
         sendCameraFrame,
         clearTrackingData,
         
-        // Camera capture control
         startCapture: webSocket.startCapture,
         stopCapture: webSocket.stopCapture,
     };

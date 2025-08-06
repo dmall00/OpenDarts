@@ -29,9 +29,6 @@ export const useGameWebSocket = ({
         wsUrl = `${WEBSOCKET_CONFIG.DEFAULT_BASE_URL}/ws/app/${playerId}/${gameId}`;
     }
 
-    console.log('Connecting to WebSocket URL:', wsUrl);
-    console.log('Game ID:', gameId, 'Player ID:', playerId);
-
     const webSocketMessages = useWebSocketMessages({
         url: wsUrl,
         fps,
