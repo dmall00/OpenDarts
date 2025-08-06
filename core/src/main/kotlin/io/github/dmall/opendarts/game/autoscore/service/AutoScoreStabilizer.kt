@@ -4,10 +4,11 @@ import io.github.dmall.opendarts.game.autoscore.model.DartDetection
 import io.github.dmall.opendarts.game.autoscore.model.DetectionResult
 import io.github.dmall.opendarts.game.autoscore.model.DetectionState
 import io.github.dmall.opendarts.game.autoscore.model.PipelineDetectionResponse
+import io.github.dmall.opendarts.game.events.DartThrowDetectedEvent
 import io.github.dmall.opendarts.game.model.DartThrow
-import io.github.dmall.opendarts.game.service.GameOrchestrator
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import java.util.*
 import kotlin.math.sqrt
@@ -19,7 +20,7 @@ private const val CONFIDENCE_THRESHOLD = 0.1
 class AutoScoreStabilizer
     @Autowired
     constructor(
-        private val orchestrator: GameOrchestrator,
+        private val applicationEventPublisher: ApplicationEventPublisher,
         private val turnSwitchDetector: TurnSwitchDetector,
     ) {
         private val logger = KotlinLogging.logger {}
@@ -119,7 +120,9 @@ class AutoScoreStabilizer
                     logger.info { "Detected new dart with score $score - $multiplier = ${multiplier * score}" }
 
                     val dartThrow = DartThrow(multiplier, score)
-                    orchestrator.submitDartThrow(sessionId, playerId, dartThrow)
+                    applicationEventPublisher.publishEvent(
+                        DartThrowDetectedEvent(this, sessionId, playerId, dartThrow),
+                    )
                     confirmedDarts.add(pos)
                 }
             }
