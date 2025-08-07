@@ -10,7 +10,7 @@
     </parent>
 
     <groupId>io.github.dmall</groupId>
-    <artifactId>open-darts</artifactId>
+    <artifactId>open-darts-backend</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>open-darts</name>
