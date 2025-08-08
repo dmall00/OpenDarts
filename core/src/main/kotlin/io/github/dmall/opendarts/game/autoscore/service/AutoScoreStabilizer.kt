@@ -85,10 +85,54 @@ class AutoScoreStabilizer
                 return
             }
 
+            // Check if we need to register missed darts
+            val hasDartsOnBoardBefore = !detectionState.isNewTurnAndBoardCleared || confirmedDarts.isNotEmpty()
+            val (shouldRegisterMisses, missCount) =
+                turnSwitchDetector.detectMissedDarts(
+                    id,
+                    confirmedDarts.size,
+                    currentImageDarts.size,
+                    hasDartsOnBoardBefore,
+                )
+
+            if (shouldRegisterMisses) {
+                registerMissedDarts(missCount, playerId, sessionId, confirmedDarts)
+                // After registering misses, we'll have 3 darts, so check if board is clear
+                handleThreeDartsConfirmed(currentImageDarts, detectionState, confirmedDarts, playerId, sessionId)
+                return
+            }
+
             if (detectionState.isNewTurnAndBoardCleared) {
                 registerNewDarts(currentImageDarts, imageDarts, confirmedDarts, playerId, sessionId, detectionState)
             } else {
                 logger.info { "Waiting for board to clear before accepting new darts." }
+            }
+        }
+
+        /**
+         * Registers missed darts (with score 0) for the current player
+         */
+        private fun registerMissedDarts(
+            missCount: Int,
+            playerId: String,
+            sessionId: String,
+            confirmedDarts: MutableList<Pair<Double, Double>>,
+        ) {
+            logger.info { "Registering $missCount missed dart(s) for player $playerId" }
+
+            // Add dummy positions for missed darts - they won't be visible but we need to track them
+            for (i in 0 until missCount) {
+                // Create a dart with score 0
+                val dartThrow = DartThrow(1, 0) // multiplier 1, value 0 = 0 points
+
+                // Publish the event for this missed dart
+                applicationEventPublisher.publishEvent(
+                    DartThrowDetectedEvent(this, sessionId, playerId, dartThrow),
+                )
+
+                // Add a dummy position for tracking
+                // Use a negative position to ensure it doesn't collide with real dart positions
+            confirmedDarts.add((-1.0 - i) to -1.0)
             }
         }
 
