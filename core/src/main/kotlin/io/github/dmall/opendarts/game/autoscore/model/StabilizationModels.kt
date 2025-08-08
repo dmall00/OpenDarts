@@ -6,28 +6,26 @@ enum class DartState {
     CANDIDATE,
     STABLE,
     OCCLUDED,
-    REMOVED
+    REMOVED,
 }
 
 data class StableDart(
     val id: UUID,
     val position: TransformedPosition,
     val state: DartState,
-    val detectionHistory: List<DetectionRecord>
+    val detectionHistory: List<DetectionRecord>,
 )
 
 data class DetectionRecord(
     val position: TransformedPosition,
-    val confidence: Float
+    val confidence: Float,
 )
-
 
 data class DetectionState(
     val stableDarts: MutableList<StableDart> = mutableListOf(),
-    var turnInProgress: Boolean = true,
+    var isNewTurnAndBoardCleared: Boolean = true,
     var frame: Int = 0,
     var lastCalibration: Int = -1,
     var yoloErrors: Int = 0,
-    var missingCalibrations: Int = 0
+    var missingCalibrations: Int = 0,
 )
-

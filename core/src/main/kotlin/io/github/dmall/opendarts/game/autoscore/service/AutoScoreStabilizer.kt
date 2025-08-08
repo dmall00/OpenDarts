@@ -42,7 +42,7 @@ class AutoScoreStabilizer
                 detection.detectionResult.resultCode.isYoloError() -> handleYoloError(detectionState)
                 detection.detectionResult.resultCode.isMissingCalibration() -> handleMissingCalibration(detectionState)
                 else ->
-                    associateDetectionsWithTrackedDarts(
+                    handleDartRecognition(
                         detection.detectionResult,
                         detectionState,
                         id,
@@ -67,7 +67,7 @@ class AutoScoreStabilizer
             detectionState.missingCalibrations++
         }
 
-        private fun associateDetectionsWithTrackedDarts(
+        private fun handleDartRecognition(
             detectionResult: DetectionResult,
             detectionState: DetectionState,
             id: String,
@@ -75,46 +75,70 @@ class AutoScoreStabilizer
             sessionId: String,
         ) {
             val imageDarts = detectionResult.scoringResult?.dartDetections ?: return
-
             logger.info { "Recognized ${imageDarts.size} darts on board: $imageDarts" }
 
             val confirmedDarts = confirmedDartsPerSession.getOrPut(id) { mutableListOf() }
             val currentImageDarts = extractDartPositions(imageDarts)
 
-            val newDartPositions = findNewDarts(currentImageDarts, confirmedDarts)
+            if (confirmedDarts.size >= 3) {
+                handleThreeDartsConfirmed(currentImageDarts, detectionState, confirmedDarts, playerId, sessionId)
+                return
+            }
 
-            submitNewDarts(newDartPositions, imageDarts, confirmedDarts, playerId, sessionId)
+            if (detectionState.isNewTurnAndBoardCleared) {
+                registerNewDarts(currentImageDarts, imageDarts, confirmedDarts, playerId, sessionId, detectionState)
+            } else {
+                logger.info { "Waiting for board to clear before accepting new darts." }
+            }
+        }
 
-            if (turnSwitchDetector.isTurnSwitch(detectionState, confirmedDarts.size, currentImageDarts.size)) {
+        private fun handleThreeDartsConfirmed(
+            currentImageDarts: List<Pair<Double, Double>>,
+            detectionState: DetectionState,
+            confirmedDarts: MutableList<Pair<Double, Double>>,
+            playerId: String,
+            sessionId: String,
+        ) {
+            if (turnSwitchDetector.handleThreeDartsState(currentImageDarts.size, detectionState, playerId, sessionId)) {
                 resetStateForNewTurn(playerId, sessionId, confirmedDarts, detectionState)
             }
         }
 
-        private fun extractDartPositions(darts: List<DartDetection>): List<Pair<Double, Double>> =
-            darts.map { dart ->
-                dart.transformedPosition.x.toDouble() to dart.transformedPosition.y.toDouble()
-            }
+        private fun registerNewDarts(
+            currentImageDarts: List<Pair<Double, Double>>,
+            imageDarts: List<DartDetection>,
+            confirmedDarts: MutableList<Pair<Double, Double>>,
+            playerId: String,
+            sessionId: String,
+            detectionState: DetectionState,
+        ) {
+            val newDarts = findNewDarts(currentImageDarts, confirmedDarts)
+            submitNewDarts(newDarts, imageDarts, confirmedDarts, playerId, sessionId)
+            turnSwitchDetector.checkMaximumDartsReached(confirmedDarts.size, detectionState)
+        }
+
+        private fun extractDartPositions(darts: List<DartDetection>): List<Pair<Double, Double>> = darts.map { dart -> toPair(dart) }
 
         private fun findNewDarts(
-            currentPositions: List<Pair<Double, Double>>,
-            stablePositions: List<Pair<Double, Double>>,
+            currentImageDarts: List<Pair<Double, Double>>,
+            confirmedDarts: List<Pair<Double, Double>>,
         ): List<Pair<Double, Double>> =
-            currentPositions.filter { current ->
-                stablePositions.none { stable -> isSameDart(current, stable) }
+            currentImageDarts.filter { current ->
+                confirmedDarts.none { stable -> isSameDart(current, stable) }
             }
 
         private fun submitNewDarts(
-            newDartPositions: List<Pair<Double, Double>>,
+            newDarts: List<Pair<Double, Double>>,
             imageDarts: List<DartDetection>,
             confirmedDarts: MutableList<Pair<Double, Double>>,
             playerId: String,
             sessionId: String,
         ) {
             for (dart in imageDarts) {
-                val pos = dart.transformedPosition.x.toDouble() to dart.transformedPosition.y.toDouble()
+                val pos = toPair(dart)
                 val confidence = dart.originalPosition.confidence
 
-                if (confidence > CONFIDENCE_THRESHOLD && newDartPositions.contains(pos)) {
+                if (confidence > CONFIDENCE_THRESHOLD && newDarts.contains(pos)) {
                     val multiplier = dart.dartScore.multiplier
                     val score = dart.dartScore.singleValue
                     logger.info { "Detected new dart with score $score - $multiplier = ${multiplier * score}" }
@@ -128,6 +152,9 @@ class AutoScoreStabilizer
             }
         }
 
+        private fun toPair(dart: DartDetection): Pair<Double, Double> =
+        dart.transformedPosition.x.toDouble() to dart.transformedPosition.y.toDouble()
+
         private fun resetStateForNewTurn(
             playerId: String,
             sessionId: String,
@@ -135,9 +162,8 @@ class AutoScoreStabilizer
             detectionState: DetectionState,
         ) {
             stableDarts.clear()
-            detectionState.yoloErrors = 0
-            detectionState.missingCalibrations = 0
-            logger.info { "Turn switch detected for player $playerId in session $sessionId. Resetting tracked darts and error counts." }
+            turnSwitchDetector.resetStateForNewTurn(playerId, sessionId, detectionState)
+            logger.info { "Cleared tracked darts for new turn." }
         }
 
         private fun isSameDart(
