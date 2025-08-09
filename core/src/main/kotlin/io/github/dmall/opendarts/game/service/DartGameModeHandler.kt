@@ -9,7 +9,7 @@ interface DartGameModeHandler {
         gameSession: GameSession,
         currentPlayer: Player,
         dartThrow: DartThrow,
-    ): GameResult
+    ): CurrentGameState
 
     /** Get the current game state */
     fun getGameState(gameSession: GameSession): GameState

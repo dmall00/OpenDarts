@@ -9,7 +9,7 @@ import org.mapstruct.Named
 interface GameMapper {
     @Mapping(source = "winner.id", target = "winner")
     @Mapping(source = "nextPlayer.id", target = "nextPlayer")
-    fun toGameResultTo(gameResult: GameResult): GameResultTo
+    fun toGameStateTO(currentGameState: CurrentGameState): CurrentGameStateTO
 
     @Mapping(source = "currentPlayer.id", target = "currentPlayer")
     @Mapping(
@@ -28,4 +28,6 @@ interface GameMapper {
         }
 
     fun playerIdToString(player: Player): String = player.id ?: throw IllegalArgumentException("Player ID cannot be null")
+
+    fun toDartThrow(dart: Dart): DartThrow
 }

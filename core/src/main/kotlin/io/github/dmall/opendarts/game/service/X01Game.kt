@@ -18,7 +18,7 @@ class X01Game
             gameSession: GameSession,
             currentPlayer: Player,
             dartThrow: DartThrow,
-        ): GameResult {
+        ): CurrentGameState {
             val config = getConfig(gameSession)
             val currentLeg = getCurrentLeg(gameSession)
             val currentTurn = getCurrentTurn(currentLeg, currentPlayer)
@@ -34,14 +34,15 @@ class X01Game
                 logger.info { "Next player is $nextPlayer" }
                 createNewTurnIfNeeded(currentLeg, nextPlayer!!, gameSession)
 
-                return GameResult(
-                    scoreChange = 0,
+                return CurrentGameState(
                     currentDartThrow = dartThrow,
                     currentDartNumber = currentTurn.darts.size + 1,
                     remainingScore = currentScore,
                     bust = true,
                     nextPlayer = nextPlayer,
+                    currentTurnDarts = currentTurn.darts,
                     message = "Bust",
+                    currentPlayer = currentPlayer,
                 )
             }
 
@@ -62,8 +63,7 @@ class X01Game
                     nextPlayer = getStartingPlayerForNewLeg(gameSession, config)
                 }
                 logger.info { "Game is won" }
-                return GameResult(
-                    scoreChange = throwScore,
+                return CurrentGameState(
                     currentDartThrow = dartThrow,
                     currentDartNumber = currentTurn.darts.size,
                     remainingScore = 0,
@@ -78,6 +78,8 @@ class X01Game
                             isSetWon -> "Set won!"
                             else -> "Leg won!"
                         },
+                    currentTurnDarts = currentTurn.darts,
+                    currentPlayer = currentPlayer,
                 )
             }
 
@@ -95,12 +97,13 @@ class X01Game
                     currentPlayer
                 }
 
-            return GameResult(
-                scoreChange = throwScore,
+            return CurrentGameState(
                 currentDartThrow = dartThrow,
                 currentDartNumber = currentTurn.darts.size,
                 remainingScore = newScore,
                 nextPlayer = nextPlayer,
+                currentPlayer = currentPlayer,
+                currentTurnDarts = currentTurn.darts,
             )
         }
 
@@ -111,6 +114,7 @@ class X01Game
                         this.score = 0
                         this.multiplier = 0
                         this.turn = currentTurn
+                        this.autoScore = false
                     }
                 currentTurn.darts.add(dart)
             }
@@ -224,7 +228,7 @@ class X01Game
                     .maxByOrNull { it.turnOrderIndex } ?: return emptyList()
 
             return currentTurn.darts.map { dart ->
-                DartThrow(score = dart.score, multiplier = dart.multiplier, isAutoScore = false)
+                DartThrow(score = dart.score, multiplier = dart.multiplier, autoScore = false)
             }
         }
 

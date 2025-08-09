@@ -159,6 +159,9 @@ class Dart {
     @Column(nullable = false)
     var multiplier: Int = 1
 
+    @Column(nullable = false)
+    var autoScore: Boolean = false
+
     @ManyToOne(optional = false)
     @JoinColumn(nullable = false)
     lateinit var turn: Turn

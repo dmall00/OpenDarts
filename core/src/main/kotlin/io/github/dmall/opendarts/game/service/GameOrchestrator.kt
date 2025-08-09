@@ -2,9 +2,9 @@ package io.github.dmall.opendarts.game.service
 
 import io.github.dmall.opendarts.game.autoscore.websocket.AppWebSocketHandler
 import io.github.dmall.opendarts.game.events.DartThrowDetectedEvent
+import io.github.dmall.opendarts.game.mapper.GameMapper
+import io.github.dmall.opendarts.game.model.CurrentGameState
 import io.github.dmall.opendarts.game.model.DartThrow
-import io.github.dmall.opendarts.game.model.DartTrackedTo
-import io.github.dmall.opendarts.game.model.GameResult
 import io.github.dmall.opendarts.game.model.GameState
 import io.github.dmall.opendarts.game.repository.GameSessionRepository
 import io.github.dmall.opendarts.game.repository.PlayerRepository
@@ -22,24 +22,25 @@ class GameOrchestrator
         private val playerRepository: PlayerRepository,
         private val gameModeRegistry: GameModeRegistry,
         private val appWebSocketHandler: AppWebSocketHandler,
+        private val gameMapper: GameMapper,
     ) {
         @Transactional
         fun submitDartThrow(
             sessionId: String,
             playerId: String,
             dartThrow: DartThrow,
-        ): GameResult {
+        ): CurrentGameState {
             val gameSession = gameSessionRepository.findById(sessionId).orElseThrow()
             val currentPlayer = playerRepository.findById(playerId).orElseThrow()
             val gameHandler = gameModeRegistry.getGameHandler(gameSession.game.gameMode)
-            val gameResult = gameHandler.processDartThrow(gameSession, currentPlayer, dartThrow)
-            if (dartThrow.isAutoScore) {
+            val gameState = gameHandler.processDartThrow(gameSession, currentPlayer, dartThrow)
+            if (dartThrow.autoScore) {
                 appWebSocketHandler.sendDartDetected(
-                    DartTrackedTo(playerId, gameResult.remainingScore!!, dartThrow),
+                    gameMapper.toGameStateTO(gameState),
                     "$playerId-$sessionId",
                 )
             }
-            return gameResult
+            return gameState
         }
 
         fun getGameState(gameId: String): GameState {
