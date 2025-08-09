@@ -1,39 +1,31 @@
 package io.github.dmall.opendarts.game.mapper
 
 import io.github.dmall.opendarts.game.model.*
-import org.springframework.stereotype.Component
+import org.mapstruct.Mapper
+import org.mapstruct.Mapping
+import org.mapstruct.Named
 
-@Component
-class GameMapper {
-    fun toGameResultTo(gameResult: GameResult): GameResultTo =
-        GameResultTo(
-            isValidThrow = gameResult.isValidThrow,
-            scoreChange = gameResult.scoreChange,
-            remainingScore = gameResult.remainingScore,
-            isLegWon = gameResult.isLegWon,
-            isSetWon = gameResult.isSetWon,
-            isGameWon = gameResult.isGameWon,
-            winner = gameResult.winner?.id,
-            nextPlayer = gameResult.nextPlayer?.id,
-            message = gameResult.message,
-            bust = gameResult.bust,
-        )
+@Mapper(componentModel = "spring")
+interface GameMapper {
+    @Mapping(source = "winner.id", target = "winner")
+    @Mapping(source = "nextPlayer.id", target = "nextPlayer")
+    fun toGameResultTo(gameResult: GameResult): GameResultTo
 
-    fun toGameStateTo(gameState: GameState): GameStateTo =
-        GameStateTo(
-            currentPlayer = gameState.currentPlayer.id!!,
-            currentRemainingScores = convertPlayerMapToIdMap(gameState.currentRemainingScores),
-            currentLegDarts = gameState.currentLegDarts,
-            currentLeg = gameState.currentLeg,
-            currentSet = gameState.currentSet,
-            legsWon = convertPlayerMapToIdMap(gameState.legsWon),
-            setsWon = convertPlayerMapToIdMap(gameState.setsWon),
-            dartsThrown = gameState.dartsThrown,
-            turnsPlayed = gameState.turnsPlayed,
-        )
+    @Mapping(source = "currentPlayer.id", target = "currentPlayer")
+    @Mapping(
+        source = "currentRemainingScores",
+        target = "currentRemainingScores",
+        qualifiedByName = ["playerMapToIdMap"],
+    )
+    @Mapping(source = "legsWon", target = "legsWon", qualifiedByName = ["playerMapToIdMap"])
+    @Mapping(source = "setsWon", target = "setsWon", qualifiedByName = ["playerMapToIdMap"])
+    fun toGameStateTo(gameState: GameState): GameStateTo
 
-    private fun convertPlayerMapToIdMap(playerMap: Map<Player, Int>): Map<String, Int> =
+    @Named("playerMapToIdMap")
+    fun playerMapToIdMap(playerMap: Map<Player, Int>): Map<String, Int> =
         playerMap.mapKeys { (player, _) ->
             player.id ?: throw IllegalArgumentException("Player ID cannot be null")
         }
+
+    fun playerIdToString(player: Player): String = player.id ?: throw IllegalArgumentException("Player ID cannot be null")
 }

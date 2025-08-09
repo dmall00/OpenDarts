@@ -33,22 +33,24 @@ class GameOrchestrator
             val currentPlayer = playerRepository.findById(playerId).orElseThrow()
             val gameHandler = gameModeRegistry.getGameHandler(gameSession.game.gameMode)
             val gameResult = gameHandler.processDartThrow(gameSession, currentPlayer, dartThrow)
-            appWebSocketHandler.sendDartDetected(
-                DartTrackedTo(playerId, gameResult.remainingScore!!, dartThrow),
-                "$playerId-$sessionId",
-            )
+            if (dartThrow.isAutoScore) {
+                appWebSocketHandler.sendDartDetected(
+                    DartTrackedTo(playerId, gameResult.remainingScore!!, dartThrow),
+                    "$playerId-$sessionId",
+                )
+            }
             return gameResult
         }
 
         fun getGameState(gameId: String): GameState {
             val gameSession = gameSessionRepository.findById(gameId).orElseThrow()
             val gameHandler = gameModeRegistry.getGameHandler(gameSession.game.gameMode)
-        return gameHandler.getGameState(gameSession)
+            return gameHandler.getGameState(gameSession)
         }
 
         @EventListener
         @Transactional
         fun handleDartThrowDetectedEvent(event: DartThrowDetectedEvent) {
             submitDartThrow(event.sessionId, event.playerId, event.dartThrow)
+        }
     }
-}

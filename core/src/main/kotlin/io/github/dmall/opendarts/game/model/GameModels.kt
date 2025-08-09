@@ -1,19 +1,32 @@
 package io.github.dmall.opendarts.game.model
 
 import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.annotation.JsonProperty
 
 data class DartThrow(
     val multiplier: Int,
     val score: Int,
+    val isAutoScore: Boolean,
 ) {
     val computedScore: Int
         @JsonIgnore
         get() = score * multiplier
+
+    val scoreString: String
+        @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+        get() =
+            when (multiplier) {
+                1 -> "S$score"
+                2 -> "D$score"
+                3 -> "T$score"
+                else -> "$multiplier×$score"
+            }
 }
 
 data class GameResult(
-    val isValidThrow: Boolean,
     val scoreChange: Int,
+    val currentDartThrow: DartThrow,
+    val currentDartNumber: Int,
     val remainingScore: Int? = null,
     val isLegWon: Boolean = false,
     val isSetWon: Boolean = false,
@@ -55,8 +68,9 @@ data class GameState(
 )
 
 data class GameResultTo(
-    val isValidThrow: Boolean,
     val scoreChange: Int,
+    val currentDartThrow: DartThrow,
+    val currentDartNumber: Int,
     val remainingScore: Int? = null,
     val isLegWon: Boolean = false,
     val isSetWon: Boolean = false,

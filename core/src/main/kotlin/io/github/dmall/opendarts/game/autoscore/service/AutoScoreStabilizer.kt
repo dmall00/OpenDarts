@@ -123,7 +123,7 @@ class AutoScoreStabilizer
             // Add dummy positions for missed darts - they won't be visible but we need to track them
             for (i in 0 until missCount) {
                 // Create a dart with score 0
-                val dartThrow = DartThrow(1, 0) // multiplier 1, value 0 = 0 points
+                val dartThrow = DartThrow(1, 0, true) // multiplier 1, value 0 = 0 points
 
                 // Publish the event for this missed dart
                 applicationEventPublisher.publishEvent(
@@ -132,7 +132,7 @@ class AutoScoreStabilizer
 
                 // Add a dummy position for tracking
                 // Use a negative position to ensure it doesn't collide with real dart positions
-            confirmedDarts.add((-1.0 - i) to -1.0)
+                confirmedDarts.add((-1.0 - i) to -1.0)
             }
         }
 
@@ -187,7 +187,7 @@ class AutoScoreStabilizer
                     val score = dart.dartScore.singleValue
                     logger.info { "Detected new dart with score $score - $multiplier = ${multiplier * score}" }
 
-                    val dartThrow = DartThrow(multiplier, score)
+                    val dartThrow = DartThrow(multiplier, score, true)
                     applicationEventPublisher.publishEvent(
                         DartThrowDetectedEvent(this, sessionId, playerId, dartThrow),
                     )
@@ -197,7 +197,7 @@ class AutoScoreStabilizer
         }
 
         private fun toPair(dart: DartDetection): Pair<Double, Double> =
-        dart.transformedPosition.x.toDouble() to dart.transformedPosition.y.toDouble()
+            dart.transformedPosition.x.toDouble() to dart.transformedPosition.y.toDouble()
 
         private fun resetStateForNewTurn(
             playerId: String,

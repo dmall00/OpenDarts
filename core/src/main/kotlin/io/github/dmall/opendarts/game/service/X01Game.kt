@@ -35,8 +35,9 @@ class X01Game
                 createNewTurnIfNeeded(currentLeg, nextPlayer!!, gameSession)
 
                 return GameResult(
-                    isValidThrow = true,
                     scoreChange = 0,
+                    currentDartThrow = dartThrow,
+                    currentDartNumber = currentTurn.darts.size + 1,
                     remainingScore = currentScore,
                     bust = true,
                     nextPlayer = nextPlayer,
@@ -62,8 +63,9 @@ class X01Game
                 }
                 logger.info { "Game is won" }
                 return GameResult(
-                    isValidThrow = true,
                     scoreChange = throwScore,
+                    currentDartThrow = dartThrow,
+                    currentDartNumber = currentTurn.darts.size,
                     remainingScore = 0,
                     isLegWon = true,
                     isSetWon = isSetWon,
@@ -94,8 +96,9 @@ class X01Game
                 }
 
             return GameResult(
-                isValidThrow = true,
                 scoreChange = throwScore,
+                currentDartThrow = dartThrow,
+                currentDartNumber = currentTurn.darts.size,
                 remainingScore = newScore,
                 nextPlayer = nextPlayer,
             )
@@ -221,7 +224,7 @@ class X01Game
                     .maxByOrNull { it.turnOrderIndex } ?: return emptyList()
 
             return currentTurn.darts.map { dart ->
-                DartThrow(score = dart.score, multiplier = dart.multiplier)
+                DartThrow(score = dart.score, multiplier = dart.multiplier, isAutoScore = false)
             }
         }
 
