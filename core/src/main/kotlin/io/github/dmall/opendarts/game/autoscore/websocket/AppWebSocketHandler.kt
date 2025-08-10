@@ -3,7 +3,6 @@ package io.github.dmall.opendarts.game.autoscore.websocket
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.github.dmall.opendarts.game.autoscore.service.AutoscoreImageTransmitter
-import io.github.dmall.opendarts.game.model.CurrentGameStateTO
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.stereotype.Component
 import org.springframework.web.socket.BinaryMessage
@@ -72,21 +71,21 @@ class AppWebSocketHandler(
         sessions.remove(extractIdsFromSession(session).joinWith())
     }
 
-    fun sendDartDetected(
-        currentGameState: CurrentGameStateTO,
+    fun sendWebSocketMessage(
+        eventObject: Any,
         id: String,
     ) {
         val session = sessions[id] ?: throw IllegalStateException("No session found for id")
         if (session.isOpen) {
             try {
-                val json = objectMapper.writeValueAsString(currentGameState)
+                val json = objectMapper.writeValueAsString(eventObject)
                 session.sendMessage(TextMessage(json))
-                logger.info { "Successfully sent dart detection message" }
+                logger.info { "Successfully sent websocket event message" }
             } catch (e: Exception) {
                 logger.error(e) { "Error sending object as text message" }
             }
         } else {
-            logger.warn { "Session $id is not open, cannot send dart detection" }
+            logger.warn { "Session $id is not open, cannot send event message" }
         }
     }
 }

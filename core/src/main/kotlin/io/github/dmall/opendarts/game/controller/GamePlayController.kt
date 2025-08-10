@@ -23,7 +23,7 @@ class GamePlayController
             @RequestBody dartThrow: DartThrow,
         ): CurrentGameStateTO {
             val gameResult = gameOrchestrator.submitDartThrow(gameId, playerId, dartThrow)
-            return gameMapper.toGameStateTO(gameResult)
+            return gameMapper.toCurrentGameStateTO(gameResult)
         }
 
         @GetMapping("/{gameId}/state")

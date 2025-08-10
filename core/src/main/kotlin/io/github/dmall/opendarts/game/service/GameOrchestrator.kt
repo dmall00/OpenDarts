@@ -1,7 +1,8 @@
 package io.github.dmall.opendarts.game.service
 
+import io.github.dmall.opendarts.game.autoscore.events.DartThrowDetectedEvent
+import io.github.dmall.opendarts.game.autoscore.events.TurnSwitchDetectedEvent
 import io.github.dmall.opendarts.game.autoscore.websocket.AppWebSocketHandler
-import io.github.dmall.opendarts.game.events.DartThrowDetectedEvent
 import io.github.dmall.opendarts.game.mapper.GameMapper
 import io.github.dmall.opendarts.game.model.CurrentGameState
 import io.github.dmall.opendarts.game.model.DartThrow
@@ -35,8 +36,8 @@ class GameOrchestrator
             val gameHandler = gameModeRegistry.getGameHandler(gameSession.game.gameMode)
             val gameState = gameHandler.processDartThrow(gameSession, currentPlayer, dartThrow)
             if (dartThrow.autoScore) {
-                appWebSocketHandler.sendDartDetected(
-                    gameMapper.toGameStateTO(gameState),
+                appWebSocketHandler.sendWebSocketMessage(
+                    gameMapper.toCurrentGameStateTO(gameState),
                     "$playerId-$sessionId",
                 )
             }
@@ -54,4 +55,14 @@ class GameOrchestrator
         fun handleDartThrowDetectedEvent(event: DartThrowDetectedEvent) {
             submitDartThrow(event.sessionId, event.playerId, event.dartThrow)
         }
+
+        @EventListener
+        @Transactional
+        fun handleTurnSwitchDetectedEvent(event: TurnSwitchDetectedEvent) {
+            val gameState = getGameState(event.sessionId)
+            appWebSocketHandler.sendWebSocketMessage(
+                gameMapper.toGameStateTo(gameState),
+                "${event.playerId}-${event.sessionId}",
+        )
+    }
     }

@@ -1,10 +1,11 @@
 package io.github.dmall.opendarts.game.autoscore.service
 
+import io.github.dmall.opendarts.game.autoscore.events.DartThrowDetectedEvent
+import io.github.dmall.opendarts.game.autoscore.events.TurnSwitchDetectedEvent
 import io.github.dmall.opendarts.game.autoscore.model.DartDetection
 import io.github.dmall.opendarts.game.autoscore.model.DetectionResult
 import io.github.dmall.opendarts.game.autoscore.model.DetectionState
 import io.github.dmall.opendarts.game.autoscore.model.PipelineDetectionResponse
-import io.github.dmall.opendarts.game.events.DartThrowDetectedEvent
 import io.github.dmall.opendarts.game.model.DartThrow
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.beans.factory.annotation.Autowired
@@ -85,7 +86,6 @@ class AutoScoreStabilizer
                 return
             }
 
-            // Check if we need to register missed darts
             val hasDartsOnBoardBefore = !detectionState.isNewTurnAndBoardCleared || confirmedDarts.isNotEmpty()
             val (shouldRegisterMisses, missCount) =
                 turnSwitchDetector.detectMissedDarts(
@@ -97,7 +97,6 @@ class AutoScoreStabilizer
 
             if (shouldRegisterMisses) {
                 registerMissedDarts(missCount, playerId, sessionId, confirmedDarts)
-                // After registering misses, we'll have 3 darts, so check if board is clear
                 handleThreeDartsConfirmed(currentImageDarts, detectionState, confirmedDarts, playerId, sessionId)
                 return
             }
@@ -120,18 +119,12 @@ class AutoScoreStabilizer
         ) {
             logger.info { "Registering $missCount missed dart(s) for player $playerId" }
 
-            // Add dummy positions for missed darts - they won't be visible but we need to track them
             for (i in 0 until missCount) {
-                // Create a dart with score 0
-                val dartThrow = DartThrow(1, 0, true) // multiplier 1, value 0 = 0 points
+                val dartThrow = DartThrow(1, 0, true)
 
-                // Publish the event for this missed dart
                 applicationEventPublisher.publishEvent(
                     DartThrowDetectedEvent(this, sessionId, playerId, dartThrow),
                 )
-
-                // Add a dummy position for tracking
-                // Use a negative position to ensure it doesn't collide with real dart positions
                 confirmedDarts.add((-1.0 - i) to -1.0)
             }
         }
@@ -208,6 +201,7 @@ class AutoScoreStabilizer
             stableDarts.clear()
             turnSwitchDetector.resetStateForNewTurn(playerId, sessionId, detectionState)
             logger.info { "Cleared tracked darts for new turn." }
+            applicationEventPublisher.publishEvent(TurnSwitchDetectedEvent(this, sessionId, playerId))
         }
 
         private fun isSameDart(

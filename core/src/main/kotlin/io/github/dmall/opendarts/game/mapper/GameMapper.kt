@@ -9,7 +9,7 @@ import org.mapstruct.Named
 interface GameMapper {
     @Mapping(source = "winner.id", target = "winner")
     @Mapping(source = "nextPlayer.id", target = "nextPlayer")
-    fun toGameStateTO(currentGameState: CurrentGameState): CurrentGameStateTO
+    fun toCurrentGameStateTO(currentGameState: CurrentGameState): CurrentGameStateTO
 
     @Mapping(source = "currentPlayer.id", target = "currentPlayer")
     @Mapping(

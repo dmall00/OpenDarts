@@ -82,22 +82,18 @@ class TurnSwitchDetector {
         currentImageDartsCount: Int,
         hasDartsOnBoardBefore: Boolean,
     ): Pair<Boolean, Int> {
-        // If we already have all darts or there are darts on the board, reset counter
         if (confirmedDartsCount >= MAX_DARTS_PER_TURN || currentImageDartsCount > 0) {
             zeroFramesCounter[sessionPlayerId] = 0
             return Pair(false, 0)
         }
 
-        // If there were no darts on the board before, don't count as misses
         if (!hasDartsOnBoardBefore) {
             return Pair(false, 0)
         }
 
-        // Increment counter for consecutive empty frames
         val currentCount = zeroFramesCounter.getOrDefault(sessionPlayerId, 0) + 1
         zeroFramesCounter[sessionPlayerId] = currentCount
 
-        // If we've seen enough consecutive empty frames, register misses
         if (currentCount >= EMPTY_FRAMES_THRESHOLD) {
             val missedDartsCount = MAX_DARTS_PER_TURN - confirmedDartsCount
 
