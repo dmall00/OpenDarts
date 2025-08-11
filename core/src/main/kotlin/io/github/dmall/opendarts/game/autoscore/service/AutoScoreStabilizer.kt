@@ -16,6 +16,7 @@ import kotlin.math.sqrt
 
 private const val DISTANCE_THRESHOLD = 0.01
 private const val CONFIDENCE_THRESHOLD = 0.1
+private const val MISS_DART_CONFIDENCE_THRESHOLD = 0.5
 
 @Service
 class AutoScoreStabilizer
@@ -174,11 +175,11 @@ class AutoScoreStabilizer
             for (dart in imageDarts) {
                 val pos = toPair(dart)
                 val confidence = dart.originalPosition.confidence
+                val multiplier = dart.dartScore.multiplier
+                val score = dart.dartScore.singleValue
 
-                if (confidence > CONFIDENCE_THRESHOLD && newDarts.contains(pos)) {
-                    val multiplier = dart.dartScore.multiplier
-                    val score = dart.dartScore.singleValue
-                    logger.info { "Detected new dart with score $score - $multiplier = ${multiplier * score}" }
+                if (isOverConfidenceThreshold(confidence, score) && newDarts.contains(pos)) {
+                    logger.info { "Detected new dart with confidence $confidence and score $score*$multiplier = ${multiplier * score}" }
 
                     val dartThrow = DartThrow(multiplier, score, true)
                     applicationEventPublisher.publishEvent(
@@ -188,6 +189,11 @@ class AutoScoreStabilizer
                 }
             }
         }
+
+        private fun isOverConfidenceThreshold(
+            confidence: Float,
+            score: Int,
+        ): Boolean = (confidence > CONFIDENCE_THRESHOLD && score != 0) || (confidence > MISS_DART_CONFIDENCE_THRESHOLD && score == 0)
 
         private fun toPair(dart: DartDetection): Pair<Double, Double> =
             dart.transformedPosition.x.toDouble() to dart.transformedPosition.y.toDouble()
