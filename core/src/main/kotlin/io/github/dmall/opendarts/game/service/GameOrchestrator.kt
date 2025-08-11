@@ -1,6 +1,7 @@
 package io.github.dmall.opendarts.game.service
 
 import io.github.dmall.opendarts.game.autoscore.events.DartThrowDetectedEvent
+import io.github.dmall.opendarts.game.autoscore.events.EventType
 import io.github.dmall.opendarts.game.autoscore.events.TurnSwitchDetectedEvent
 import io.github.dmall.opendarts.game.autoscore.websocket.AppWebSocketHandler
 import io.github.dmall.opendarts.game.mapper.GameMapper
@@ -39,6 +40,7 @@ class GameOrchestrator
                 appWebSocketHandler.sendWebSocketMessage(
                     gameMapper.toCurrentGameStateTO(gameState),
                     "$playerId-$sessionId",
+                    EventType.DART_THROW_DETECTED,
                 )
             }
             return gameState
@@ -63,6 +65,7 @@ class GameOrchestrator
             appWebSocketHandler.sendWebSocketMessage(
                 gameMapper.toGameStateTo(gameState),
                 "${event.playerId}-${event.sessionId}",
-        )
-    }
+                event.type,
+            )
+        }
     }

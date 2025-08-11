@@ -4,9 +4,9 @@ import io.github.dmall.opendarts.game.autoscore.model.DetectionState
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.stereotype.Service
 
-// Constants for miss detection
-private const val EMPTY_FRAMES_THRESHOLD = 3
-private const val MAX_DARTS_PER_TURN = 3
+private const val FPS = 1
+private const val EMPTY_FRAMES_THRESHOLD = 3 * FPS
+private const val MAX_DARTS_PER_TURN = 3 * FPS
 
 @Service
 class TurnSwitchDetector {

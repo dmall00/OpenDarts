@@ -1,7 +1,9 @@
 package io.github.dmall.opendarts.game.autoscore.websocket
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.node.ObjectNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import io.github.dmall.opendarts.game.autoscore.events.EventType
 import io.github.dmall.opendarts.game.autoscore.service.AutoscoreImageTransmitter
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.stereotype.Component
@@ -74,13 +76,16 @@ class AppWebSocketHandler(
     fun sendWebSocketMessage(
         eventObject: Any,
         id: String,
+        type: EventType,
     ) {
         val session = sessions[id] ?: throw IllegalStateException("No session found for id")
         if (session.isOpen) {
             try {
-                val json = objectMapper.writeValueAsString(eventObject)
+                val jsonNode = objectMapper.valueToTree<ObjectNode>(eventObject)
+                jsonNode.put("type", type.type)
+                val json = objectMapper.writeValueAsString(jsonNode)
                 session.sendMessage(TextMessage(json))
-                logger.info { "Successfully sent websocket event message" }
+                logger.info { "Successfully sent $type websocket event message" }
             } catch (e: Exception) {
                 logger.error(e) { "Error sending object as text message" }
             }

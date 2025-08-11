@@ -179,7 +179,9 @@ class AutoScoreStabilizer
                 val score = dart.dartScore.singleValue
 
                 if (isOverConfidenceThreshold(confidence, score) && newDarts.contains(pos)) {
-                    logger.info { "Detected new dart with confidence $confidence and score $score*$multiplier = ${multiplier * score}" }
+                    logger.info {
+                        "Detected new dart with confidence $confidence and score $score*$multiplier = ${multiplier * score}, pos: $pos"
+                    }
 
                     val dartThrow = DartThrow(multiplier, score, true)
                     applicationEventPublisher.publishEvent(
