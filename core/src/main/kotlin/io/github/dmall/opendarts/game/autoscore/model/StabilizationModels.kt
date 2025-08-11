@@ -8,5 +8,7 @@ data class DetectionState(
 )
 
 data class CalibrationState(
-    val test: String,
+    var consecutiveCalibrations: Int = 0,
+    var consecutiveFailedCalibrations: Int = 0,
+    val calibrationList: MutableList<Map<Int, Pair<Double, Double>>> = mutableListOf(),
 )

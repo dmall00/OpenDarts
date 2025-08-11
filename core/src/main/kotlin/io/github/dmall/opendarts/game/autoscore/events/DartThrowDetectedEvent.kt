@@ -8,6 +8,7 @@ enum class EventType(
 ) {
     DART_THROW_DETECTED("dartProcessedResult"),
     TURN_SWITCH_DETECTED("turnSwitch"),
+    CALIBRATION("calibration"),
 }
 
 abstract class GameEvent(
@@ -34,5 +35,5 @@ class CalibrationEvent(
     source: Any,
     sessionId: String,
     playerId: String,
-    val success: Boolean,
-) : GameEvent(source, sessionId, playerId, EventType.TURN_SWITCH_DETECTED)
+    val calibrated: Boolean,
+) : GameEvent(source, sessionId, playerId, EventType.CALIBRATION)

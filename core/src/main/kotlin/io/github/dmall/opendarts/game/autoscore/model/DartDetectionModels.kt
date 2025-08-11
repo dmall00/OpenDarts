@@ -29,7 +29,7 @@ enum class AutoScoringResultCode(
 data class CalibrationResult(
     // val homographyMatrix: Array<IntArray>,
     val calibrationPoints: List<CalibrationPoint>,
-    val preprocessingResult: PreprocessingResult,
+    // val preprocessingResult: PreprocessingResult,
 )
 
 data class PreprocessingResult(

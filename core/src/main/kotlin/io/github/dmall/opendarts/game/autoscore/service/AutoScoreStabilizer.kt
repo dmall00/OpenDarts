@@ -12,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import java.util.*
-import kotlin.math.sqrt
 
 private const val DISTANCE_THRESHOLD = 0.01
 private const val CONFIDENCE_THRESHOLD = 0.1
@@ -22,9 +21,9 @@ private const val MISS_DART_CONFIDENCE_THRESHOLD = 0.5
 class AutoScoreStabilizer
     @Autowired
     constructor(
-        private val applicationEventPublisher: ApplicationEventPublisher,
+        applicationEventPublisher: ApplicationEventPublisher,
         private val turnSwitchDetector: TurnSwitchDetector,
-    ) {
+    ) : AutoScoreBaseService(applicationEventPublisher) {
         private val logger = KotlinLogging.logger {}
 
         private val detectionStates: MutableMap<String, DetectionState> = Collections.synchronizedMap(mutableMapOf())
@@ -51,13 +50,6 @@ class AutoScoreStabilizer
                     )
             }
         }
-
-        private fun isValidDetection(detection: PipelineDetectionResponse): Boolean = detection.status.isSuccess()
-
-        private fun composeId(
-            playerId: String,
-            sessionId: String,
-        ): String = "$playerId/$sessionId"
 
         private fun handleYoloError(detectionState: DetectionState) {
             detectionState.yoloErrors++
@@ -213,10 +205,5 @@ class AutoScoreStabilizer
         private fun isSameDart(
             current: Pair<Double, Double>,
             previous: Pair<Double, Double>,
-        ): Boolean {
-            val dx = current.first - previous.first
-            val dy = current.second - previous.second
-            val distance = sqrt(dx * dx + dy * dy)
-            return distance < DISTANCE_THRESHOLD
-        }
+        ): Boolean = calculateDistance(current, previous) < DISTANCE_THRESHOLD
     }

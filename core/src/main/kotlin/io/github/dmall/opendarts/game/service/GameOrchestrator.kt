@@ -1,10 +1,12 @@
 package io.github.dmall.opendarts.game.service
 
+import io.github.dmall.opendarts.game.autoscore.events.CalibrationEvent
 import io.github.dmall.opendarts.game.autoscore.events.DartThrowDetectedEvent
 import io.github.dmall.opendarts.game.autoscore.events.EventType
 import io.github.dmall.opendarts.game.autoscore.events.TurnSwitchDetectedEvent
 import io.github.dmall.opendarts.game.autoscore.websocket.AppWebSocketHandler
 import io.github.dmall.opendarts.game.mapper.GameMapper
+import io.github.dmall.opendarts.game.model.AppCalibrationResult
 import io.github.dmall.opendarts.game.model.CurrentGameState
 import io.github.dmall.opendarts.game.model.DartThrow
 import io.github.dmall.opendarts.game.model.GameState
@@ -68,4 +70,13 @@ class GameOrchestrator
                 event.type,
             )
         }
+
+        @EventListener
+        fun handleCalibrationEvent(event: CalibrationEvent) {
+            appWebSocketHandler.sendWebSocketMessage(
+                AppCalibrationResult(event.calibrated),
+                "${event.playerId}-${event.sessionId}",
+                event.type,
+        )
+    }
     }

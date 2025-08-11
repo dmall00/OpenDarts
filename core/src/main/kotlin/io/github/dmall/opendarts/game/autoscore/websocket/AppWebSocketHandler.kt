@@ -85,7 +85,7 @@ class AppWebSocketHandler(
                 jsonNode.put("type", type.type)
                 val json = objectMapper.writeValueAsString(jsonNode)
                 session.sendMessage(TextMessage(json))
-                logger.info { "Successfully sent $type websocket event message" }
+                logger.info { "Successfully sent $type websocket event message $json" }
             } catch (e: Exception) {
                 logger.error(e) { "Error sending object as text message" }
             }
