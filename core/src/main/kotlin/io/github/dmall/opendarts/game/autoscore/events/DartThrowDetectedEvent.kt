@@ -10,17 +10,29 @@ enum class EventType(
     TURN_SWITCH_DETECTED("turnSwitch"),
 }
 
-class DartThrowDetectedEvent(
+abstract class GameEvent(
     source: Any,
     val sessionId: String,
     val playerId: String,
-    val dartThrow: DartThrow,
-    val type: EventType = EventType.DART_THROW_DETECTED,
+    val type: EventType,
 ) : ApplicationEvent(source)
+
+class DartThrowDetectedEvent(
+    source: Any,
+    sessionId: String,
+    playerId: String,
+    val dartThrow: DartThrow,
+) : GameEvent(source, sessionId, playerId, EventType.DART_THROW_DETECTED)
 
 class TurnSwitchDetectedEvent(
     source: Any,
-    val sessionId: String,
-    val playerId: String,
-    val type: EventType = EventType.TURN_SWITCH_DETECTED,
-) : ApplicationEvent(source)
+    sessionId: String,
+    playerId: String,
+) : GameEvent(source, sessionId, playerId, EventType.TURN_SWITCH_DETECTED)
+
+class CalibrationEvent(
+    source: Any,
+    sessionId: String,
+    playerId: String,
+    val success: Boolean,
+) : GameEvent(source, sessionId, playerId, EventType.TURN_SWITCH_DETECTED)

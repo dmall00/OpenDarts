@@ -28,8 +28,6 @@ class AutoScoreStabilizer
         private val logger = KotlinLogging.logger {}
 
         private val detectionStates: MutableMap<String, DetectionState> = Collections.synchronizedMap(mutableMapOf())
-        private val confirmedDartsPerSession: MutableMap<String, MutableList<Pair<Double, Double>>> =
-            Collections.synchronizedMap(mutableMapOf())
 
         fun processDartDetectionResult(detection: PipelineDetectionResponse) {
             if (!isValidDetection(detection)) {
@@ -79,7 +77,7 @@ class AutoScoreStabilizer
             val imageDarts = detectionResult.scoringResult?.dartDetections ?: return
             logger.info { "Recognized ${imageDarts.size} darts on board: $imageDarts" }
 
-            val confirmedDarts = confirmedDartsPerSession.getOrPut(id) { mutableListOf() }
+            val confirmedDarts = detectionState.confirmedDarts
             val currentImageDarts = extractDartPositions(imageDarts)
 
             if (confirmedDarts.size >= 3) {
@@ -206,7 +204,7 @@ class AutoScoreStabilizer
             stableDarts: MutableList<Pair<Double, Double>>,
             detectionState: DetectionState,
         ) {
-            stableDarts.clear()
+            detectionState.confirmedDarts.clear()
             turnSwitchDetector.resetStateForNewTurn(playerId, sessionId, detectionState)
             logger.info { "Cleared tracked darts for new turn." }
             applicationEventPublisher.publishEvent(TurnSwitchDetectedEvent(this, sessionId, playerId))
