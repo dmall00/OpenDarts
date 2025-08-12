@@ -15,11 +15,9 @@ from detector.service.scoring.dart_scoring_service import DartScoringService
 from detector.yolo.dart_detector import YoloDartImageProcessor
 from websockets.asyncio.server import ServerConnection
 
-from autoscore.handler.calibration_handler import CalibrationHandler
-from autoscore.handler.ping_handler import PingHandler
 from autoscore.handler.pipeline_detection_handler import PipelineDetectionHandler
-from autoscore.handler.scoring_handler import ScoringHandler
-from autoscore.model.request import BaseRequest, CalibrationRequest, PingRequest, PipelineDetectionRequest, RequestType, ScoringRequest
+from autoscore.model.request import BaseRequest, CalibrationRequest, PingRequest, PipelineDetectionRequest, RequestType, \
+    ScoringRequest
 from autoscore.model.response import (
     ErrorResponse,
     Status,
@@ -52,10 +50,6 @@ class MessageRouter:
             image_preprocessor=image_preprocessor,
         )
 
-        self.calibration_handler = CalibrationHandler(calibration_service=calibration_service)
-        self.scoring_handler = ScoringHandler(scoring_service=scoring_service)
-        self.ping_handler = PingHandler()
-
         dart_scoring_service = DartInImageScoringService(
             config=config,
             yolo_image_processor=yolo_dart_image_processor,
@@ -69,9 +63,6 @@ class MessageRouter:
         )
 
         self.handlers: Dict[RequestType, BaseHandler] = {
-            RequestType.CALIBRATION: self.calibration_handler,
-            RequestType.SCORING: self.scoring_handler,
-            RequestType.PING: self.ping_handler,
             RequestType.FULL: self.detection_handler,
         }
 
