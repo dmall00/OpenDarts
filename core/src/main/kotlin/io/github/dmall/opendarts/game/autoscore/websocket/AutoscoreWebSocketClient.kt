@@ -84,7 +84,7 @@ class AutoscoreWebSocketClient(
             }
         } else {
             logger.warn {
-                "Could not send JSON message to autoscore server - session not available"
+                logger.info { "Could not send JSON message to autoscore server - session not available" }
                 connect()
             }
         }

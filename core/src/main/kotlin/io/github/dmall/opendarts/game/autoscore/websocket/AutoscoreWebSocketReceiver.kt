@@ -28,7 +28,7 @@ class AutoscoreWebSocketReceiver(
         message: TextMessage,
     ) {
         val detection = objectMapper.readValue(message.payload, PipelineDetectionResponse::class.java)
-        logger.debug { "$detection" }
+        logger.debug { "Received detection response: $detection" }
 
         if (calibrationService.isBoardCalibrated(detection)) {
             autoScoreStabilizer.processDartDetectionResult(detection)

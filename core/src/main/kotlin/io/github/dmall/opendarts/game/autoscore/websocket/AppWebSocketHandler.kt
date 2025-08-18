@@ -40,12 +40,13 @@ class AppWebSocketHandler(
         val sizeInBytes = message.payload.remaining()
         val sizeInMB = sizeInBytes / (1024.0 * 1024.0)
         logger.debug {
-            "Received message from app with size in MB: ${String.format("%.2f", sizeInMB)}"
+            "Received binary message, size: ${String.format("%.2f", sizeInMB)} MB"
         }
 
         try {
             val (playerId, gameSessionId) = extractIdsFromSession(session)
             val imageBytes = message.payload.array()
+
             autoscoreImageTransmitter.sendPipelineDetectionRequest(
                 imageBytes,
                 gameSessionId,

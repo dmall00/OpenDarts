@@ -22,9 +22,10 @@ class WebSocketConfig(
     @Bean
     fun createWebSocketContainer(): ServletServerContainerFactoryBean {
         val container = ServletServerContainerFactoryBean()
-        container.setMaxBinaryMessageBufferSize(10 * 1024 * 1024) // 10 MB
-        container.setMaxTextMessageBufferSize(10 * 1024 * 1024)
-        container.setMaxSessionIdleTimeout(300000L) // 5 minutes
+        container.setMaxBinaryMessageBufferSize(15 * 1024 * 1024) // 15 MB
+        container.setMaxTextMessageBufferSize(15 * 1024 * 1024) // 15 MB
+        container.setMaxSessionIdleTimeout(600000L) // 10 minutes
+        container.setAsyncSendTimeout(30000L) // 30 seconds
         return container
     }
 }

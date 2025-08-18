@@ -13,7 +13,7 @@ import java.util.*
 
 private const val MIN_CALIBRATION = 5
 private const val MAX_INVALID_CALIBRATION = 5
-private const val POSITION_SIMILARITY_THRESHOLD = 0.01
+private const val POSITION_SIMILARITY_THRESHOLD = 0.1
 
 @Service
 class AutoScoreCalibrationService
@@ -121,7 +121,7 @@ class AutoScoreCalibrationService
                             )
                         if (distance >= POSITION_SIMILARITY_THRESHOLD) {
                             logger.warn {
-                                "Class label inconsistency: classId ${newPoint.classId} with $distance"
+                                "Class label inconsistency: classId ${newPoint.classId} with $distance with prev ${calibrationState.calibrationList}"
                             }
                             return@all false
                         }
