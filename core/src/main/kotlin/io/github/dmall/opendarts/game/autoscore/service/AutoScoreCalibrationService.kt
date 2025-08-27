@@ -101,7 +101,9 @@ class AutoScoreCalibrationService
             val pointMap = mutableMapOf<Int, Pair<Double, Double>>()
             calibrationList.add(pointMap)
             calibrationPoints.forEach {
-                pointMap[it.classId] = Pair(it.x, it.y)
+                if (!isMissingCalibrationPoint(it.x, it.y)) {
+                    pointMap[it.classId] = Pair(it.x, it.y)
+                }
             }
             logger.debug { "Added initial calibration: $calibrationList" }
         }
@@ -112,8 +114,16 @@ class AutoScoreCalibrationService
         ): Boolean {
             return calibrationState.calibrationList.all { prevCalibration ->
                 newPoints.all { newPoint ->
+                    if (isMissingCalibrationPoint(newPoint.x, newPoint.y)) {
+                        return@all true
+                    }
+
                     val prevCalibrationPoint = prevCalibration[newPoint.classId]
                     if (prevCalibrationPoint != null) {
+                        if (isMissingCalibrationPoint(prevCalibrationPoint.first, prevCalibrationPoint.second)) {
+                            return@all true
+                        }
+
                         val distance =
                             calculateDistance(
                                 prevCalibrationPoint,
@@ -148,7 +158,15 @@ class AutoScoreCalibrationService
 
         private fun resetCalibrationState(calibrationState: CalibrationState) {
             calibrationState.consecutiveCalibrations = 0
-            calibrationState.consecutiveFailedCalibrations++
+            calibrationState.consecutiveFailedCalibrations = 0
             calibrationState.calibrationList.clear()
         }
+
+        /**
+         * When a calibration point is not there it will be returned as -1, -1
+         */
+        private fun isMissingCalibrationPoint(
+            x: Double,
+            y: Double,
+        ): Boolean = x == -1.0 && y == -1.0
     }
