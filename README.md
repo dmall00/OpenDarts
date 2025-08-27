@@ -1,24 +1,13 @@
-# Open Darts
+# Open Darts Backend
 
+This is the backend service for the Open Darts application. It provides RESTful APIs and WebSocket connections to manage
+dart game sessions, player statistics, and match history.
 
-## Auth service
+Built with Java and Spring Boot, it uses Maven for dependency management and Docker for containerization. Data is
+persisted using a relational database.
 
-Handles login and authentication for users. 
+## Features
 
-## User service
-
-Manages users within this application 
-
-## Game engine 
-[![](https://mermaid.ink/img/pako:eNq1VFFvmzAQ_isnP7VaUsVZIISHSlmidJs2CYVunaa8uHABK2AzY7ZmUf77DsJaWNLH8QK--77vvjvbHFikY2Q-K_FHhSrCpRSJEflGAT2FMFZGshDKwhxECXMVGy1jmBfFOSKsEWFhpErgndb2HBHUiGBvU63gAR9DHe3wAmxe2bSpVr9DND9lhBt1ws2Ht7d13IdPOpEK1rXvshWpE8Ma4MPHh3u41ztsaS_k0IfQUjEIjIioJMKdyBGuiHB9QoWtRBP_sIQ35KEsJXleGBQW41clFyKTj0ZYwval1ijiPWy1ga8yRk1wUsq7OpnWRZcPV862KFtHnUIn_oq2CF9yIeUCH1ba_BIm_jcbDE_UrnpgdGKoq67GyWoXRV3ZqsWg6vV9STSsoog0aWDvdU76okj38FlYI5_64-iSFjovMrT46lDvnpvpbUyTxBiuwkgb9MEZ8euzgdbIIhP7_zDNZe1tScajpo01llVm-yKE-lLEdGLg24hD4_N83k24xV2cdK_rlVSyTOsjyAYsMTJmvjUVDliOJhf1kh1q2obZFMk28-kzFma3YRt1JA5dsO9a539pRldJyvytyEpaVY2L9hfwDCE_aBa6Upb5nE9HjQjzD-yJ1mP3xuMzzieu54wczx2wPfOHE29K4ZHD3bfOdDLms-OA_W7K8puJO3P4eOqMPcebcnd2_AP7GVpP?type=png)](https://mermaid.live/edit#pako:eNq1VFFvmzAQ_isnP7VaUsVZIISHSlmidJs2CYVunaa8uHABK2AzY7ZmUf77DsJaWNLH8QK--77vvjvbHFikY2Q-K_FHhSrCpRSJEflGAT2FMFZGshDKwhxECXMVGy1jmBfFOSKsEWFhpErgndb2HBHUiGBvU63gAR9DHe3wAmxe2bSpVr9DND9lhBt1ws2Ht7d13IdPOpEK1rXvshWpE8Ma4MPHh3u41ztsaS_k0IfQUjEIjIioJMKdyBGuiHB9QoWtRBP_sIQ35KEsJXleGBQW41clFyKTj0ZYwval1ijiPWy1ga8yRk1wUsq7OpnWRZcPV862KFtHnUIn_oq2CF9yIeUCH1ba_BIm_jcbDE_UrnpgdGKoq67GyWoXRV3ZqsWg6vV9STSsoog0aWDvdU76okj38FlYI5_64-iSFjovMrT46lDvnpvpbUyTxBiuwkgb9MEZ8euzgdbIIhP7_zDNZe1tScajpo01llVm-yKE-lLEdGLg24hD4_N83k24xV2cdK_rlVSyTOsjyAYsMTJmvjUVDliOJhf1kh1q2obZFMk28-kzFma3YRt1JA5dsO9a539pRldJyvytyEpaVY2L9hfwDCE_aBa6Upb5nE9HjQjzD-yJ1mP3xuMzzieu54wczx2wPfOHE29K4ZHD3bfOdDLms-OA_W7K8puJO3P4eOqMPcebcnd2_AP7GVpP)
-### Game modes
-
-#### X01
-
-- Start with a predefined score
-- In and out (Straight, Double, Master)
-- Legs and sets
-
-### Checkout scores
-
-- Calculate possible checkouts depending on players level  
+- Real-time game updates via WebSockets for live scoring and state synchronization.
+- Automatic scoring logic for various X01
+- Game state management and stabilization to ensure consistent data handling.
