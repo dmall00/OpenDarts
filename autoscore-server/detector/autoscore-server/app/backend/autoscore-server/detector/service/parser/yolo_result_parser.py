@@ -34,7 +34,11 @@ class YoloResultParser:
     @staticmethod
     def __parse_yolo_results(yolo_result: Results) -> List[YoloDetection]:
         """Convert YOLO results into our internal Detection format."""
-        detections = []
+        detections: List[YoloDetection] = []
+
+        # Handle case where no boxes are detected
+        if yolo_result.boxes is None:
+            return detections
 
         classes = yolo_result.boxes.cls
         boxes = yolo_result.boxes.xywhn

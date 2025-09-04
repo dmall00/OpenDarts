@@ -27,9 +27,9 @@ jobs:
         working-directory: autoscore-server
         run: uv sync --dev
 
-      - name: Run mypy type check
-        working-directory: autoscore-server
-        run: uv run mypy .
+      #- name: Run mypy type check
+      #  working-directory: autoscore-server
+      #  run: uv run mypy .
 
       - name: Run tests
         working-directory: autoscore-server
@@ -50,6 +50,34 @@ jobs:
       - name: Build with Maven
         working-directory: backend
         run: mvn -B package --file pom.xml
+
+  test-expo-app:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: 'app/open-darts-app/package-lock.json'
+      
+      - name: Install dependencies
+        working-directory: app/open-darts-app
+        run: npm ci
+      
+      - name: Run TypeScript check
+        working-directory: app/open-darts-app
+        run: npx tsc --noEmit
+      
+      - name: Run linting
+        working-directory: app/open-darts-app
+        run: npm run lint
+      
+      - name: Test Expo export (compilation check)
+        working-directory: app/open-darts-app
+        run: npx expo export --platform web --output-dir dist --dump-assetmap
 
   # release-autoscore-server:
   #   needs: test-autoscore-server

@@ -21,10 +21,10 @@ export const useWebSocket = (config: WebSocketConfig) => {
     } = config;
 
     const [error, setError] = useState<string | null>(null);
-    const captureIntervalRef = useRef<number | null>(null);
-    const heartbeatIntervalRef = useRef<number | null>(null);
+    const captureIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+    const heartbeatIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
     const onCaptureRef = useRef<(() => Promise<void>) | null>(null);
-    const reconnectTimeoutRef = useRef<number | null>(null);
+    const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const {
         sendMessage: sendMessageLib,
         sendJsonMessage,

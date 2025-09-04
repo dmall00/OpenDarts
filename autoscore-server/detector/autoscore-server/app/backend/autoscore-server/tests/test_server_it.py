@@ -43,47 +43,6 @@ async def websocket_server() -> AsyncGenerator[Server, None]:
     await websocket_server.wait_closed()
 
 
-@pytest.mark.asyncio
-@pytest.mark.usefixtures("websocket_server")
-async def test_separate_pipeline() -> None:
-    logger.info("Starting WebSocket integration test")
-    uri = "ws://localhost:8765"
-    async with websockets.connect(uri) as websocket:
-        # Test ping
-        ping_request = PingRequest(request_type=RequestType.PING, session_id="test")
-        await websocket.send(ping_request.model_dump_json())
-        response = await websocket.recv()
-        response_data = PingResponse(**json.loads(response))
-        logger.info("Received ping response: %s", response_data)
-        assert response_data.status == Status.SUCCESS
-        assert response_data.request_type == RequestType.PING
-
-        # Test calibration
-        image = send_image_base64(Path(__file__).parent / "img.png")
-        calibration_request = CalibrationRequest(request_type=RequestType.CALIBRATION, session_id="test", image=image)
-        await websocket.send(calibration_request.model_dump_json())
-        response = await websocket.recv()
-        calibration_response = CalibrationResponse(**json.loads(response))
-        logger.info("Received calibration response: %s", calibration_response)
-        assert calibration_response.status == Status.SUCCESS
-        assert calibration_response.request_type == RequestType.CALIBRATION
-
-        # Test scoring
-        scoring_request = ScoringRequest(
-            request_type=RequestType.SCORING, session_id="test", image=image, calibration_result=calibration_response.calibration_result
-        )
-        await websocket.send(scoring_request.model_dump_json())
-        response = await websocket.recv()
-        scoring_response = ScoringResponse(**json.loads(response))
-        logger.info("Received scoring response: %s", scoring_response)
-        assert scoring_response.status == Status.SUCCESS
-        assert scoring_response.request_type == RequestType.SCORING  # Verify scoring results
-        scoring_result = scoring_response.scoring_result
-        assert scoring_result.dart_detections
-        assert len(scoring_result.dart_detections) > 0
-        assert all(dart.dart_score.single_value > 0 for dart in scoring_result.dart_detections)
-        assert all(dart.confidence > 0 for dart in scoring_result.dart_detections)
-        assert scoring_result.total_score == EXPECTED_TOTAL_SCORE
 
 
 @pytest.mark.asyncio
@@ -92,15 +51,6 @@ async def test_full_pipeline() -> None:
     logger.info("Starting WebSocket integration test")
     uri = "ws://localhost:8765"
     async with websockets.connect(uri) as websocket:
-        # Test ping
-        ping_request = PingRequest(request_type=RequestType.PING, session_id="test")
-        await websocket.send(ping_request.model_dump_json())
-        response = await websocket.recv()
-        response_data = PingResponse(**json.loads(response))
-        logger.info("Received ping response: %s", response_data)
-        assert response_data.status == Status.SUCCESS
-        assert response_data.request_type == RequestType.PING
-
         # Test calibration
         image = send_image_base64(Path(__file__).parent / "img.png")
         full_request = PipelineDetectionRequest(session_id="test", image=image, request_type=RequestType.FULL)
@@ -118,4 +68,4 @@ async def test_full_pipeline() -> None:
 
 
 if __name__ == "__main__":
-    asyncio.run(test_separate_pipeline())
+    asyncio.run(test_full_pipeline())

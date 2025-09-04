@@ -46,7 +46,7 @@ class CalibrationMatrixCalculator:
     def __get_valid_points_info(self, calibration_coords: np.ndarray) -> Dict[str, int | np.ndarray]:
         """Get information about valid calibration points."""
         valid_mask = self.__get_valid_points_mask(calibration_coords)
-        valid_count = np.count_nonzero(valid_mask)
+        valid_count = int(np.count_nonzero(valid_mask))
 
         self.logger.debug("Found %s valid calibration points", valid_count)
 
