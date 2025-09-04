@@ -1,82 +1,19 @@
-name: Test and Release
+name: Test
 
 on:
   push:
     branches: [ main, master ]
-    tags:
-      - 'autoscore-package-v*'
-      - 'autoscore-server-v*'
-      - 'backend-v*'
   pull_request:
     branches: [ main, master ]
 
 jobs:
-  changes:
-    runs-on: ubuntu-latest
-    outputs:
-      autoscore-package: ${{ steps.changes.outputs.autoscore-package }}
-      autoscore-server: ${{ steps.changes.outputs.autoscore-server }}
-      backend: ${{ steps.changes.outputs.backend }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dorny/paths-filter@v3
-        id: changes
-        with:
-          filters: |
-            autoscore-package:
-              - 'autoscore-package/**'
-            autoscore-server:
-              - 'autoscore-server/**'
-            backend:
-              - 'backend/**'
-
-  test-autoscore-package:
-    needs: changes
-    if: ${{ needs.changes.outputs.autoscore-package == 'true' }}
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: [ "3.11", "3.12" ]
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Configure Git for private repos
-        run: |
-          git config --global url."https://${{ secrets.PRIVATE_REPO_TOKEN }}@github.com/".insteadOf "https://github.com/"
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@v4
-        with:
-          version: "latest"
-
-      - name: Set up Python
-        run: uv python install ${{ matrix.python-version }}
-
-      - name: Install dependencies
-        working-directory: autoscore-package
-        run: uv sync --dev
-
-      - name: Run mypy type check
-        working-directory: autoscore-package
-        run: uv run mypy .
-
-      - name: Run tests
-        working-directory: autoscore-package
-        run: uv run pytest
-
   test-autoscore-server:
-    needs: changes
-    if: ${{ needs.changes.outputs.autoscore-server == 'true' }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
         python-version: [ "3.11", "3.12" ]
     steps:
       - uses: actions/checkout@v4
-
-      - name: Configure Git for private repos
-        run: |
-          git config --global url."https://${{ secrets.PRIVATE_REPO_TOKEN }}@github.com/".insteadOf "https://github.com/"
 
       - name: Install uv
         uses: astral-sh/setup-uv@v4
@@ -99,8 +36,6 @@ jobs:
         run: uv run pytest
 
   test-backend:
-    needs: changes
-    if: ${{ needs.changes.outputs.backend == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -116,124 +51,74 @@ jobs:
         working-directory: backend
         run: mvn -B package --file pom.xml
 
-  release-autoscore-package:
-    needs: test-autoscore-package
-    runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/autoscore-package-v')
-    steps:
-      - uses: actions/checkout@v4
+  # release-autoscore-server:
+  #   needs: test-autoscore-server
+  #   runs-on: ubuntu-latest
+  #   if: startsWith(github.ref, 'refs/tags/autoscore-server-v')
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #
+  #     - name: Install uv
+  #       uses: astral-sh/setup-uv@v4
+  #       with:
+  #         version: "latest"
+  #
+  #     - name: Set up Python
+  #       run: uv python install 3.12
+  #
+  #     - name: Install dependencies
+  #       working-directory: autoscore-server
+  #       run: uv sync --dev
+  #
+  #     - name: Build package
+  #       working-directory: autoscore-server
+  #       run: uv build
+  #
+  #     - name: Extract release notes
+  #       id: extract-release-notes
+  #       uses: ffurrer2/extract-release-notes@v2
+  #
+  #     - name: Create GitHub Release
+  #       uses: softprops/action-gh-release@v2
+  #       with:
+  #         files: autoscore-server/dist/*
+  #         body: ${{ steps.extract-release-notes.outputs.release_notes }}
+  #       env:
+  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  #
+  #     # Uncomment to publish to PyPI
+  #     # - name: Publish to PyPI
+  #     #   env:
+  #     #     UV_PUBLISH_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
+  #     #   working-directory: autoscore-server
+  #     #   run: uv publish
 
-      - name: Configure Git for private repos
-        run: |
-          git config --global url."https://${{ secrets.PRIVATE_REPO_TOKEN }}@github.com/".insteadOf "https://github.com/"
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@v4
-        with:
-          version: "latest"
-
-      - name: Set up Python
-        run: uv python install 3.12
-
-      - name: Install dependencies
-        working-directory: autoscore-package
-        run: uv sync --dev
-
-      - name: Build package
-        working-directory: autoscore-package
-        run: uv build
-
-      - name: Extract release notes
-        id: extract-release-notes
-        uses: ffurrer2/extract-release-notes@v2
-
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: autoscore-package/dist/*
-          body: ${{ steps.extract-release-notes.outputs.release_notes }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      # Uncomment to publish to PyPI
-      # - name: Publish to PyPI
-      #   env:
-      #     UV_PUBLISH_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
-      #   working-directory: autoscore-package
-      #   run: uv publish
-
-  release-autoscore-server:
-    needs: test-autoscore-server
-    runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/autoscore-server-v')
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Configure Git for private repos
-        run: |
-          git config --global url."https://${{ secrets.PRIVATE_REPO_TOKEN }}@github.com/".insteadOf "https://github.com/"
-
-      - name: Install uv
-        uses: astral-sh/setup-uv@v4
-        with:
-          version: "latest"
-
-      - name: Set up Python
-        run: uv python install 3.12
-
-      - name: Install dependencies
-        working-directory: autoscore-server
-        run: uv sync --dev
-
-      - name: Build package
-        working-directory: autoscore-server
-        run: uv build
-
-      - name: Extract release notes
-        id: extract-release-notes
-        uses: ffurrer2/extract-release-notes@v2
-
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: autoscore-server/dist/*
-          body: ${{ steps.extract-release-notes.outputs.release_notes }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      # Uncomment to publish to PyPI
-      # - name: Publish to PyPI
-      #   env:
-      #     UV_PUBLISH_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
-      #   working-directory: autoscore-server
-      #   run: uv publish
-
-  release-backend:
-    needs: test-backend
-    runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/backend-v')
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
-        with:
-          java-version: '21'
-          distribution: 'temurin'
-          cache: maven
-      
-      - name: Build with Maven
-        working-directory: backend
-        run: mvn -B package --file pom.xml
-      
-      - name: Extract release notes
-        id: extract-release-notes
-        uses: ffurrer2/extract-release-notes@v2
-      
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: backend/target/*.jar
-          body: ${{ steps.extract-release-notes.outputs.release_notes }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  # release-backend:
+  #   needs: test-backend
+  #   runs-on: ubuntu-latest
+  #   if: startsWith(github.ref, 'refs/tags/backend-v')
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     
+  #     - name: Set up JDK 21
+  #       uses: actions/setup-java@v4
+  #       with:
+  #         java-version: '21'
+  #         distribution: 'temurin'
+  #         cache: maven
+  #     
+  #     - name: Build with Maven
+  #       working-directory: backend
+  #       run: mvn -B package --file pom.xml
+  #     
+  #     - name: Extract release notes
+  #       id: extract-release-notes
+  #       uses: ffurrer2/extract-release-notes@v2
+  #     
+  #     - name: Create GitHub Release
+  #       uses: softprops/action-gh-release@v2
+  #       with:
+  #         files: backend/target/*.jar
+  #         body: ${{ steps.extract-release-notes.outputs.release_notes }}
+  #       env:
+  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
