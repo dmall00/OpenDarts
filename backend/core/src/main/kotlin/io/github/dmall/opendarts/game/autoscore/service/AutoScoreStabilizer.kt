@@ -67,7 +67,17 @@ class AutoScoreStabilizer
             sessionId: String,
         ) {
             val imageDarts = detectionResult.scoringResult?.dartDetections ?: return
-            logger.info { "Recognized ${imageDarts.size} darts on board: $imageDarts" }
+            
+            val dartInfo = imageDarts.mapIndexed { index, dart ->
+                val scoreText = if (dart.dartScore.multiplier == 1) {
+                    "${dart.dartScore.singleValue}"
+                } else {
+                    "${dart.dartScore.multiplier}x${dart.dartScore.singleValue}"
+                }
+                "Dart ${index + 1}: $scoreText (confidence: ${String.format("%.3f", dart.originalPosition.confidence)})"
+            }.joinToString(", ")
+            
+            logger.info { "Recognized ${imageDarts.size} darts on board: [$dartInfo]" }
 
             val confirmedDarts = detectionState.confirmedDarts
             val currentImageDarts = extractDartPositions(imageDarts)

@@ -31,7 +31,7 @@ class YoloDartImageProcessor:
         try:
             results = list(self._model(image.raw_image, verbose=False))
             result = results[0]
-            self.logger.info(
+            self.logger.debug(
                 "YOLO inference complete in %s seconds. Detected %s objects", round(time.time() - start_time, 3), len(result.boxes)
             )
             return result  # noqa: TRY300

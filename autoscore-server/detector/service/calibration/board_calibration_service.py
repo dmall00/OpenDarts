@@ -80,5 +80,5 @@ class DartBoardCalibrationService:
             calibration_points=calibration_points,
             preprocessing_result=preprocessing_result,
         )
-        DartBoardCalibrationService.logger.info("Calibration completed in %s seconds", calibration_result.processing_time)
+        DartBoardCalibrationService.logger.debug("Calibration completed in %s seconds", calibration_result.processing_time)
         return calibration_result

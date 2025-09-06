@@ -28,7 +28,7 @@ class DartParserService(AbstractYoloParser):
         dart_positions: List[OriginalDartPosition] = []
 
         if len(dart_detections) == 0:
-            self.logger.warning("No dart detections found in YOLO results")
+            self.logger.info("No dart detections found in YOLO results")
             return dart_positions
 
         sorted_detections = sorted(dart_detections, key=lambda d: d.confidence, reverse=True)

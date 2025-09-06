@@ -64,7 +64,7 @@ class CalibrationPointParserService(AbstractYoloParser):
             x=detection.center_x, y=detection.center_y, confidence=detection.confidence, class_id=detection.class_id, message="valid"
         )
 
-        CalibrationPointParserService.logger.info(
+        CalibrationPointParserService.logger.debug(
             "Created calibration point %s (%s)", calibration_point.point_type, f"{detection.confidence:.2f}"
         )
         return calibration_point

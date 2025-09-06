@@ -28,7 +28,7 @@ class YoloResultParser:
         detections = self.__parse_yolo_results(yolo_result)
         dart_positions = self.__dart_parser_service.parse(detections)
         calibration_points = self.__calibration_parser_service.parse(detections)
-        self.logger.info("Extracted %s calibration points and %s darts", len(calibration_points), len(dart_positions))
+        self.logger.debug("Extracted %s calibration points and %s darts", len(calibration_points), len(dart_positions))
         return YoloDartParseResult(calibration_points=calibration_points, original_positions=dart_positions)
 
     @staticmethod

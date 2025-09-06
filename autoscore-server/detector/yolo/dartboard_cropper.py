@@ -117,7 +117,7 @@ class YoloDartBoardImageCropper:
     ) -> None:
         end = time.time()
         x_start, y_start, x_end, y_end = bounding_box
-        YoloDartBoardImageCropper.logger.info(
+        YoloDartBoardImageCropper.logger.debug(
             "Cropped dartboard in %s seconds from (%d,%d) with confidence %s to (%d,%d), size: %dx%d",
             round(end - start, 2),
             x_start,

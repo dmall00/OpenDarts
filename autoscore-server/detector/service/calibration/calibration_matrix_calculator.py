@@ -32,7 +32,7 @@ class CalibrationMatrixCalculator:
         calibration_coords = Point2D.to_ndarray(calibration_points)
 
         valid_points_info = self.__get_valid_points_info(calibration_coords)
-        self.__ensure_minimum_points(valid_points_info["count"])  # type: ignore
+        self.__ensure_minimum_points(valid_points_info["count"], calibration_points, valid_points_info["mask"])  # type: ignore
         image_shape = self.__config.target_image_size[0]
 
         homography_matrix = self.__compute_homography_matrix(
@@ -55,10 +55,36 @@ class CalibrationMatrixCalculator:
             "count": valid_count,
         }
 
-    def __ensure_minimum_points(self, valid_count: int) -> None:
+    def __ensure_minimum_points(self, valid_count: int, calibration_points: List[CalibrationPoint], valid_mask: np.ndarray) -> None:
         """Ensure we have the minimum required valid points."""
         if valid_count < self.__config.min_calibration_points:
-            msg = f"Only {valid_count} valid calibration points found, minimum {self.__config.min_calibration_points} required"
+            from detector.model.yolo_dart_class_mapping import YoloDartClassMapping
+            
+            found_points = []
+            missing_points = []
+            
+            found_class_ids = set()
+            for i, point in enumerate(calibration_points):
+                if i < len(valid_mask) and valid_mask[i]:
+                    class_name = YoloDartClassMapping.get_class_name(point.class_id)
+                    found_points.append(f"ID {point.class_id} ({class_name}) - confidence: {point.confidence:.3f}")
+                    found_class_ids.add(point.class_id)
+                else:
+                    class_name = YoloDartClassMapping.get_class_name(point.class_id)
+                    found_points.append(f"ID {point.class_id} ({class_name}) - confidence: {point.confidence:.3f} [INVALID]")
+            
+            expected_class_ids = set(YoloDartClassMapping.mapping.keys())
+            expected_class_ids.discard(YoloDartClassMapping.dart_class)
+            
+            missing_class_ids = expected_class_ids - found_class_ids
+            for class_id in missing_class_ids:
+                class_name = YoloDartClassMapping.get_class_name(class_id)
+                missing_points.append(f"ID {class_id} ({class_name})")
+            
+            found_details = "\nFound points: " + (", ".join(found_points) if found_points else "None")
+            missing_details = "\nMissing points: " + (", ".join(missing_points) if missing_points else "None")
+            
+            msg = f"Only {valid_count} valid calibration points found, minimum {self.__config.min_calibration_points} required{found_details}{missing_details}"
             raise DartDetectionError(ResultCode.MISSING_CALIBRATION_POINTS, details=msg)
 
     def __compute_homography_matrix(self, calibration_coords: np.ndarray, valid_mask: np.ndarray, image_shape: float) -> np.ndarray:
@@ -88,7 +114,7 @@ class CalibrationMatrixCalculator:
 
     @staticmethod
     def __create_homography_result(homography_matrix: np.ndarray, valid_count: int) -> HomoGraphyMatrix:
-        CalibrationMatrixCalculator.logger.info("Homography matrix calculated successfully using %s points", valid_count)
+        CalibrationMatrixCalculator.logger.debug("Homography matrix calculated successfully using %s points", valid_count)
         return HomoGraphyMatrix(
             matrix=homography_matrix,
             calibration_point_count=valid_count,
