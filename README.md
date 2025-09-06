@@ -1,25 +1,20 @@
-<<<<<<< HEAD
 # OpenDarts
 
 OpenDarts is a comprehensive dart application for playing, practicing, and socializing with fellow dart enthusiasts. The app provides everything you need for a complete dart experience, from game management and score tracking to social features and automated scoring capabilities.
 
-## Features
+## Components
 
-- Automatic score detection through camera
-- Multiple game modes including 301, 501, Cricket, Around the Clock, and more
-- Real-time score tracking
-- Player statistics and history
+### Mobile App
+React Native/Expo mobile application for comprehensive dart game management, practice sessions, and social interaction.
+
+**Features:**
+- Multiple dart game modes (501, Cricket, Around the Clock, etc.)
 - Manual and automated score entry
 - Practice mode with performance tracking
 - Social features for connecting with other players
 - Game history and statistics
 - Real-time camera capture for auto-scoring
 - Customizable game settings and rules
-
-## Components
-
-### Mobile App
-React Native/Expo mobile application for comprehensive dart game management, practice sessions, and social interaction.
 
 <img src="app/docs/gamepicker.jpg" alt="Game Picker" width="300">
 
@@ -36,7 +31,7 @@ Optional Python WebSocket server that enables automated scoring through computer
 - Command-line tools for testing and calibration
 
 ### Backend
-Java Spring Boot backend for comprehensive game management, user profiles, and social features. It provides RESTful APIs and WebSocket connections to manage dart game sessions, player statistics, and match history.
+Java Spring Boot backend for comprehensive game management, user profiles, and social features.
 
 **Features:**
 - RESTful API for game management
@@ -46,9 +41,6 @@ Java Spring Boot backend for comprehensive game management, user profiles, and s
 - Tournament and league management
 - Achievement system
 - Database integration for persistent data
-- Real-time game updates via WebSockets for live scoring and state synchronization
-- Automatic scoring logic for various X01 games
-- Game state management and stabilization to ensure consistent data handling
 
 ## Architecture
 
@@ -117,4 +109,3 @@ This project is licensed under the Creative Commons Attribution-NonCommercial-Sh
 ## Acknowledgments
 
 Dart detection model and portions of the codebase adapted from [dart-sense](https://github.com/bnww/dart-sense). Built with [Ultralytics YOLO](https://github.com/ultralytics/ultralytics) for object detection and OpenCV for image processing.
-
