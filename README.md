@@ -2,19 +2,23 @@
 
 OpenDarts is a comprehensive dart application for playing, practicing, and socializing with fellow dart enthusiasts. The app provides everything you need for a complete dart experience, from game management and score tracking to social features and automated scoring capabilities.
 
-## Components
+## Features
 
-### Mobile App
-React Native/Expo mobile application for comprehensive dart game management, practice sessions, and social interaction.
-
-**Features:**
-- Multiple dart game modes (501, Cricket, Around the Clock, etc.)
+- Automatic score detection through camera
+- Multiple game modes including 301, 501, Cricket, Around the Clock, and more
+- Real-time score tracking
+- Player statistics and history
 - Manual and automated score entry
 - Practice mode with performance tracking
 - Social features for connecting with other players
 - Game history and statistics
 - Real-time camera capture for auto-scoring
 - Customizable game settings and rules
+
+## Components
+
+### Mobile App
+React Native/Expo mobile application for comprehensive dart game management, practice sessions, and social interaction.
 
 <img src="app/docs/gamepicker.jpg" alt="Game Picker" width="300">
 
