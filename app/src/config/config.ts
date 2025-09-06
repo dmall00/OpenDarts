@@ -44,6 +44,8 @@ export const WEBSOCKET_CONFIG = {
 } as const;
 
 export const CAMERA_CONFIG = {
-    DEFAULT_QUALITY: 0.8,
+    DEFAULT_QUALITY: 0.9,
     SKIP_PROCESSING: true,
+    MAX_WIDTH: 1280,
+    MAX_HEIGHT: 720,
 } as const;

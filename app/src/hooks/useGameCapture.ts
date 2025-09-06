@@ -35,6 +35,8 @@ export const useGameCapture = ({
                 {
                     quality: CAMERA_CONFIG.DEFAULT_QUALITY,
                     skipProcessing: CAMERA_CONFIG.SKIP_PROCESSING,
+                    maxWidth: CAMERA_CONFIG.MAX_WIDTH,
+                    maxHeight: CAMERA_CONFIG.MAX_HEIGHT,
                 }
             );
         } catch (error) {

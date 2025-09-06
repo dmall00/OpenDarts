@@ -1,9 +1,20 @@
 import {Camera, CameraDevice} from 'react-native-vision-camera';
 import {isWeb} from "@/src/utils/platform";
 
+let ImageResizer: any = null;
+if (!isWeb()) {
+    try {
+        ImageResizer = require('react-native-image-resizer').default;
+    } catch (error) {
+        console.warn('ImageResizer not available:', error);
+    }
+}
+
 export interface CameraConfig {
     quality?: number;
     skipProcessing?: boolean;
+    maxWidth?: number;
+    maxHeight?: number;
 }
 
 export class CameraService {
@@ -110,14 +121,59 @@ export class CameraService {
         }
 
         try {
-            const photo = await this.cameraRef.takePhoto();
+            const photo = await this.cameraRef.takePhoto({
+                enableShutterSound: false,
+            });
 
             if (!photo || !photo.path) {
                 return null;
             }
 
-            const response = await fetch(`file://${photo.path}`);
+            let finalPath = photo.path;
+            let resizeInfo = null;
+
+            if (ImageResizer) {
+                try {
+                    const resizedImage = await ImageResizer.createResizedImage(
+                        photo.path,
+                        config.maxWidth ?? 1280,
+                        config.maxHeight ?? 720,
+                        'JPEG',
+                        Math.round((config.quality ?? 0.6) * 100),
+                        0,
+                        undefined,
+                        false,
+                        {mode: 'contain', onlyScaleDown: true}
+                    );
+                    
+                    finalPath = resizedImage.path;
+                    resizeInfo = {
+                        width: resizedImage.width,
+                        height: resizedImage.height,
+                        resized: true
+                    };
+                } catch (error) {
+                    console.warn('Image resizing failed, using original:', error);
+                    resizeInfo = { resized: false, error: String(error) };
+                }
+            } else {
+                console.warn('ImageResizer not available, using original image');
+                resizeInfo = { resized: false, reason: 'ImageResizer not available' };
+            }
+
+            const response = await fetch(`file://${finalPath}`);
             const blob = await response.blob();
+            
+            console.log('Image capture result:', {
+                originalPath: photo.path,
+                finalPath,
+                finalSize: blob.size,
+                sizeKB: Math.round(blob.size / 1024),
+                sizeMB: Math.round(blob.size / (1024 * 1024) * 100) / 100,
+                resizeInfo,
+                quality: config.quality ?? 0.6
+            });
+            
             return blob;
         } catch (error) {
             if (this._isRecording && this.cameraRef) {
@@ -191,4 +247,6 @@ export class CameraService {
             this.captureInterval = null;
         }
     }
+
+
 }
