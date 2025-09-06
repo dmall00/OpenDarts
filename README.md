@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # OpenDarts
 
 OpenDarts is a comprehensive dart application for playing, practicing, and socializing with fellow dart enthusiasts. The app provides everything you need for a complete dart experience, from game management and score tracking to social features and automated scoring capabilities.
@@ -116,3 +117,4 @@ This project is licensed under the Creative Commons Attribution-NonCommercial-Sh
 ## Acknowledgments
 
 Dart detection model and portions of the codebase adapted from [dart-sense](https://github.com/bnww/dart-sense). Built with [Ultralytics YOLO](https://github.com/ultralytics/ultralytics) for object detection and OpenCV for image processing.
+

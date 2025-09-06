@@ -1,0 +1,66 @@
+[project]
+name = "opendarts-autoscore"
+version = "0.1.0"
+description = "This application serves a websocket server that enables a client to calibrate and score darts automatically."
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.11, <3.13"
+authors = [
+    { name = "David Mall", email = "mall.david@web.de" },
+]
+dependencies = [
+    "dart-detection @ git+https://github.com/dmall00/dart-detection.git",
+    "pydantic>=2.11.5",
+    "websockets>=15.0.1",
+]
+
+[dependency-groups]
+dev = [
+    "mypy>=1.16.0",
+    "pytest>=8.4.0",
+    "pytest-asyncio>=1.0.0",
+    "ruff>=0.11.13",
+]
+
+
+[tool.ruff]
+line-length = 140
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["ALL"]
+ignore = [
+    "PGH003",
+    "T201",
+    "D105",
+    "D107",
+    "D203",
+    "D212",
+    "UP006",
+    "UP007",
+    "D400",
+    "D406",
+    "D407",
+    "PLC1901",
+    "UP035",
+    "COM812", # Conflicts with formatter
+]
+unfixable = ["F401", "F841"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["ANN001", "ANN002", "ANN003", "D103", "BLE001", "S101", "D103", "INP001"]
+
+[tool.ruff.lint.pyupgrade]
+keep-runtime-typing = true
+
+[[tool.mypy.overrides]]
+module = ["ultralytics.*"]
+ignore_missing_imports = true
+
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+addopts = "-v --log-cli-level=INFO --log-cli-format='%(asctime)s [%(levelname)8s] %(name)s: %(message)s'"
+asyncio_mode = "auto"

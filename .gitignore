@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # IDE Files
 .idea
 *.iws
@@ -44,4 +45,11 @@ build/
 # GitHub
 .github/prompts
 
+# Python
+.venv
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Other
 Qwen.md
