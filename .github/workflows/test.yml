@@ -61,22 +61,22 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
-          cache-dependency-path: 'app/open-darts-app/package-lock.json'
+          cache-dependency-path: 'app/package-lock.json'
       
       - name: Install dependencies
-        working-directory: app/open-darts-app
+        working-directory: app
         run: npm ci
       
       - name: Run TypeScript check
-        working-directory: app/open-darts-app
+        working-directory: app
         run: npx tsc --noEmit
       
       - name: Run linting
-        working-directory: app/open-darts-app
+        working-directory: app
         run: npm run lint
       
       - name: Test Expo export (compilation check)
-        working-directory: app/open-darts-app
+        working-directory: app
         run: npx expo export --platform web --output-dir dist --dump-assetmap
 
   # release-autoscore-server:

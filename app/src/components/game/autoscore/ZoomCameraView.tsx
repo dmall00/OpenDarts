@@ -26,6 +26,19 @@ export default function ZoomCameraView({onClose, isVisible = true}: ZoomCameraVi
     const maxZoom = 3;
     const neutralZoom = 1;
 
+    const handleCameraRef = useCallback((ref: Camera | null) => {
+        cameraRef.current = ref;
+        if (ref && device) {
+            cameraService.setCameraRef(ref);
+            cameraService.setDevice(device);
+        }
+    }, [cameraService, device]);
+
+    const handleZoom = (zoomLevel: number) => {
+        const clampedZoom = Math.max(minZoom, Math.min(maxZoom, zoomLevel));
+        setZoom(clampedZoom);
+    };
+
     useEffect(() => {
         setZoom(neutralZoom);
     }, [device]);
@@ -89,19 +102,6 @@ export default function ZoomCameraView({onClose, isVisible = true}: ZoomCameraVi
             </View>
         );
     }
-
-    const handleCameraRef = useCallback((ref: Camera | null) => {
-        cameraRef.current = ref;
-        if (ref && device) {
-            cameraService.setCameraRef(ref);
-            cameraService.setDevice(device);
-        }
-    }, [cameraService, device]);
-
-    const handleZoom = (zoomLevel: number) => {
-        const clampedZoom = Math.max(minZoom, Math.min(maxZoom, zoomLevel));
-        setZoom(clampedZoom);
-    };
 
     return (
         <View style={[
