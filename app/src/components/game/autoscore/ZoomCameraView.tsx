@@ -1,7 +1,6 @@
 import {Camera, useCameraDevice, useCameraPermission} from "react-native-vision-camera";
 import React, {useCallback, useEffect, useRef, useState} from "react";
-import {Animated, StyleSheet, Text, TouchableOpacity, View} from "react-native";
-import Slider from "@react-native-community/slider";
+import {Animated, Text, TouchableOpacity, View} from "react-native";
 import {CameraService} from "@/src/services/camera/cameraService";
 import Button from "@/src/components/ui/Button";
 import Typography from "@/src/components/ui/Typography";
@@ -106,107 +105,84 @@ export default function ZoomCameraView({onClose, isVisible = true}: ZoomCameraVi
 
 
     return (
-        <View style={[
-            isVisible ? {
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                width: '100%',
-                height: '100%',
-                borderRadius: 0,
-                overflow: 'hidden',
-                backgroundColor: 'black',
-                zIndex: 1000,
-            } : styles.hiddenCamera,
-            {zIndex: isVisible ? 1000 : -1}
-        ]}>
+        <View className={
+            isVisible 
+                ? "absolute inset-0 w-full h-full overflow-hidden bg-black z-[1000]"
+                : "absolute -top-[1000px] -left-[1000px] w-1 h-1 opacity-0"
+        } style={{
+            pointerEvents: isVisible ? 'auto' : 'none',
+            zIndex: isVisible ? 1000 : -1
+        }}>
             <TouchableOpacity
-                className="flex-1"
-                style={{backgroundColor: 'black'}}
+                className="flex-1 bg-transparent"
                 onPress={isVisible ? onClose : undefined}
                 activeOpacity={isVisible ? 1 : 0}
                 disabled={!isVisible}
             >
                 <Camera
                     ref={handleCameraRef}
-                    style={{flex: 1}}
+                    className="flex-1"
                     device={device}
                     isActive={true}
                     photo={true}
                     zoom={zoom}
                 />
-                {isVisible && <View className="absolute top-0 left-0 right-0 bottom-0 bg-black/5"/>}
+                {isVisible && <View className="absolute inset-0 bg-black/5"/>}
                 {isVisible && (
-                    <View
-                        className="absolute top-3 right-3 bg-slate-800 p-2 rounded-full min-w-[32px] min-h-[32px] items-center justify-center z-10">
+                    <View className="absolute top-md right-md bg-slate-800 p-sm rounded-full min-w-8 min-h-8 items-center justify-center z-10">
                         <Text className="text-white text-sm font-bold text-center">×</Text>
                     </View>
                 )}
             </TouchableOpacity>
             {isVisible && (
-                <Animated.View
-                    style={[
-                        {
-                            flexDirection: 'column',
-                            position: 'absolute',
-                            backgroundColor: 'rgba(255,255,255,0.95)',
-                            borderRadius: 16,
-                            padding: 12,
-                            shadowColor: '#000',
-                            shadowOffset: {
-                                width: 0,
-                                height: 2,
-                            },
-                            shadowOpacity: 0.1,
-                            shadowRadius: 4,
-                            elevation: 4,
-                            alignItems: 'center',
-                            minWidth: 200,
-                            maxWidth: 220,
-                            left: '50%',
-                            marginLeft: -110,
-                        },
-                        {
+                <View className="absolute inset-x-0 items-center z-[1001]" style={{bottom: sliderBottomPosition}}>
+                    <Animated.View
+                        className="flex-row bg-white/95 rounded-2xl p-md shadow-md items-center min-w-[180px] justify-between"
+                        style={{
                             opacity: scale,
-                            bottom: sliderBottomPosition,
                             transform: [{
                                 translateY: scale.interpolate({
                                     inputRange: [0, 1],
                                     outputRange: [50, 0],
                                 })
-                            }]
-                        }
-                    ]}
-                >
-                    <Slider
-                        style={{width: 180, height: 40}}
-                        minimumValue={minZoom}
-                        maximumValue={maxZoom}
-                        value={zoom}
-                        onValueChange={handleZoom}
-                        minimumTrackTintColor="#10b981"
-                        maximumTrackTintColor="#e5e7eb"
-                        thumbTintColor="#10b981"
-                    />
-                    <Text className="text-slate-700 text-sm font-semibold text-center mt-1">
-                        {`${Math.round(zoom * 10) / 10}x`}
-                    </Text>
-                </Animated.View>
+                            }],
+                            shadowColor: '#000',
+                            shadowOffset: {width: 0, height: 2},
+                            shadowOpacity: 0.1,
+                            shadowRadius: 4,
+                            elevation: 4,
+                        }}
+                    >
+                        <TouchableOpacity
+                            onPress={() => handleZoom(zoom - 0.1)}
+                            disabled={zoom <= minZoom}
+                            className={`rounded-full w-10 h-10 items-center justify-center ${
+                                zoom <= minZoom ? 'bg-slate-200' : 'bg-emerald-500'
+                            }`}
+                        >
+                            <Text className={`text-xl font-bold ${
+                                zoom <= minZoom ? 'text-slate-400' : 'text-white'
+                            }`}>-</Text>
+                        </TouchableOpacity>
+                        
+                        <Text className="text-slate-700 text-lg font-semibold text-center mx-base">
+                            {`${Math.round(zoom * 10) / 10}x`}
+                        </Text>
+                        
+                        <TouchableOpacity
+                            onPress={() => handleZoom(zoom + 0.1)}
+                            disabled={zoom >= maxZoom}
+                            className={`rounded-full w-10 h-10 items-center justify-center ${
+                                zoom >= maxZoom ? 'bg-slate-200' : 'bg-emerald-500'
+                            }`}
+                        >
+                            <Text className={`text-xl font-bold ${
+                                zoom >= maxZoom ? 'text-slate-400' : 'text-white'
+                            }`}>+</Text>
+                        </TouchableOpacity>
+                    </Animated.View>
+                </View>
             )}
         </View>
     );
 }
-
-const styles = StyleSheet.create({
-    hiddenCamera: {
-        position: 'absolute',
-        top: -1000,
-        left: -1000,
-        width: 1,
-        height: 1,
-        opacity: 0,
-        pointerEvents: 'none',
-    },
-});
