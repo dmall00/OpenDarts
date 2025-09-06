@@ -35,7 +35,7 @@ Optional Python WebSocket server that enables automated scoring through computer
 - Command-line tools for testing and calibration
 
 ### Backend
-Java Spring Boot backend for comprehensive game management, user profiles, and social features.
+Java Spring Boot backend for comprehensive game management, user profiles, and social features. It provides RESTful APIs and WebSocket connections to manage dart game sessions, player statistics, and match history.
 
 **Features:**
 - RESTful API for game management
@@ -45,6 +45,9 @@ Java Spring Boot backend for comprehensive game management, user profiles, and s
 - Tournament and league management
 - Achievement system
 - Database integration for persistent data
+- Real-time game updates via WebSockets for live scoring and state synchronization
+- Automatic scoring logic for various X01 games
+- Game state management and stabilization to ensure consistent data handling
 
 ## Architecture
 
