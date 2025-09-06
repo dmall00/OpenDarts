@@ -67,11 +67,11 @@ class CalibrationMatrixCalculator:
             for i, point in enumerate(calibration_points):
                 if i < len(valid_mask) and valid_mask[i]:
                     class_name = YoloDartClassMapping.get_class_name(point.class_id)
-                    found_points.append(f"ID {point.class_id} ({class_name}) - confidence: {point.confidence:.3f}")
+                    found_points.append(f"{class_name} - confidence: {point.confidence:.3f}")
                     found_class_ids.add(point.class_id)
                 else:
                     class_name = YoloDartClassMapping.get_class_name(point.class_id)
-                    found_points.append(f"ID {point.class_id} ({class_name}) - confidence: {point.confidence:.3f} [INVALID]")
+                    found_points.append(f"{class_name} - INVALID")
             
             expected_class_ids = set(YoloDartClassMapping.mapping.keys())
             expected_class_ids.discard(YoloDartClassMapping.dart_class)
@@ -79,7 +79,7 @@ class CalibrationMatrixCalculator:
             missing_class_ids = expected_class_ids - found_class_ids
             for class_id in missing_class_ids:
                 class_name = YoloDartClassMapping.get_class_name(class_id)
-                missing_points.append(f"ID {class_id} ({class_name})")
+                missing_points.append(f"{class_name}")
             
             found_details = "\nFound points: " + (", ".join(found_points) if found_points else "None")
             missing_details = "\nMissing points: " + (", ".join(missing_points) if missing_points else "None")

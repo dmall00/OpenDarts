@@ -14,7 +14,7 @@ logging.basicConfig(
 logger = logging.getLogger("Main")
 
 
-async def main() -> None:
+async def async_main() -> None:
     """Start the WebSocket server."""
     server = DartWebSocketServer()
 
@@ -25,10 +25,15 @@ async def main() -> None:
         await websocket_server.serve_forever()
 
 
-if __name__ == "__main__":
+def main() -> None:
+    """Entry point for the autoscore-server script."""
     try:
-        asyncio.run(main())
+        asyncio.run(async_main())
     except KeyboardInterrupt:
         logger.info("Server shutdown requested")
     except Exception:
         logger.exception("Server error")
+
+
+if __name__ == "__main__":
+    main()

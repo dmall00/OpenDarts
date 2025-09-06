@@ -31,6 +31,7 @@ dependencies = [
 [project.scripts]
 dart-image-scorer = "detector.script.image_scorer_demo:main"
 dart-calibration-visualizer = "detector.script.visualizer_demo:main"
+autoscore-server = "autoscore.main:main"
 
 [project.urls]
 Repository = "https://github.com/dmall00/OpenDarts"
