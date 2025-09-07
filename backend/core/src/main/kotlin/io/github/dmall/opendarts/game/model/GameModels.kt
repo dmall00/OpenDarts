@@ -6,7 +6,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
 data class DartThrow(
     val multiplier: Int,
     val score: Int,
-    val autoScore: Boolean,
+    val autoScore: Boolean = false,
 ) {
     val computedScore: Int
         @JsonProperty(access = JsonProperty.Access.READ_ONLY)

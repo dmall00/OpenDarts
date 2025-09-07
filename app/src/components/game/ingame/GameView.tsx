@@ -1,14 +1,17 @@
-import React, { useState } from "react";
-import { ScrollView, View } from "react-native";
-import { useGameStore } from "@/src/stores/gameStore";
+import React, {useState} from "react";
+import {ScrollView, View} from "react-native";
+import {useGameStore} from "@/src/stores/gameStore";
 import InGameHeader from "@/src/components/game/header/InGameHeader";
-import { useErrorHandler } from "@/src/hooks/useErrorHandler";
-import { useGameCapture } from "@/src/hooks/useGameCapture";
-import { useDartProcessedResult } from "@/src/hooks/useDartProcessedResult";
+import {useErrorHandler} from "@/src/hooks/useErrorHandler";
+import {useGameCapture} from "@/src/hooks/useGameCapture";
+import {useDartProcessedResult} from "@/src/hooks/useDartProcessedResult";
 import X01ScoreView from "@/src/components/game/ingame/score/X01ScoreView";
-import { useCameraUI } from "@/src/hooks/useCameraUI";
+import {useCameraUI} from "@/src/hooks/useCameraUI";
 import ZoomCameraView from "@/src/components/game/autoscore/ZoomCameraView";
 import DartInput from "@/src/components/game/ingame/input/DartInput";
+import {useMutation} from "@/src/hooks/useMutation";
+import {DartThrow} from "@/src/types/api";
+import {gameService} from "@/src/services/game/gameService";
 
 interface GameViewProps {
     gameId: string;
@@ -17,10 +20,10 @@ interface GameViewProps {
     fps?: number;
 }
 
-export default function GameView({ gameId, playerId, websocketUrl, fps }: GameViewProps) {
+export default function GameView({gameId, playerId, websocketUrl, fps}: GameViewProps) {
     const isAutoScoreEnabled = useGameStore((state) => state.isAutoScoreEnabled);
-    const { isCameraExpanded, handleToggleCamera } = useCameraUI();
-    const [modifier, setModifier] = useState<'single' | 'double' | 'triple'>('single');
+    const {isCameraExpanded, handleToggleCamera} = useCameraUI();
+    const [modifier, setModifier] = useState<1 | 2 | 3>(1);
 
     const {
         isConnected,
@@ -52,21 +55,36 @@ export default function GameView({ gameId, playerId, websocketUrl, fps }: GameVi
         connect();
     };
 
-    // Event handlers
-    const handleNumberPress = (value: number) => {
+    const throwDartMutation = useMutation(
+        (dartThrow: DartThrow) => gameService.trackDart(playerId, gameId, dartThrow),
+        {
+            onSuccess: (dartProcessed) => {
+                console.log(dartProcessed);
+            },
+            onError: (error) => {
+                console.error('Failed to send dart:', error);
+            }
+        }
+    );
+
+    const handleNumberPress = async (value: number) => {
         console.log(`Number pressed: ${value} with modifier: ${modifier}`);
+        const dartThrow: DartThrow = {
+            score: value, multiplier: modifier
+        }
+        await throwDartMutation.mutate(dartThrow);
         // Reset modifier after use
-        setModifier('single');
+        setModifier(1);
     };
 
     const handleDoublePress = () => {
         console.log("Double modifier toggled");
-        setModifier(prev => prev === 'double' ? 'single' : 'double');
+        setModifier(prev => prev === 2 ? 1 : 2);
     };
 
     const handleTriplePress = () => {
         console.log("Triple modifier toggled");
-        setModifier(prev => prev === 'triple' ? 'single' : 'triple');
+        setModifier(prev => prev === 3 ? 1 : 3);
     };
 
     const handleBackPress = () => {
@@ -91,7 +109,7 @@ export default function GameView({ gameId, playerId, websocketUrl, fps }: GameVi
                     contentContainerClassName="pb-5 pt-5"
                     showsVerticalScrollIndicator={false}
                 >
-                    <X01ScoreView dartProcessedResult={dartProcessedResult} />
+                    <X01ScoreView dartProcessedResult={dartProcessedResult}/>
                 </ScrollView>
 
                 <View className="absolute bottom-0 w-full">

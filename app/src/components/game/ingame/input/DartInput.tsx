@@ -1,14 +1,14 @@
 import React from 'react';
-import { View } from 'react-native';
+import {View} from 'react-native';
 import InputButton from '@/src/components/game/ingame/input/InputButton';
-import { isWeb } from '@/src/utils/platform';
+import {isWeb} from '@/src/utils/platform';
 
 interface DartInputProps {
     onNumberPress: (value: number) => void;
     onDoublePress: () => void;
     onTriplePress: () => void;
     onBackPress: () => void;
-    modifier?: 'single' | 'double' | 'triple';
+    modifier?: 1 | 2 | 3;
 }
 
 const DartInputRow = ({
@@ -24,7 +24,7 @@ const DartInputRow = ({
     onDoublePress: () => void;
     onTriplePress: () => void;
     onBackPress: () => void;
-    modifier: 'single' | 'double' | 'triple';
+    modifier: 1 | 2 | 3;
 }) => {
     const renderButton = (item: number | string, index: number) => {
         const buttonWrapperClass = isWeb() ? "w-20" : "flex-1 max-w-[56px]";
@@ -49,7 +49,7 @@ const DartInputRow = ({
                             value="2x"
                             onPress={onDoublePress}
                             variant="double"
-                            selected={modifier === 'double'}
+                            selected={modifier === 2}
                         />
                     </View>
                 );
@@ -60,7 +60,7 @@ const DartInputRow = ({
                             value="3x"
                             onPress={onTriplePress}
                             variant="triple"
-                            selected={modifier === 'triple'}
+                            selected={modifier === 3}
                         />
                     </View>
                 );
@@ -91,7 +91,7 @@ export default function DartInput({
     onDoublePress,
     onTriplePress,
     onBackPress,
-    modifier = 'single'
+                                      modifier = 1
 }: DartInputProps) {
     const rows = [
         [1, 2, 3, 4, 5, 6, 7],

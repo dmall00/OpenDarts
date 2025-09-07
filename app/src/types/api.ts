@@ -39,8 +39,13 @@ export interface CalibrationState {
     calibrated: boolean;
 }
 
-
 export interface DartThrow {
+    score: number;
+    multiplier: number;
+    autoScore?: boolean;
+}
+
+export interface DartThrowResponse {
     score: number;
     multiplier: number;
     scoreString: string;
@@ -49,8 +54,8 @@ export interface DartThrow {
 }
 
 export interface DartProcessedResult {
-    currentDartThrow: DartThrow;
-    currentTurnDarts: DartThrow[];
+    currentDartThrow: DartThrowResponse;
+    currentTurnDarts: DartThrowResponse[];
     currentDartNumber: number;
     currentPlayer: string;
     remainingScore: number;
@@ -66,7 +71,7 @@ export interface DartProcessedResult {
 export interface GameState {
     currentPlayer: string;
     currentRemainingScores: Record<string, number>;
-    currentLegDarts: DartThrow[];
+    currentLegDarts: DartThrowResponse[];
     currentLeg: number;
     currentSet: number;
     legsWon: Record<string, number>;

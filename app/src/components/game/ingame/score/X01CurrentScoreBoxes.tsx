@@ -1,11 +1,11 @@
 import {View} from "react-native";
 import ScoreBox from "@/src/components/game/ingame/score/ScoreBox";
-import {DartThrow} from "@/src/types/api";
+import {DartThrowResponse} from "@/src/types/api";
 import ScoreDisplay from "@/src/components/ui/ScoreDisplay";
 import Container from "@/src/components/ui/Container";
 
 interface X01CurrentScoreBoxesProps {
-    dartThrows?: DartThrow[]
+    dartThrows?: DartThrowResponse[]
 }
 
 export default function X01CurrentScoreBoxes(props: X01CurrentScoreBoxesProps) {

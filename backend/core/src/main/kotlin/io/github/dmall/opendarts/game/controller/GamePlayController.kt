@@ -16,10 +16,10 @@ class GamePlayController
         private val gameOrchestrator: GameOrchestrator,
         private val gameMapper: GameMapper,
     ) {
-        @PostMapping("/{gameId}/throw")
+        @PostMapping("/{gameId}/{playerId}/dart/throw")
         fun submitDartThrow(
+            @PathVariable playerId: String,
             @PathVariable gameId: String,
-            @RequestParam playerId: String,
             @RequestBody dartThrow: DartThrow,
         ): CurrentGameStateTO {
             val gameResult = gameOrchestrator.submitDartThrow(gameId, playerId, dartThrow)
