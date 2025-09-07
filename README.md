@@ -7,62 +7,28 @@ OpenDarts is a comprehensive dart application for playing, practicing, and socia
 ### Mobile App
 React Native/Expo mobile application for comprehensive dart game management, practice sessions, and social interaction.
 
-**Features:**
-- Multiple dart game modes (501, Cricket, Around the Clock, etc.)
-- Manual and automated score entry
-- Practice mode with performance tracking
-- Social features for connecting with other players
-- Game history and statistics
-- Real-time camera capture for auto-scoring
-- Customizable game settings and rules
+![Showcase](doc/showcase_pic.png)
 
-<img src="app/docs/gamepicker.jpg" alt="Game Picker" width="300">
+**Demo Video:**
 
-<img src="app/docs/ingame.jpg" alt="In Game View" width="300">
+![Demo video](doc/showcase.gif)
 
 ### AutoScore Server
-Optional Python WebSocket server that enables automated scoring through computer vision and YOLO models for users who want hands-free scoring.
+Python WebSocket server that enables automated scoring through YOLO models for auto scoring.
 
 **Features:**
-- WebSocket-based image processing
-- High-accuracy dart detection using YOLO
 - Automatic dartboard calibration
 - Real-time scoring calculation
 - Command-line tools for testing and calibration
 
 ### Backend
-Java Spring Boot backend for comprehensive game management, user profiles, and social features.
-
-**Features:**
-- RESTful API for game management
-- User authentication and player profiles
-- Social features (friends, challenges, leaderboards)
-- Game statistics and performance analytics
-- Tournament and league management
-- Achievement system
-- Database integration for persistent data
-
-## Architecture
-
-```
-Mobile App (React Native)
-    ↓ REST API
-Backend (Java Spring Boot)
-    ↓
-Database
-
-Optional for Auto-Scoring:
-Mobile App (React Native) 
-    ↓ WebSocket
-AutoScore Server (Python)
-```
+Kotlin Spring Boot backend for game management and stabilization of auto scoring results.
 
 ## Technology Stack
 
-- **Mobile App**: React Native, Expo, TypeScript, Zustand for state management
-- **Backend**: Java, Spring Boot, Maven for game and user management
-- **AutoScore Server** (Optional): Python, WebSockets, OpenCV, YOLO, Ultralytics
-- **Computer Vision** (Optional): YOLO models for automated dart detection
+- **Mobile App**: React Native, Expo, TypeScript
+- **Backend**: Kotlin, Spring Boot, Maven for game and user management
+- **AutoScore Server** Python, WebSockets, OpenCV, YOLO, Ultralytics
 
 ## Getting Started
 
@@ -96,7 +62,7 @@ AutoScore Server (Python)
 
 ## How It Works
 
-**Auto-Scoring (Optional):**
+**Auto-Scoring**
 1. The mobile app captures images of the dartboard using the device camera
 2. Images are sent to the AutoScore Server via WebSocket connection
 3. The server uses YOLO models to detect darts and calculate scores automatically
