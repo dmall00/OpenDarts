@@ -1,6 +1,6 @@
 package io.github.dmall.opendarts.game.autoscore.events
 
-import io.github.dmall.opendarts.game.model.DartThrow
+import io.github.dmall.opendarts.game.model.DartThrowRequest
 import org.springframework.context.ApplicationEvent
 
 enum class EventType(
@@ -22,7 +22,7 @@ class DartThrowDetectedEvent(
     source: Any,
     sessionId: String,
     playerId: String,
-    val dartThrow: DartThrow,
+    val dartThrowRequest: DartThrowRequest,
 ) : GameEvent(source, sessionId, playerId, EventType.DART_THROW_DETECTED)
 
 class TurnSwitchDetectedEvent(

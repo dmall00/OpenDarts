@@ -8,7 +8,7 @@ interface DartGameModeHandler {
     fun processDartThrow(
         gameSession: GameSession,
         currentPlayer: Player,
-        dartThrow: DartThrow,
+        dartThrowRequest: DartThrowRequest,
     ): CurrentGameState
 
     /** Get the current game state */

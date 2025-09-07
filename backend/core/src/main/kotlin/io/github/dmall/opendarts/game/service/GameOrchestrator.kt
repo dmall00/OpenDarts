@@ -6,9 +6,9 @@ import io.github.dmall.opendarts.game.autoscore.events.EventType
 import io.github.dmall.opendarts.game.autoscore.events.TurnSwitchDetectedEvent
 import io.github.dmall.opendarts.game.autoscore.websocket.AppWebSocketHandler
 import io.github.dmall.opendarts.game.mapper.GameMapper
-import io.github.dmall.opendarts.game.model.AppCalibrationResult
+import io.github.dmall.opendarts.game.model.AppCalibrationResponse
 import io.github.dmall.opendarts.game.model.CurrentGameState
-import io.github.dmall.opendarts.game.model.DartThrow
+import io.github.dmall.opendarts.game.model.DartThrowRequest
 import io.github.dmall.opendarts.game.model.GameState
 import io.github.dmall.opendarts.game.repository.GameSessionRepository
 import io.github.dmall.opendarts.game.repository.PlayerRepository
@@ -30,23 +30,31 @@ class GameOrchestrator
     ) {
         @Transactional
         fun submitDartThrow(
-            sessionId: String,
+            gameId: String,
             playerId: String,
-            dartThrow: DartThrow,
+            dartThrowRequest: DartThrowRequest,
         ): CurrentGameState {
-            val gameSession = gameSessionRepository.findById(sessionId).orElseThrow()
+            val gameSession = gameSessionRepository.findById(gameId).orElseThrow()
             val currentPlayer = playerRepository.findById(playerId).orElseThrow()
             val gameHandler = gameModeRegistry.getGameHandler(gameSession.game.gameMode)
-            val gameState = gameHandler.processDartThrow(gameSession, currentPlayer, dartThrow)
-            if (dartThrow.autoScore) {
+            val gameState = gameHandler.processDartThrow(gameSession, currentPlayer, dartThrowRequest)
+            if (dartThrowRequest.autoScore) {
                 appWebSocketHandler.sendWebSocketMessage(
                     gameMapper.toCurrentGameStateTO(gameState),
-                    "$playerId-$sessionId",
+                    "$playerId-$gameId",
                     EventType.DART_THROW_DETECTED,
                 )
             }
             return gameState
         }
+
+    @Transactional
+    fun revertDartThrow(
+        gameId: String,
+        playerId: String
+    ) {
+
+    }
 
         fun getGameState(gameId: String): GameState {
             val gameSession = gameSessionRepository.findById(gameId).orElseThrow()
@@ -57,7 +65,7 @@ class GameOrchestrator
         @EventListener
         @Transactional
         fun handleDartThrowDetectedEvent(event: DartThrowDetectedEvent) {
-            submitDartThrow(event.sessionId, event.playerId, event.dartThrow)
+            submitDartThrow(event.sessionId, event.playerId, event.dartThrowRequest)
         }
 
         @EventListener
@@ -74,7 +82,7 @@ class GameOrchestrator
         @EventListener
         fun handleCalibrationEvent(event: CalibrationEvent) {
             appWebSocketHandler.sendWebSocketMessage(
-                AppCalibrationResult(event.calibrated),
+                AppCalibrationResponse(event.calibrated),
                 "${event.playerId}-${event.sessionId}",
                 event.type,
         )

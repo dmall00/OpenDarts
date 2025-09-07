@@ -54,7 +54,6 @@ export interface DartThrowResponse {
 }
 
 export interface DartProcessedResult {
-    currentDartThrow: DartThrowResponse;
     currentTurnDarts: DartThrowResponse[];
     currentDartNumber: number;
     currentPlayer: string;

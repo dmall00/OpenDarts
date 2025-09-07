@@ -6,7 +6,7 @@ import io.github.dmall.opendarts.game.autoscore.model.DartDetection
 import io.github.dmall.opendarts.game.autoscore.model.DetectionResult
 import io.github.dmall.opendarts.game.autoscore.model.DetectionState
 import io.github.dmall.opendarts.game.autoscore.model.PipelineDetectionResponse
-import io.github.dmall.opendarts.game.model.DartThrow
+import io.github.dmall.opendarts.game.model.DartThrowRequest
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationEventPublisher
@@ -121,10 +121,10 @@ class AutoScoreStabilizer
             logger.info { "Registering $missCount missed dart(s) for player $playerId" }
 
             for (i in 0 until missCount) {
-                val dartThrow = DartThrow(1, 0, true)
+                val dartThrowRequest = DartThrowRequest(1, 0, true)
 
                 applicationEventPublisher.publishEvent(
-                    DartThrowDetectedEvent(this, sessionId, playerId, dartThrow),
+                    DartThrowDetectedEvent(this, sessionId, playerId, dartThrowRequest),
                 )
                 confirmedDarts.add((-1.0 - i) to -1.0)
             }
@@ -183,9 +183,9 @@ class AutoScoreStabilizer
                         "Detected new dart with confidence $confidence and score $score*$multiplier = ${multiplier * score}, pos: $pos"
                     }
 
-                    val dartThrow = DartThrow(multiplier, score, true)
+                    val dartThrowRequest = DartThrowRequest(multiplier, score, true)
                     applicationEventPublisher.publishEvent(
-                        DartThrowDetectedEvent(this, sessionId, playerId, dartThrow),
+                        DartThrowDetectedEvent(this, sessionId, playerId, dartThrowRequest),
                     )
                     confirmedDarts.add(pos)
                 }

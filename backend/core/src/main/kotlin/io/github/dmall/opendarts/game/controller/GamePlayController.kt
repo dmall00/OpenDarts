@@ -2,7 +2,7 @@ package io.github.dmall.opendarts.game.controller
 
 import io.github.dmall.opendarts.game.mapper.GameMapper
 import io.github.dmall.opendarts.game.model.CurrentGameStateTO
-import io.github.dmall.opendarts.game.model.DartThrow
+import io.github.dmall.opendarts.game.model.DartThrowRequest
 import io.github.dmall.opendarts.game.model.GameStateTo
 import io.github.dmall.opendarts.game.service.GameOrchestrator
 import org.springframework.beans.factory.annotation.Autowired
@@ -20,9 +20,9 @@ class GamePlayController
         fun submitDartThrow(
             @PathVariable playerId: String,
             @PathVariable gameId: String,
-            @RequestBody dartThrow: DartThrow,
+            @RequestBody dartThrowRequest: DartThrowRequest,
         ): CurrentGameStateTO {
-            val gameResult = gameOrchestrator.submitDartThrow(gameId, playerId, dartThrow)
+            val gameResult = gameOrchestrator.submitDartThrow(gameId, playerId, dartThrowRequest)
             return gameMapper.toCurrentGameStateTO(gameResult)
         }
 

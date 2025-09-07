@@ -17,17 +17,18 @@ class X01Game
         override fun processDartThrow(
             gameSession: GameSession,
             currentPlayer: Player,
-            dartThrow: DartThrow,
+            dartThrowRequest: DartThrowRequest,
         ): CurrentGameState {
             val config = getConfig(gameSession)
             val currentLeg = getCurrentLeg(gameSession)
             val currentTurn = getCurrentTurn(currentLeg, currentPlayer)
             val currentScore = getCurrentScore(config, currentPlayer, currentLeg)
-            val throwScore = dartThrow.computedScore
+
+            val throwScore = dartThrowRequest.score * dartThrowRequest.multiplier
 
             val newScore = currentScore - throwScore
 
-            if (isBust(newScore, config, dartThrow)) {
+            if (isBust(newScore, config, dartThrowRequest)) {
                 logger.info { "Bust detected" }
                 fillMissDarts(currentTurn)
                 val nextPlayer = getNextPlayer(gameSession, currentPlayer)
@@ -35,7 +36,6 @@ class X01Game
                 createNewTurnIfNeeded(currentLeg, nextPlayer!!, gameSession)
 
                 return CurrentGameState(
-                    currentDartThrow = dartThrow,
                     currentDartNumber = currentTurn.darts.size + 1,
                     remainingScore = currentScore,
                     bust = true,
@@ -46,9 +46,9 @@ class X01Game
                 )
             }
 
-            if (isFinishLeg(config, newScore, dartThrow)) {
+            if (isFinishLeg(config, newScore, dartThrowRequest)) {
                 logger.info { "Leg is finished" }
-                handleDartThrow(gameSession, dartThrow, currentTurn)
+                handleDartThrow(gameSession, dartThrowRequest, currentTurn)
                 val (isSetWon, isGameWon) = handleLegWin(gameSession, currentPlayer, currentLeg)
 
                 var nextPlayer: Player? = null
@@ -64,12 +64,11 @@ class X01Game
                 }
                 logger.info { "Game is won" }
                 return CurrentGameState(
-                    currentDartThrow = dartThrow,
                     currentDartNumber = currentTurn.darts.size,
                     remainingScore = 0,
-                    isLegWon = true,
-                    isSetWon = isSetWon,
-                    isGameWon = isGameWon,
+                    legWon = true,
+                    setWon = isSetWon,
+                    gameWon = isGameWon,
                     winner = if (isGameWon) currentPlayer else null,
                     nextPlayer = nextPlayer,
                     message =
@@ -83,8 +82,10 @@ class X01Game
                 )
             }
 
-            handleDartThrow(gameSession, dartThrow, currentTurn)
+            handleDartThrow(gameSession, dartThrowRequest, currentTurn)
             logger.info { "Current game state after throw: $newScore" }
+
+            val currentDart = currentTurn.darts.last()
 
             val shouldSwitch = shouldSwitchPlayer(currentTurn)
             val nextPlayer =
@@ -98,7 +99,6 @@ class X01Game
                 }
 
             return CurrentGameState(
-                currentDartThrow = dartThrow,
                 currentDartNumber = currentTurn.darts.size,
                 remainingScore = newScore,
                 nextPlayer = nextPlayer,
@@ -130,15 +130,15 @@ class X01Game
 
         private fun handleDartThrow(
             gameSession: GameSession,
-            dartThrow: DartThrow,
+            dartThrowRequest: DartThrowRequest,
             currentTurn: Turn,
         ) {
-            logger.info { "Handling new throw ${dartThrow.computedScore}" }
+            logger.info { "Handling new throw $dartThrowRequest" }
             if (currentTurn.darts.count() < 3) {
                 val dart =
                     Dart().apply {
-                        this.score = dartThrow.score
-                        this.multiplier = dartThrow.multiplier
+                        this.score = dartThrowRequest.score
+                        this.multiplier = dartThrowRequest.multiplier
                         this.turn = currentTurn
                     }
                 currentTurn.darts.add(dart)
@@ -152,20 +152,20 @@ class X01Game
         private fun isFinishLeg(
             config: X01Config,
             newScore: Int,
-            dartThrow: DartThrow,
+            dartThrowRequest: DartThrowRequest,
         ): Boolean {
             if (newScore != 0) return false
-            if (config.doubleOut && dartThrow.multiplier != 2) return false
+            if (config.doubleOut && dartThrowRequest.multiplier != 2) return false
             return true
         }
 
         private fun isBust(
             newScore: Int,
             config: X01Config,
-            dartThrow: DartThrow,
+            dartThrowRequest: DartThrowRequest,
         ): Boolean {
             if (newScore < 0) return true
-            if (newScore == 0 && config.doubleOut && dartThrow.multiplier != 2) return true
+            if (newScore == 0 && config.doubleOut && dartThrowRequest.multiplier != 2) return true
             if (newScore == 1 && config.doubleOut) return true
             return false
         }
@@ -221,14 +221,14 @@ class X01Game
         private fun getCurrentTurnDarts(
             currentPlayer: Player,
             currentLeg: Leg,
-        ): List<DartThrow> {
+        ): List<DartThrowRequest> {
             val currentTurn =
                 currentLeg.turns
                     .filter { it.player == currentPlayer }
                     .maxByOrNull { it.turnOrderIndex } ?: return emptyList()
 
             return currentTurn.darts.map { dart ->
-                DartThrow(score = dart.score, multiplier = dart.multiplier, autoScore = false)
+                DartThrowRequest(score = dart.score, multiplier = dart.multiplier, autoScore = false)
             }
         }
 

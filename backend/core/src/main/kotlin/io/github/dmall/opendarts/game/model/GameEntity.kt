@@ -1,5 +1,6 @@
 package io.github.dmall.opendarts.game.model
 
+import com.fasterxml.jackson.annotation.JsonProperty
 import jakarta.persistence.*
 
 enum class GameMode {
@@ -165,4 +166,34 @@ class Dart {
     @ManyToOne(optional = false)
     @JoinColumn(nullable = false)
     lateinit var turn: Turn
+
+    @get:Transient
+    @get:JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    val computedScore: Int
+        get() = when {
+            isMiss() -> 0
+            isBull() -> 50
+            isOuterBull() -> 25
+            else -> score * multiplier
+        }
+
+    @get:Transient
+    @get:JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    val scoreString: String
+        get() = when {
+            isMiss() -> "MISS"
+            isBull() -> "BULL"
+            else -> when (multiplier) {
+                1 -> "S$score"
+                2 -> "D$score"
+                3 -> "T$score"
+                else -> throw IllegalArgumentException("Invalid dart throw: $multiplier * $score")
+            }
+        }
+
+    private fun isBull() = score == 25 && multiplier == 1
+
+    private fun isOuterBull() = score == 25 && multiplier == 2
+
+    private fun isMiss() = score == 0
 }
