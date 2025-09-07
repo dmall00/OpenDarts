@@ -10,6 +10,7 @@ interface UseDartProcessedResultProps {
     fps?: number;
     dartProcessedResult: Partial<DartProcessedResult>;
     setDartProcessedResult: (dartProcessedResult: Partial<DartProcessedResult>) => void;
+    autoConnect?: boolean;
 }
 
 export const useDartProcessedResult = ({
@@ -18,7 +19,8 @@ export const useDartProcessedResult = ({
                                            websocketUrl,
                                            fps = WEBSOCKET_CONFIG.DEFAULT_FPS,
                                            dartProcessedResult,
-                                           setDartProcessedResult
+                                           setDartProcessedResult,
+                                           autoConnect = true
                                        }: UseDartProcessedResultProps) => {
 
 
@@ -34,7 +36,7 @@ export const useDartProcessedResult = ({
     const gameMessages = useGameMessages({
         url: wsUrl,
         fps,
-        autoConnect: true,
+        autoConnect,
         reconnectAttempts: WEBSOCKET_CONFIG.RECONNECT_ATTEMPTS,
         reconnectDelay: WEBSOCKET_CONFIG.RECONNECT_DELAY,
         heartbeatInterval: WEBSOCKET_CONFIG.HEARTBEAT_INTERVAL,

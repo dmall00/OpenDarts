@@ -1,4 +1,4 @@
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import {ScrollView, View} from "react-native";
 import {useGameStore} from "@/src/stores/gameStore";
 import InGameHeader from "@/src/components/game/header/InGameHeader";
@@ -35,6 +35,7 @@ export default function GameView({gameId, playerId, websocketUrl, fps}: GameView
         isConnecting,
         error,
         connect,
+        disconnect,
         sendCameraFrame,
         startCapture,
         stopCapture,
@@ -44,7 +45,8 @@ export default function GameView({gameId, playerId, websocketUrl, fps}: GameView
         playerId,
         websocketUrl,
         setDartProcessedResult,
-        dartProcessedResult
+        dartProcessedResult,
+        autoConnect: isAutoScoreEnabled
     });
 
     useGameCapture({
@@ -56,6 +58,14 @@ export default function GameView({gameId, playerId, websocketUrl, fps}: GameView
     });
 
     useErrorHandler(error);
+
+    useEffect(() => {
+        if (isAutoScoreEnabled && !isConnected && !isConnecting) {
+            connect();
+        } else if (!isAutoScoreEnabled && (isConnected || isConnecting)) {
+            disconnect();
+        }
+    }, [isAutoScoreEnabled, isConnected, isConnecting, connect, disconnect]);
 
     const handleReconnect = () => {
         connect();

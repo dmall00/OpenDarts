@@ -18,11 +18,13 @@ interface InGameHeaderProps {
 export default function InGameHeader(props: InGameHeaderProps) {
     return (<Header>
         <View className="flex-1 items-start">
-            <ConnectionStatus
-                isConnected={props.isConnected}
-                isConnecting={props.isConnecting}
-                onReconnect={props.handleReconnect}
-            />
+            {props.isAutoScoreEnabled && (
+                <ConnectionStatus
+                    isConnected={props.isConnected}
+                    isConnecting={props.isConnecting}
+                    onReconnect={props.handleReconnect}
+                />
+            )}
         </View>
         <View className="flex-2 items-center">
             <HeaderText title="OpenDarts"/>

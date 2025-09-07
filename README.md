@@ -43,8 +43,8 @@ Kotlin Spring Boot backend for game management and stabilization of auto scoring
 1. **AutoScore Server**
    ```bash
    cd autoscore-server
-   uv sync --dev
-   uv run python -m autoscore.main
+   uv sync
+   autoscore-server
    ```
 
 2. **Mobile App**
@@ -57,7 +57,7 @@ Kotlin Spring Boot backend for game management and stabilization of auto scoring
 3. **Backend**
    ```bash
    cd backend
-   mvn spring-boot:run
+   ./mvnw --pl core -amd clean compile spring-boot:run
    ```
 
 ## How It Works
