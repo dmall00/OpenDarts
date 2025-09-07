@@ -1,5 +1,6 @@
 package io.github.dmall.opendarts.game.service
 
+import io.github.dmall.opendarts.game.exception.DartGameException
 import io.github.dmall.opendarts.game.model.*
 import io.github.dmall.opendarts.game.repository.GameSessionRepository
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -24,6 +25,9 @@ class X01Game
             val currentTurn = getCurrentTurn(currentLeg, currentPlayer)
             val currentScore = getCurrentScore(config, currentPlayer, currentLeg)
 
+            if (currentScore == 0) {
+                throw DartGameException("Game is already over")
+            }
             val throwScore = dartThrowRequest.score * dartThrowRequest.multiplier
 
             val newScore = currentScore - throwScore

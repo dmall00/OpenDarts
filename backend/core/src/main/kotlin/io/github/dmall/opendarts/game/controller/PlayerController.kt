@@ -2,6 +2,7 @@ package io.github.dmall.opendarts.game.controller
 
 import io.github.dmall.opendarts.game.service.PlayerCreationService
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
@@ -13,7 +14,8 @@ class PlayerController
 constructor(private val playerCreationService: PlayerCreationService) {
 
     @PostMapping
-    fun createPlayer(userName: String) {
+    fun createPlayer(userName: String): ResponseEntity<Void> {
         playerCreationService.createPlayer(userName)
+        return ResponseEntity.ok().build()
     }
 }

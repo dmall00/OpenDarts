@@ -6,6 +6,7 @@ import io.github.dmall.opendarts.game.model.DartThrowRequest
 import io.github.dmall.opendarts.game.model.GameStateTo
 import io.github.dmall.opendarts.game.service.GameOrchestrator
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
 @RestController
@@ -21,16 +22,16 @@ class GamePlayController
             @PathVariable playerId: String,
             @PathVariable gameId: String,
             @RequestBody dartThrowRequest: DartThrowRequest,
-        ): CurrentGameStateTO {
+        ): ResponseEntity<CurrentGameStateTO> {
             val gameResult = gameOrchestrator.submitDartThrow(gameId, playerId, dartThrowRequest)
-            return gameMapper.toCurrentGameStateTO(gameResult)
+            return ResponseEntity.ok(gameMapper.toCurrentGameStateTO(gameResult))
         }
 
         @GetMapping("/{gameId}/state")
         fun getGameState(
             @PathVariable gameId: String,
-        ): GameStateTo {
+        ): ResponseEntity<GameStateTo> {
             val gameState = gameOrchestrator.getGameState(gameId)
-            return gameMapper.toGameStateTo(gameState)
+            return ResponseEntity.ok(gameMapper.toGameStateTo(gameState))
         }
     }
