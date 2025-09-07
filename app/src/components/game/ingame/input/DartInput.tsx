@@ -1,6 +1,7 @@
 import React from 'react';
 import { View } from 'react-native';
 import InputButton from '@/src/components/game/ingame/input/InputButton';
+import { isWeb } from '@/src/utils/platform';
 
 interface DartInputProps {
     onNumberPress: (value: number) => void;
@@ -26,9 +27,11 @@ const DartInputRow = ({
     modifier: 'single' | 'double' | 'triple';
 }) => {
     const renderButton = (item: number | string, index: number) => {
+        const buttonWrapperClass = isWeb() ? "w-20" : "flex-1 max-w-[56px]";
+        
         if (typeof item === 'number') {
             return (
-                <View key={index} className="flex-1">
+                <View key={index} className={buttonWrapperClass}>
                     <InputButton
                         value={item}
                         onPress={() => onNumberPress(item)}
@@ -41,7 +44,7 @@ const DartInputRow = ({
         switch (item) {
             case "DOUBLE":
                 return (
-                    <View key={index} className="flex-1">
+                    <View key={index} className={buttonWrapperClass}>
                         <InputButton
                             value="2x"
                             onPress={onDoublePress}
@@ -52,7 +55,7 @@ const DartInputRow = ({
                 );
             case "TRIPLE":
                 return (
-                    <View key={index} className="flex-1">
+                    <View key={index} className={buttonWrapperClass}>
                         <InputButton
                             value="3x"
                             onPress={onTriplePress}
@@ -63,7 +66,7 @@ const DartInputRow = ({
                 );
             case "BACK":
                 return (
-                    <View key={index} className="flex-1">
+                    <View key={index} className={buttonWrapperClass}>
                         <InputButton
                             value="←"
                             onPress={onBackPress}
@@ -77,7 +80,7 @@ const DartInputRow = ({
     };
 
     return (
-        <View className="flex-row gap-md">
+        <View className={`flex-row ${isWeb() ? "gap-2" : "gap-1"} justify-center`}>
             {row.map(renderButton)}
         </View>
     );
@@ -98,8 +101,8 @@ export default function DartInput({
     ];
 
     return (
-        <View className="p-base">
-            <View className="gap-md">
+        <View className={`p-base ${isWeb() ? "max-w-lg mx-auto" : ""}`}>
+            <View className={`${isWeb() ? "gap-2" : "gap-1"}`}>
                 {rows.map((row, rowIndex) => (
                     <DartInputRow
                         key={rowIndex}

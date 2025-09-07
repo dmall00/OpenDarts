@@ -28,7 +28,7 @@ export default function InputButton({
         <TouchableOpacity 
             className={buttonClass}
             onPress={onPress}
-            activeOpacity={0.7}
+            activeOpacity={0.9}
         >
             <Text className={textClass}>
                 {value}
