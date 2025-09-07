@@ -8,6 +8,8 @@ interface UseDartProcessedResultProps {
     playerId: string;
     websocketUrl?: string;
     fps?: number;
+    dartProcessedResult: Partial<DartProcessedResult>;
+    setDartProcessedResult: (dartProcessedResult: Partial<DartProcessedResult>) => void;
 }
 
 export const useDartProcessedResult = ({
@@ -15,11 +17,10 @@ export const useDartProcessedResult = ({
                                            playerId,
                                            websocketUrl,
                                            fps = WEBSOCKET_CONFIG.DEFAULT_FPS,
+                                           dartProcessedResult,
+                                           setDartProcessedResult
                                        }: UseDartProcessedResultProps) => {
-    const [dartProcessedResult, setDartProcessedResult] = useState<Partial<DartProcessedResult>>({
-        remainingScore: 0,
-        currentTurnDarts: [],
-    });
+
 
     const [calibrated, setCalibrated] = useState(false);
 
@@ -69,7 +70,6 @@ export const useDartProcessedResult = ({
 
     return {
         ...gameMessages,
-        dartProcessedResult,
         calibrated,
         sendCameraFrame,
     };

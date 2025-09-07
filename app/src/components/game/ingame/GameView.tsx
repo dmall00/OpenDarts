@@ -10,7 +10,7 @@ import {useCameraUI} from "@/src/hooks/useCameraUI";
 import ZoomCameraView from "@/src/components/game/autoscore/ZoomCameraView";
 import DartInput from "@/src/components/game/ingame/input/DartInput";
 import {useMutation} from "@/src/hooks/useMutation";
-import {DartThrow} from "@/src/types/api";
+import {DartProcessedResult, DartThrow} from "@/src/types/api";
 import {gameService} from "@/src/services/game/gameService";
 
 interface GameViewProps {
@@ -25,6 +25,11 @@ export default function GameView({gameId, playerId, websocketUrl, fps}: GameView
     const {isCameraExpanded, handleToggleCamera} = useCameraUI();
     const [modifier, setModifier] = useState<1 | 2 | 3>(1);
 
+    const [dartProcessedResult, setDartProcessedResult] = useState<Partial<DartProcessedResult>>({
+        remainingScore: 0,
+        currentTurnDarts: [],
+    });
+
     const {
         isConnected,
         isConnecting,
@@ -33,12 +38,13 @@ export default function GameView({gameId, playerId, websocketUrl, fps}: GameView
         sendCameraFrame,
         startCapture,
         stopCapture,
-        dartProcessedResult,
         calibrated
     } = useDartProcessedResult({
         gameId,
         playerId,
         websocketUrl,
+        setDartProcessedResult,
+        dartProcessedResult
     });
 
     useGameCapture({
@@ -59,7 +65,7 @@ export default function GameView({gameId, playerId, websocketUrl, fps}: GameView
         (dartThrow: DartThrow) => gameService.trackDart(playerId, gameId, dartThrow),
         {
             onSuccess: (dartProcessed) => {
-                console.log(dartProcessed);
+                setDartProcessedResult(dartProcessed);
             },
             onError: (error) => {
                 console.error('Failed to send dart:', error);

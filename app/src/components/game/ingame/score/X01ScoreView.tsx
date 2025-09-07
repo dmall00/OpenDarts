@@ -23,7 +23,10 @@ export default function X01ScoreView(props: X01ScoreViewProps) {
                     color="primary"
                 />
             </View>
-            <X01CurrentScoreBoxes dartThrows={currentTurnDarts}/>
+            <X01CurrentScoreBoxes
+                dartThrows={currentTurnDarts}
+                dartProcessedResult={props.dartProcessedResult}
+            />
         </Container>
     );
 };

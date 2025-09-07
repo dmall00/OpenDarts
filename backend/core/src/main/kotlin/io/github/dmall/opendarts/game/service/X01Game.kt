@@ -107,7 +107,15 @@ class X01Game
             )
         }
 
-        private fun fillMissDarts(currentTurn: Turn) {
+    override fun revertDartThrow(
+        gameSession: GameSession,
+        currentPlayer: Player,
+        dartRevertRequest: DartRevertRequest
+    ) {
+        TODO("Not yet implemented")
+    }
+
+    private fun fillMissDarts(currentTurn: Turn) {
             while (currentTurn.darts.size < 3) {
                 val dart =
                     Dart().apply {

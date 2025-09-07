@@ -58,11 +58,11 @@ export interface DartProcessedResult {
     currentDartNumber: number;
     currentPlayer: string;
     remainingScore: number;
-    isLegWon: boolean;
-    isSetWon: boolean;
-    isGameWon: boolean;
+    legWon: boolean;
+    setWon: boolean;
+    gameWon: boolean;
     winner?: string;
-    nextPlayer: string;
+    nextPlayer?: string;
     message?: string;
     bust: boolean;
 }
