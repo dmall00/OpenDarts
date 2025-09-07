@@ -143,7 +143,7 @@ export class CameraService {
                         0,
                         undefined,
                         false,
-                        {mode: 'contain', onlyScaleDown: true}
+                        {mode: 'cover', onlyScaleDown: true}
                     );
                     
                     finalPath = resizedImage.path;
@@ -208,7 +208,6 @@ export class CameraService {
                 return false;
             }
 
-            // Log when sending a picture to the websocket server
             console.log('Sending image frame to websocket server', {
                 timestamp: new Date().toISOString(),
                 imageSize: blob.size,

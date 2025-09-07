@@ -1,9 +1,10 @@
-import {Camera, useCameraDevice, useCameraPermission} from "react-native-vision-camera";
+import {Camera, useCameraDevice, useCameraPermission, useCameraFormat} from "react-native-vision-camera";
 import React, {useCallback, useEffect, useRef, useState} from "react";
 import {Animated, Text, TouchableOpacity, View} from "react-native";
 import {CameraService} from "@/src/services/camera/cameraService";
 import Button from "@/src/components/ui/Button";
 import Typography from "@/src/components/ui/Typography";
+import {CAMERA_CONFIG} from "@/src/config/config";
 
 interface ZoomCameraViewProps {
     onClose?: () => void;
@@ -13,8 +14,13 @@ interface ZoomCameraViewProps {
 export default function ZoomCameraView({onClose, isVisible = true}: ZoomCameraViewProps) {
     const {hasPermission, requestPermission} = useCameraPermission();
     const [zoom, setZoom] = useState(1);
+    const [isCameraReady, setIsCameraReady] = useState(false);
     const cameraRef = useRef<Camera | null>(null);
     const device = useCameraDevice('back');
+    const format = useCameraFormat(device, [
+        { videoResolution: { width: CAMERA_CONFIG.MAX_WIDTH, height: CAMERA_CONFIG.MAX_HEIGHT } },
+        { fps: 30 }
+    ]) ?? device?.formats?.[0];
     const cameraService = CameraService.getInstance();
 
     const scale = useRef(new Animated.Value(1)).current;
@@ -27,7 +33,8 @@ export default function ZoomCameraView({onClose, isVisible = true}: ZoomCameraVi
 
     useEffect(() => {
         setZoom(neutralZoom);
-    }, [device]);
+        setIsCameraReady(false);
+    }, [device, neutralZoom]);
 
     useEffect(() => {
         if (cameraRef.current && device) {
@@ -36,9 +43,9 @@ export default function ZoomCameraView({onClose, isVisible = true}: ZoomCameraVi
         }
 
         return () => {
-            if (!device) {
-                cameraService.setCameraRef(null);
-            }
+            // Only clean up when the component unmounts or device changes
+            // Don't clear on visibility change
+            cameraService.setCameraRef(null);
         };
     }, [cameraService, device]);
 
@@ -51,6 +58,7 @@ export default function ZoomCameraView({onClose, isVisible = true}: ZoomCameraVi
             }).start();
         } else {
             scale.setValue(0);
+            // Don't set isCameraReady to false when minimized - keep camera active
         }
     }, [scale, isVisible]);
 
@@ -62,11 +70,16 @@ export default function ZoomCameraView({onClose, isVisible = true}: ZoomCameraVi
 
     const handleCameraRef = useCallback((ref: Camera | null) => {
         cameraRef.current = ref;
-        if (ref && device) {
+        if (ref && device && format) {
             cameraService.setCameraRef(ref);
             cameraService.setDevice(device);
+            setTimeout(() => {
+                setIsCameraReady(true);
+            }, 100);
+        } else {
+            setIsCameraReady(false);
         }
-    }, [cameraService, device]);
+    }, [cameraService, device, format]);
 
     const handleZoom = (zoomLevel: number) => {
         const clampedZoom = Math.max(minZoom, Math.min(maxZoom, zoomLevel));
@@ -96,8 +109,32 @@ export default function ZoomCameraView({onClose, isVisible = true}: ZoomCameraVi
         return (
             <View className="flex-1 justify-center items-center bg-white rounded-xl m-0 p-xl">
                 <Typography variant="body" className="text-center mb-lg">
-                    No camera device found
+                    No camera device found. Please ensure your device has a rear camera.
                 </Typography>
+                <Button 
+                    title="Try Again"
+                    onPress={() => {
+                        setZoom(neutralZoom);
+                    }}
+                    size="large"
+                />
+            </View>
+        );
+    }
+
+    if (!format) {
+        return (
+            <View className="flex-1 justify-center items-center bg-white rounded-xl m-0 p-xl">
+                <Typography variant="body" className="text-center mb-lg">
+                    No suitable camera format found. Your device may not support the required camera formats.
+                </Typography>
+                <Button 
+                    title="Try Again"
+                    onPress={() => {
+                        setZoom(neutralZoom);
+                    }}
+                    size="large"
+                />
             </View>
         );
     }
@@ -119,12 +156,29 @@ export default function ZoomCameraView({onClose, isVisible = true}: ZoomCameraVi
             >
                 <Camera
                     ref={handleCameraRef}
-                    className="flex-1"
+                    style={{flex: 1}}
                     device={device}
+                    format={format}
                     isActive={true}
                     photo={true}
+                    video={false}
                     zoom={zoom}
+                    enableZoomGesture={false}
+                    resizeMode="contain"
+                    onError={(error) => {
+                        setIsCameraReady(false);
+                    }}
+                    onInitialized={() => {
+                        setIsCameraReady(true);
+                    }}
                 />
+                {isVisible && !isCameraReady && (
+                    <View className="absolute inset-0 bg-black items-center justify-center">
+                        <Typography variant="body" className="text-white">
+                            Initializing camera...
+                        </Typography>
+                    </View>
+                )}
                 {isVisible && <View className="absolute inset-0 bg-black/5"/>}
                 {isVisible && (
                     <View className="absolute top-md right-md bg-slate-800 p-sm rounded-full min-w-8 min-h-8 items-center justify-center z-10">
@@ -135,7 +189,7 @@ export default function ZoomCameraView({onClose, isVisible = true}: ZoomCameraVi
             {isVisible && (
                 <View className="absolute inset-x-0 items-center z-[1001]" style={{bottom: sliderBottomPosition}}>
                     <Animated.View
-                        className="flex-row bg-white/95 rounded-2xl p-md shadow-md items-center min-w-[180px] justify-between"
+                        className="flex-row bg-white/95 rounded-2xl p-md items-center min-w-[180px] justify-between shadow-lg"
                         style={{
                             opacity: scale,
                             transform: [{
@@ -144,11 +198,6 @@ export default function ZoomCameraView({onClose, isVisible = true}: ZoomCameraVi
                                     outputRange: [50, 0],
                                 })
                             }],
-                            shadowColor: '#000',
-                            shadowOffset: {width: 0, height: 2},
-                            shadowOpacity: 0.1,
-                            shadowRadius: 4,
-                            elevation: 4,
                         }}
                     >
                         <TouchableOpacity
