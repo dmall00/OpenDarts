@@ -40,7 +40,6 @@ constructor(
             fillMissDarts(currentTurn)
             val nextPlayer = getNextPlayer(gameSession, currentPlayer)
             logger.info { "Next player is $nextPlayer" }
-            createNewTurnIfNeeded(currentLeg, nextPlayer!!, gameSession)
 
             return CurrentGameState(
                 currentDartNumber = currentTurn.darts.size + 1,
@@ -96,9 +95,7 @@ constructor(
         val nextPlayer =
             if (shouldSwitch) {
                 logger.info { "Turn completed switching player" }
-                val next = getNextPlayer(gameSession, currentPlayer)!!
-                createNewTurnIfNeeded(currentLeg, next, gameSession)
-                next
+                getNextPlayer(gameSession, currentPlayer)!!
             } else {
                 currentPlayer
             }
@@ -119,8 +116,9 @@ constructor(
     ): CurrentGameState {
         val config = getConfig(gameSession)
         val currentLeg = getCurrentLeg(gameSession)
-        val currentTurn = getCurrentTurn(currentLeg, currentPlayer)
+        val currentTurn = getCurrentTurnForRevert(currentLeg, currentPlayer)
         removeLastDartFromTurnIfPresent(currentTurn)
+        gameSessionRepository.save(gameSession)
         return CurrentGameState(
             currentDartNumber = currentTurn.darts.size + 1,
             currentTurnDarts = currentTurn.darts,
@@ -159,10 +157,33 @@ constructor(
     private fun getCurrentTurn(
         currentLeg: Leg,
         currentPlayer: Player,
+    ): Turn {
+        val existingTurn = currentLeg.turns
+            .filter { it.player.id == currentPlayer.id }
+            .lastOrNull { it.darts.size < 3 }
+
+        if (existingTurn != null) {
+            return existingTurn
+        }
+
+        logger.info { "Creating new turn for player ${currentPlayer.name}" }
+        val nextTurnOrder = currentLeg.turns.maxOfOrNull { it.turnOrderIndex } ?: -1
+        val newTurn = Turn().apply {
+            this.player = currentPlayer
+            this.leg = currentLeg
+            this.turnOrderIndex = nextTurnOrder + 1
+        }
+        currentLeg.turns.add(newTurn)
+        return newTurn
+    }
+
+    private fun getCurrentTurnForRevert(
+        currentLeg: Leg,
+        currentPlayer: Player,
     ): Turn =
         currentLeg.turns
-            .filter { it.player.id == currentPlayer.id }
-            .lastOrNull { it.darts.size < 3 } ?: error("No active turn found for current player")
+            .filter { it.player.id == currentPlayer.id && it.darts.isNotEmpty() }
+            .maxByOrNull { it.turnOrderIndex } ?: error("No turn with darts found for current player")
 
     private fun handleDartThrow(
         gameSession: GameSession,
@@ -341,28 +362,6 @@ constructor(
         gameSessionRepository.save(gameSession)
 
         return LegWinResult(isSetWon = isSetWon, isGameWon = isGameWon)
-    }
-
-    private fun createNewTurnIfNeeded(
-        currentLeg: Leg,
-        nextPlayer: Player,
-        gameSession: GameSession,
-    ) {
-        val existingTurn =
-            currentLeg.turns.find { it.player.id == nextPlayer.id && it.darts.size < 3 }
-
-        if (existingTurn == null) {
-            logger.info { "Creating new turn" }
-            val nextTurnOrder = currentLeg.turns.maxOfOrNull { it.turnOrderIndex } ?: -1
-            val newTurn =
-                Turn().apply {
-                    this.player = nextPlayer
-                    this.leg = currentLeg
-                    this.turnOrderIndex = nextTurnOrder + 1
-                }
-            currentLeg.turns.add(newTurn)
-            gameSessionRepository.save(gameSession)
-        }
     }
 
     private fun createNewLeg(
