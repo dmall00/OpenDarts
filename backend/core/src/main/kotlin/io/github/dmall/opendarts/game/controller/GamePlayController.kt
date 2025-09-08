@@ -5,6 +5,7 @@ import io.github.dmall.opendarts.game.model.CurrentGameStateTO
 import io.github.dmall.opendarts.game.model.DartThrowRequest
 import io.github.dmall.opendarts.game.model.GameStateTo
 import io.github.dmall.opendarts.game.service.GameOrchestrator
+import jakarta.validation.Valid
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -21,7 +22,7 @@ class GamePlayController
         fun submitDartThrow(
             @PathVariable playerId: String,
             @PathVariable gameId: String,
-            @RequestBody dartThrowRequest: DartThrowRequest,
+            @Valid @RequestBody dartThrowRequest: DartThrowRequest,
         ): ResponseEntity<CurrentGameStateTO> {
             val gameResult = gameOrchestrator.submitDartThrow(gameId, playerId, dartThrowRequest)
             return ResponseEntity.ok(gameMapper.toCurrentGameStateTO(gameResult))

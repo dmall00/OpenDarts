@@ -10,7 +10,6 @@ interface GameMapper {
     @Mapping(source = "winner.id", target = "winner")
     @Mapping(source = "nextPlayer.id", target = "nextPlayer")
     @Mapping(source = "currentPlayer.id", target = "currentPlayer")
-    @Mapping(source = "currentTurnDarts", target = "currentTurnDarts", qualifiedByName = ["dartListToDartResponseList"])
     fun toCurrentGameStateTO(currentGameState: CurrentGameState): CurrentGameStateTO
 
     @Mapping(source = "currentPlayer.id", target = "currentPlayer")
@@ -31,23 +30,4 @@ interface GameMapper {
 
     fun playerIdToString(player: Player): String = player.id ?: throw IllegalArgumentException("Player ID cannot be null")
 
-    @Named("dartListToDartResponseList")
-    fun dartListToDartResponseList(darts: List<Dart>): List<DartResponse> =
-        darts.map { dart ->
-            DartResponse(
-                id = dart.id ?: 0L,
-                multiplier = dart.multiplier,
-                score = dart.score,
-                computedScore = dart.score * dart.multiplier,
-                scoreString = when (dart.multiplier) {
-                    0 -> "MISS"
-                    1 -> dart.score.toString()
-                    2 -> "D${dart.score}"
-                    3 -> "T${dart.score}"
-                    else -> "${dart.multiplier}x${dart.score}"
-                }
-            )
-        }
-
-    fun toDartThrow(dart: Dart): DartThrowRequest
 }

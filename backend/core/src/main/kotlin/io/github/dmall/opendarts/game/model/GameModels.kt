@@ -1,7 +1,9 @@
 package io.github.dmall.opendarts.game.model
 
 import com.fasterxml.jackson.annotation.JsonInclude
+import io.github.dmall.opendarts.game.validation.ValidDartThrowRequest
 
+@ValidDartThrowRequest
 data class DartThrowRequest(
     val multiplier: Int,
     val score: Int,
