@@ -56,7 +56,7 @@ constructor(
         gameId: String,
         playerId: String,
         dartRevertRequest: DartRevertRequest
-    ) {
+    ): CurrentGameState {
         val gameSession = gameSessionRepository.findById(gameId).orElseThrow()
         val currentPlayer = playerRepository.findById(playerId).orElseThrow()
         val gameHandler = gameModeRegistry.getGameHandler(gameSession.game.gameMode)

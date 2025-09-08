@@ -78,7 +78,7 @@ class GameSession {
     @JoinColumn(nullable = false)
     lateinit var game: Game
 
-    @OneToMany(mappedBy = "gameSession", cascade = [CascadeType.ALL], fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "gameSession", cascade = [CascadeType.ALL], fetch = FetchType.EAGER, orphanRemoval = true)
     var dartSets: MutableList<DartSet> = mutableListOf()
 
     @ManyToMany
@@ -104,7 +104,7 @@ class DartSet {
     @JoinColumn(name = "winner_id")
     var winner: Player? = null
 
-    @OneToMany(mappedBy = "dartSet", cascade = [CascadeType.ALL])
+    @OneToMany(mappedBy = "dartSet", cascade = [CascadeType.ALL], orphanRemoval = true)
     var legs: MutableList<Leg> = mutableListOf()
 }
 
@@ -122,7 +122,7 @@ class Leg {
     @JoinColumn(nullable = false)
     lateinit var dartSet: DartSet
 
-    @OneToMany(mappedBy = "leg", cascade = [CascadeType.ALL])
+    @OneToMany(mappedBy = "leg", cascade = [CascadeType.ALL], orphanRemoval = true)
     var turns: MutableList<Turn> = mutableListOf()
 }
 
@@ -144,7 +144,7 @@ class Turn {
     @Column(nullable = false)
     var turnOrderIndex: Int = 0
 
-    @OneToMany(mappedBy = "turn", cascade = [CascadeType.ALL])
+    @OneToMany(mappedBy = "turn", cascade = [CascadeType.ALL], orphanRemoval = true)
     val darts: MutableList<Dart> = mutableListOf()
 }
 

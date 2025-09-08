@@ -20,5 +20,9 @@ interface DartGameModeHandler {
     /** Get game mode */
     fun getGameMode(): GameMode
 
-    fun revertDartThrow(gameSession: GameSession, currentPlayer: Player, dartRevertRequest: DartRevertRequest)
+    fun revertDartThrow(
+        gameSession: GameSession,
+        currentPlayer: Player,
+        dartRevertRequest: DartRevertRequest
+    ): CurrentGameState
 }

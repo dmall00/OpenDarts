@@ -10,7 +10,7 @@ import {useCameraUI} from "@/src/hooks/useCameraUI";
 import ZoomCameraView from "@/src/components/game/autoscore/ZoomCameraView";
 import DartInput from "@/src/components/game/ingame/input/DartInput";
 import {useMutation} from "@/src/hooks/useMutation";
-import {DartProcessedResult, DartThrow} from "@/src/types/api";
+import {DartProcessedResult, DartRevertRequest, DartThrow} from "@/src/types/api";
 import {gameService} from "@/src/services/game/gameService";
 
 interface GameViewProps {
@@ -83,6 +83,18 @@ export default function GameView({gameId, playerId, websocketUrl, fps}: GameView
         }
     );
 
+    const revertDartMutation = useMutation(
+        (revertRequest: DartRevertRequest) => gameService.revertDart(playerId, gameId, revertRequest),
+        {
+            onSuccess: (dartProcessedResult) => {
+                setDartProcessedResult(dartProcessedResult);
+            },
+            onError: (error) => {
+                console.error('Failed to revert dart:', error);
+            }
+        }
+    );
+
     const handleNumberPress = async (value: number) => {
         console.log(`Number pressed: ${value} with modifier: ${modifier}`);
         const dartThrow: DartThrow = {
@@ -103,8 +115,17 @@ export default function GameView({gameId, playerId, websocketUrl, fps}: GameView
         setModifier(prev => prev === 3 ? 1 : 3);
     };
 
-    const handleBackPress = () => {
+    const handleBackPress = async () => {
         console.log("Back button pressed");
+        let currentDarts = dartProcessedResult.currentTurnDarts;
+        if (currentDarts?.length) {
+            let id = currentDarts?.[currentDarts.length - 1].id;
+            const revertRequest: DartRevertRequest = {
+                id: id
+            }
+            console.log("Revert request", revertRequest);
+            await revertDartMutation.mutate(revertRequest)
+        }
     };
 
     return (

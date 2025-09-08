@@ -32,8 +32,8 @@ export const API_ENDPOINTS = {
 
     GAMES: {
         CREATE: '/game',
-        THROW: '/game/gameId/playerId/dart/throw',
-        REVERT: '/game/gameId/playerId/dart/revert'
+        THROW: '/game/gameId/playerId/dart',
+        REVERT: '/game/gameId/playerId/dart/dartId'
     },
 };
 

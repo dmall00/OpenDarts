@@ -45,7 +45,12 @@ export interface DartThrow {
     autoScore?: boolean;
 }
 
+export interface DartRevertRequest {
+    id: number
+}
+
 export interface DartThrowResponse {
+    id: number
     score: number;
     multiplier: number;
     scoreString: string;
