@@ -1,20 +1,15 @@
 package io.github.dmall.opendarts.game.service
 
-import io.github.dmall.opendarts.game.autoscore.events.CalibrationEvent
-import io.github.dmall.opendarts.game.autoscore.events.DartThrowDetectedEvent
-import io.github.dmall.opendarts.game.autoscore.events.EventType
-import io.github.dmall.opendarts.game.autoscore.events.TurnSwitchDetectedEvent
+import io.github.dmall.opendarts.game.autoscore.events.*
 import io.github.dmall.opendarts.game.autoscore.websocket.AppWebSocketHandler
 import io.github.dmall.opendarts.game.mapper.GameMapper
-import io.github.dmall.opendarts.game.model.AppCalibrationResponse
-import io.github.dmall.opendarts.game.model.CurrentGameState
-import io.github.dmall.opendarts.game.model.DartRevertRequest
-import io.github.dmall.opendarts.game.model.DartThrowRequest
-import io.github.dmall.opendarts.game.model.GameState
+import io.github.dmall.opendarts.game.model.*
 import io.github.dmall.opendarts.game.repository.GameSessionRepository
 import io.github.dmall.opendarts.game.repository.PlayerRepository
+import io.github.oshai.kotlinlogging.KotlinLogging
 import jakarta.transaction.Transactional
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Service
 
@@ -28,7 +23,11 @@ constructor(
     private val gameModeRegistry: GameModeRegistry,
     private val appWebSocketHandler: AppWebSocketHandler,
     private val gameMapper: GameMapper,
+    private val applicationEventPublisher: ApplicationEventPublisher
 ) {
+
+    private val logger = KotlinLogging.logger {}
+
     @Transactional
     fun submitDartThrow(
         gameId: String,
@@ -45,6 +44,9 @@ constructor(
                 "$playerId-$gameId",
                 EventType.DART_THROW_DETECTED,
             )
+        } else {
+            logger.info { "Sending manual dart scoring to auto score stabilizer" }
+            applicationEventPublisher.publishEvent(ManualDartTrackedEvent(this, gameId, playerId, dartThrowRequest))
         }
         return gameState
     }

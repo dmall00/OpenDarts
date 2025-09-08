@@ -25,6 +25,14 @@ class DartThrowDetectedEvent(
     val dartThrowRequest: DartThrowRequest,
 ) : GameEvent(source, sessionId, playerId, EventType.DART_THROW_DETECTED)
 
+
+class ManualDartTrackedEvent(
+    source: Any,
+    sessionId: String,
+    playerId: String,
+    val dartThrowRequest: DartThrowRequest
+) : GameEvent(source, sessionId, playerId, EventType.DART_THROW_DETECTED)
+
 class TurnSwitchDetectedEvent(
     source: Any,
     sessionId: String,
