@@ -25,6 +25,11 @@ export interface User {
     updatedAt: string;
 }
 
+export interface Player {
+    id: string;
+    name: string;
+}
+
 export interface GameSession {
     gameId: string;
 }
@@ -58,30 +63,18 @@ export interface DartThrowResponse {
     autoScore: boolean;
 }
 
-export interface DartProcessedResult {
-    currentTurnDarts: DartThrowResponse[];
-    currentDartNumber: number;
-    currentPlayer: string;
-    remainingScore: number;
+export interface CurrentGameState {
+    currentTurnDarts: { [playerId: string]: DartThrowResponse[] };
+    currentRemainingScores: { [playerId: string]: number };
+    players: { [playerId: string]: Player };
+    currentPlayer: Player;
     legWon: boolean;
     setWon: boolean;
     gameWon: boolean;
-    winner?: string;
-    nextPlayer?: string;
+    winner?: Player;
+    nextPlayer?: Player;
     message?: string;
     bust: boolean;
-}
-
-export interface GameState {
-    currentPlayer: string;
-    currentRemainingScores: Record<string, number>;
-    currentLegDarts: DartThrowResponse[];
-    currentLeg: number;
-    currentSet: number;
-    legsWon: Record<string, number>;
-    setsWon: Record<string, number>;
-    dartsThrown: number;
-    turnsPlayed: number;
 }
 
 export interface WebSocketMessage<T = any> {

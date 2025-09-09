@@ -1,33 +1,46 @@
 package io.github.dmall.opendarts.game.mapper
 
 import io.github.dmall.opendarts.game.model.*
-import org.mapstruct.Mapper
-import org.mapstruct.Mapping
-import org.mapstruct.Named
+import org.springframework.stereotype.Component
 
-@Mapper(componentModel = "spring")
-interface GameMapper {
-    @Mapping(source = "winner.id", target = "winner")
-    @Mapping(source = "nextPlayer.id", target = "nextPlayer")
-    @Mapping(source = "currentPlayer.id", target = "currentPlayer")
-    fun toCurrentGameStateTO(currentGameState: CurrentGameState): CurrentGameStateTO
+@Component
+class GameMapper {
 
-    @Mapping(source = "currentPlayer.id", target = "currentPlayer")
-    @Mapping(
-        source = "currentRemainingScores",
-        target = "currentRemainingScores",
-        qualifiedByName = ["playerMapToIdMap"],
-    )
-    @Mapping(source = "legsWon", target = "legsWon", qualifiedByName = ["playerMapToIdMap"])
-    @Mapping(source = "setsWon", target = "setsWon", qualifiedByName = ["playerMapToIdMap"])
-    fun toGameStateTo(gameState: GameState): GameStateTo
+    fun toCurrentGameStateTO(currentGameState: CurrentGameState): CurrentGameStateTO {
+        return CurrentGameStateTO(
+            currentTurnDarts = mapCurrentTurnDartsToPlayerTO(currentGameState.currentTurnDarts),
+            currentRemainingScores = mapPlayerScoresToPlayerTO(currentGameState.currentRemainingScores),
+            currentPlayer = playerToPlayerTO(currentGameState.currentPlayer)!!,
+            legWon = currentGameState.legWon,
+            setWon = currentGameState.setWon,
+            gameWon = currentGameState.gameWon,
+            winner = playerToPlayerTO(currentGameState.winner),
+            nextPlayer = playerToPlayerTO(currentGameState.nextPlayer),
+            message = currentGameState.message,
+            bust = currentGameState.bust
+        )
+    }
 
-    @Named("playerMapToIdMap")
-    fun playerMapToIdMap(playerMap: Map<Player, Int>): Map<String, Int> =
-        playerMap.mapKeys { (player, _) ->
-            player.id ?: throw IllegalArgumentException("Player ID cannot be null")
+    fun dartToDartResponse(darts: List<Dart>): List<DartResponse> =
+        darts.mapNotNull { dart ->
+            dart.id?.let { id ->
+                DartResponse(
+                    id = id,
+                    multiplier = dart.multiplier,
+                    score = dart.score,
+                    computedScore = dart.computedScore,
+                    scoreString = dart.scoreString
+                )
+            }
         }
 
-    fun playerIdToString(player: Player): String = player.id ?: throw IllegalArgumentException("Player ID cannot be null")
+    fun playerToPlayerTO(player: Player?): PlayerTO? =
+        player?.let { PlayerTO(id = it.id!!, name = it.name) }
 
+    fun mapCurrentTurnDartsToPlayerTO(currentTurnDarts: Map<Player, List<Dart>>): Map<String, List<DartResponse>> =
+        currentTurnDarts.mapKeys { (player, _) -> playerToPlayerTO(player)!!.id }
+            .mapValues { (_, darts) -> dartToDartResponse(darts) }
+
+    fun mapPlayerScoresToPlayerTO(playerMap: Map<Player, Int>): Map<String, Int> =
+        playerMap.mapKeys { (player, _) -> playerToPlayerTO(player)!!.id }
 }

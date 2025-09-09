@@ -1,17 +1,20 @@
 import {View} from "react-native";
 import React from "react";
 import X01CurrentScoreBoxes from "@/src/components/game/ingame/score/X01CurrentScoreBoxes";
-import {DartProcessedResult} from "@/src/types/api";
+import {CurrentGameState} from "@/src/types/api";
 import ScoreDisplay from "@/src/components/ui/ScoreDisplay";
 import Container from "@/src/components/ui/Container";
 
 interface X01ScoreViewProps {
-    dartProcessedResult: Partial<DartProcessedResult>;
+    currentGameStatePartial: Partial<CurrentGameState>;
+    playerId?: string;
 }
 
 export default function X01ScoreView(props: X01ScoreViewProps) {
-    const remainingScore = props.dartProcessedResult.remainingScore ?? 0;
-    const currentTurnDarts = props.dartProcessedResult.currentTurnDarts ?? [];
+    const playerId = props.playerId || props.currentGameStatePartial.currentPlayer?.id || '';
+    const player = props.currentGameStatePartial.players?.[playerId] || props.currentGameStatePartial.currentPlayer;
+    const remainingScore = props.currentGameStatePartial.currentRemainingScores?.[playerId] ?? 0;
+    const currentTurnDarts = props.currentGameStatePartial.currentTurnDarts?.[playerId] ?? [];
 
     return (
         <Container variant="section" className="p-base">
@@ -25,7 +28,7 @@ export default function X01ScoreView(props: X01ScoreViewProps) {
             </View>
             <X01CurrentScoreBoxes
                 dartThrows={currentTurnDarts}
-                dartProcessedResult={props.dartProcessedResult}
+                currentGameStatePartial={props.currentGameStatePartial}
             />
         </Container>
     );

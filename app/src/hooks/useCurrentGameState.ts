@@ -1,27 +1,27 @@
 import {useEffect, useState} from 'react';
 import {useGameMessages} from './useGameMessages';
-import {CalibrationState, DartProcessedResult} from '../types/api';
+import {CalibrationState, CurrentGameState} from '../types/api';
 import {WEBSOCKET_CONFIG} from '../config/config';
 
-interface UseDartProcessedResultProps {
+interface UseCurrentGameStateProps {
     gameId: string;
     playerId: string;
     websocketUrl?: string;
     fps?: number;
-    dartProcessedResult: Partial<DartProcessedResult>;
-    setDartProcessedResult: (dartProcessedResult: Partial<DartProcessedResult>) => void;
+    currentGameStatePartial: Partial<CurrentGameState>;
+    setCurrentGameState: (currentGameState: Partial<CurrentGameState>) => void;
     autoConnect?: boolean;
 }
 
-export const useDartProcessedResult = ({
+export const useCurrentGameState = ({
                                            gameId,
                                            playerId,
                                            websocketUrl,
                                            fps = WEBSOCKET_CONFIG.DEFAULT_FPS,
-                                           dartProcessedResult,
-                                           setDartProcessedResult,
+                                        currentGameStatePartial,
+                                        setCurrentGameState,
                                            autoConnect = true
-                                       }: UseDartProcessedResultProps) => {
+                                    }: UseCurrentGameStateProps) => {
 
 
     const [calibrated, setCalibrated] = useState(false);
@@ -43,19 +43,16 @@ export const useDartProcessedResult = ({
     });
 
     useEffect(() => {
-        return gameMessages.onMessage<DartProcessedResult>('dartProcessedResult', (data) => {
+        return gameMessages.onMessage<CurrentGameState>('dartProcessedResult', (data) => {
             console.log('Dart processed:', data);
-            setDartProcessedResult(data);
+            setCurrentGameState(data);
         });
     }, [gameMessages]);
 
     useEffect(() => {
-        return gameMessages.onMessage<any>('turnSwitch', (newData) => {
+        return gameMessages.onMessage<CurrentGameState>('turnSwitch', (data) => {
             console.log('Turn switch received');
-            setDartProcessedResult({
-                currentTurnDarts: [],
-                remainingScore: dartProcessedResult.remainingScore
-            });
+            setCurrentGameState(data);
         });
     }, [gameMessages]);
 

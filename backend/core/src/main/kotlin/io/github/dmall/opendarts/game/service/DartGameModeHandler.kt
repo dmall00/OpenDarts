@@ -12,7 +12,7 @@ interface DartGameModeHandler {
     ): CurrentGameState
 
     /** Get the current game state */
-    fun getGameState(gameSession: GameSession): GameState
+    fun getCurrentGameState(gameSession: GameSession): CurrentGameState
 
     /** Initialize a new game session with specific configuration */
     fun initializeGame(gameSession: GameSession)

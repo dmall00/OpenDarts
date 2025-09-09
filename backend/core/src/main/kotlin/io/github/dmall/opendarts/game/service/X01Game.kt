@@ -42,11 +42,12 @@ constructor(
             logger.info { "Next player is $nextPlayer" }
 
             return CurrentGameState(
-                currentDartNumber = currentTurn.darts.size + 1,
-                remainingScore = currentScore,
+                currentRemainingScores = getCurrentRemainingScores(
+                    currentLeg
+                ),
                 bust = true,
                 nextPlayer = nextPlayer,
-                currentTurnDarts = currentTurn.darts,
+                currentTurnDarts = getCurrentTurnDarts(currentPlayer, currentTurn, nextPlayer),
                 message = "Bust",
                 currentPlayer = currentPlayer,
             )
@@ -70,8 +71,6 @@ constructor(
             }
             logger.info { "Game is won" }
             return CurrentGameState(
-                currentDartNumber = currentTurn.darts.size,
-                remainingScore = 0,
                 legWon = true,
                 setWon = isSetWon,
                 gameWon = isGameWon,
@@ -83,7 +82,10 @@ constructor(
                         isSetWon -> "Set won!"
                         else -> "Leg won!"
                     },
-                currentTurnDarts = currentTurn.darts,
+                currentTurnDarts = getCurrentTurnDarts(currentPlayer, currentTurn, nextPlayer),
+                currentRemainingScores = getCurrentRemainingScores(
+                    currentLeg
+                ),
                 currentPlayer = currentPlayer,
             )
         }
@@ -95,18 +97,49 @@ constructor(
         val nextPlayer =
             if (shouldSwitch) {
                 logger.info { "Turn completed switching player" }
-                getNextPlayer(gameSession, currentPlayer)!!
+                getNextPlayer(gameSession, currentPlayer)
             } else {
                 currentPlayer
             }
 
         return CurrentGameState(
-            currentDartNumber = currentTurn.darts.size,
-            remainingScore = newScore,
+            currentRemainingScores = getCurrentRemainingScores(currentLeg),
             nextPlayer = nextPlayer,
             currentPlayer = currentPlayer,
-            currentTurnDarts = currentTurn.darts,
+            currentTurnDarts = getCurrentTurnDarts(currentPlayer, currentTurn, nextPlayer),
         )
+    }
+
+    private fun getCurrentTurnDarts(
+        currentPlayer: Player,
+        currentTurn: Turn,
+        nextPlayer: Player?
+    ): Map<Player, List<Dart>> {
+        val gameSession = currentTurn.leg.dartSet.gameSession
+        val refreshedGameSession = gameSessionRepository.findById(gameSession.id!!)
+            .orElseThrow { NotFoundException("Game session not found") }
+
+        val refreshedLeg = getCurrentLeg(refreshedGameSession)
+        val refreshedTurn = refreshedLeg.turns
+            .find { it.player.id == currentPlayer.id && it.turnOrderIndex == currentTurn.turnOrderIndex }
+            ?: currentTurn
+
+        val map = mutableMapOf(currentPlayer to refreshedTurn.darts.toList())
+        if (currentPlayer.id != nextPlayer?.id) {
+            nextPlayer?.let {
+                map[it] = emptyList()
+            }
+        }
+        return map
+    }
+
+    private fun getCurrentRemainingScores(
+        currentLeg: Leg
+    ): Map<Player, Int> {
+        val config = getConfig(currentLeg.dartSet.gameSession)
+        return currentLeg.dartSet.gameSession.players.associateWith { player ->
+            getCurrentScore(config, player, currentLeg)
+        }
     }
 
     override fun revertDartThrow(
@@ -114,16 +147,21 @@ constructor(
         currentPlayer: Player,
         dartRevertRequest: DartRevertRequest
     ): CurrentGameState {
-        val config = getConfig(gameSession)
         val currentLeg = getCurrentLeg(gameSession)
         val currentTurn = getCurrentTurnForRevert(currentLeg, currentPlayer)
         removeLastDartFromTurnIfPresent(currentTurn)
         gameSessionRepository.save(gameSession)
+        val nextPlayer = gameSession.players.firstOrNull { it.id != currentPlayer.id }
         return CurrentGameState(
-            currentDartNumber = currentTurn.darts.size + 1,
-            currentTurnDarts = currentTurn.darts,
+            currentTurnDarts = getCurrentTurnDarts(
+                currentPlayer,
+                currentTurn,
+                nextPlayer
+            ),
             currentPlayer = currentPlayer,
-            remainingScore = getCurrentScore(config, currentPlayer, currentLeg),
+            currentRemainingScores = getCurrentRemainingScores(
+                currentLeg
+            ),
             legWon = false,
             setWon = false,
             gameWon = false,
@@ -138,6 +176,8 @@ constructor(
         if (currentTurn.darts.isNotEmpty()) {
             val lastDart = currentTurn.darts.removeLast()
             logger.info { "Removed dart: ${lastDart.scoreString} from turn" }
+        } else {
+            logger.info { "No darts to remove from turn" }
         }
     }
 
@@ -182,8 +222,8 @@ constructor(
         currentPlayer: Player,
     ): Turn =
         currentLeg.turns
-            .filter { it.player.id == currentPlayer.id && it.darts.isNotEmpty() }
-            .maxByOrNull { it.turnOrderIndex } ?: error("No turn with darts found for current player")
+            .filter { it.player.id == currentPlayer.id }
+            .maxByOrNull { it.turnOrderIndex } ?: error("No turn found for current player")
 
     private fun handleDartThrow(
         gameSession: GameSession,
@@ -197,11 +237,12 @@ constructor(
                     this.score = dartThrowRequest.score
                     this.multiplier = dartThrowRequest.multiplier
                     this.turn = currentTurn
+                    this.autoScore = dartThrowRequest.autoScore
                 }
             currentTurn.darts.add(dart)
         }
         logger.info { "Currently ${currentTurn.darts.count()} darts in turn" }
-        gameSessionRepository.save(gameSession)
+        gameSessionRepository.saveAndFlush(gameSession)
     }
 
     private fun shouldSwitchPlayer(currentTurn: Turn): Boolean = currentTurn.darts.count() >= 3
@@ -230,48 +271,67 @@ constructor(
     private fun getNextPlayer(
         gameSession: GameSession,
         currentPlayer: Player,
-    ): Player? {
+    ): Player {
         val config = getConfig(gameSession)
         val currentIndex = config.playerOrder.indexOf(currentPlayer.id)
-        if (currentIndex == -1) return null
-
         val nextIndex = (currentIndex + 1) % config.playerOrder.size
         val nextPlayerId = config.playerOrder[nextIndex]
 
-        return gameSession.players.find { it.id == nextPlayerId }
+        return gameSession.players.find { it.id == nextPlayerId } ?: throw NotFoundException("Next player not found")
     }
 
     private fun getCurrentScore(
         config: X01Config,
-        currentPlayer: Player,
+        player: Player,
         currentLeg: Leg,
     ): Int {
         val accumulatedScore =
             currentLeg.turns
-                .filter { it.player.id == currentPlayer.id }
+                .filter { it.player.id == player.id }
                 .flatMap { it.darts }
                 .sumOf { it.score * it.multiplier }
 
         return config.startingScore - accumulatedScore
     }
 
-    override fun getGameState(gameSession: GameSession): GameState {
+    override fun getCurrentGameState(gameSession: GameSession): CurrentGameState {
         val currentLeg = getCurrentLeg(gameSession)
         val currentPlayer = getCurrentPlayer(gameSession)
+
         val playerToRemainingScoreMap =
             gameSession.players.associateWith { player ->
                 getRemainingScore(gameSession, player, currentLeg)
             }
 
-        return GameState(
-            currentLeg = gameSession.dartSets.sumOf { it.legs.size },
-            currentSet = gameSession.dartSets.size,
+        val currentTurnDartsMap = gameSession.players.associateWith { player ->
+            val currentTurn = currentLeg.turns
+                .filter { it.player.id == player.id }
+                .maxByOrNull { it.turnOrderIndex }
+
+            logger.info { "Player ${player.name}: currentTurn has ${currentTurn?.darts?.size ?: 0} darts" }
+
+            // Return darts from the most recent turn if it's incomplete, or empty if complete
+            if (currentTurn != null && currentTurn.darts.size < 3) {
+                val darts = currentTurn.darts.toList()
+                logger.info { "Returning ${darts.size} darts for player ${player.name}: ${darts.map { "${it.scoreString}(${it.id})" }}" }
+                darts
+            } else {
+                logger.info { "Returning empty list for player ${player.name}" }
+                emptyList()
+            }
+        }
+
+        return CurrentGameState(
             currentRemainingScores = playerToRemainingScoreMap,
             currentPlayer = currentPlayer,
-            legsWon = getLegsWonByPlayer(gameSession),
-            setsWon = getSetsWonByPlayer(gameSession),
-            dartsThrown = getDartsThrown(currentLeg, currentPlayer),
-            currentLegDarts = getCurrentTurnDarts(currentPlayer, currentLeg),
+            currentTurnDarts = currentTurnDartsMap,
+            legWon = false,
+            setWon = false,
+            gameWon = false,
+            winner = null,
+            nextPlayer = if (gameSession.players.size > 1) getNextPlayer(gameSession, currentPlayer) else null,
+            message = null,
+            bust = false
         )
     }
 
@@ -427,3 +487,4 @@ constructor(
         val isGameWon: Boolean,
     )
 }
+
