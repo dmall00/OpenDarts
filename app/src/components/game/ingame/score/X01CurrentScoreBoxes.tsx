@@ -1,17 +1,17 @@
 import {View} from "react-native";
 import ScoreBox from "@/src/components/game/ingame/score/ScoreBox";
-import {DartProcessedResult, DartThrowResponse} from "@/src/types/api";
+import {CurrentGameState, DartThrowResponse} from "@/src/types/api";
 import ScoreDisplay from "@/src/components/ui/ScoreDisplay";
 import Container from "@/src/components/ui/Container";
 
 interface X01CurrentScoreBoxesProps {
     dartThrows?: DartThrowResponse[]
-    dartProcessedResult?: Partial<DartProcessedResult>
+    currentGameStatePartial?: Partial<CurrentGameState>
 }
 
 export default function X01CurrentScoreBoxes(props: X01CurrentScoreBoxesProps) {
     const dartThrows = props.dartThrows || [];
-    const dartProcessedResult = props.dartProcessedResult;
+    const currentGameStatePartial = props.currentGameStatePartial;
 
     const scoreBoxes = Array(3).fill(null).map((_, index) => {
         const dartThrow = dartThrows[index];
@@ -27,7 +27,7 @@ export default function X01CurrentScoreBoxes(props: X01CurrentScoreBoxesProps) {
     }, 0);
 
     const getScoreDisplayProps = () => {
-        if (dartProcessedResult?.bust) {
+        if (currentGameStatePartial?.bust) {
             return {
                 value: "BUST",
                 label: "",
@@ -36,7 +36,7 @@ export default function X01CurrentScoreBoxes(props: X01CurrentScoreBoxesProps) {
             };
         }
 
-        if (dartProcessedResult?.gameWon) {
+        if (currentGameStatePartial?.gameWon) {
             return {
                 value: "WON",
                 label: "",

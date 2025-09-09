@@ -3,7 +3,10 @@ package io.github.dmall.opendarts.game.service
 import io.github.dmall.opendarts.game.autoscore.events.*
 import io.github.dmall.opendarts.game.autoscore.websocket.AppWebSocketHandler
 import io.github.dmall.opendarts.game.mapper.GameMapper
-import io.github.dmall.opendarts.game.model.*
+import io.github.dmall.opendarts.game.model.AppCalibrationResponse
+import io.github.dmall.opendarts.game.model.CurrentGameState
+import io.github.dmall.opendarts.game.model.DartRevertRequest
+import io.github.dmall.opendarts.game.model.DartThrowRequest
 import io.github.dmall.opendarts.game.repository.GameSessionRepository
 import io.github.dmall.opendarts.game.repository.PlayerRepository
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -63,10 +66,10 @@ constructor(
         return gameHandler.revertDartThrow(gameSession, currentPlayer, dartRevertRequest)
     }
 
-    fun getGameState(gameId: String): GameState {
+    fun getGameState(gameId: String): CurrentGameState {
         val gameSession = gameSessionRepository.findById(gameId).orElseThrow()
         val gameHandler = gameModeRegistry.getGameHandler(gameSession.game.gameMode)
-        return gameHandler.getGameState(gameSession)
+        return gameHandler.getCurrentGameState(gameSession)
     }
 
     @EventListener
@@ -80,7 +83,7 @@ constructor(
     fun handleTurnSwitchDetectedEvent(event: TurnSwitchDetectedEvent) {
         val gameState = getGameState(event.sessionId)
         appWebSocketHandler.sendWebSocketMessage(
-            gameMapper.toGameStateTo(gameState),
+            gameMapper.toCurrentGameStateTO(gameState),
             "${event.playerId}-${event.sessionId}",
             event.type,
         )

@@ -4,13 +4,13 @@ import {useGameStore} from "@/src/stores/gameStore";
 import InGameHeader from "@/src/components/game/header/InGameHeader";
 import {useErrorHandler} from "@/src/hooks/useErrorHandler";
 import {useGameCapture} from "@/src/hooks/useGameCapture";
-import {useDartProcessedResult} from "@/src/hooks/useDartProcessedResult";
+import {useCurrentGameState} from "@/src/hooks/useCurrentGameState";
 import X01ScoreView from "@/src/components/game/ingame/score/X01ScoreView";
 import {useCameraUI} from "@/src/hooks/useCameraUI";
 import ZoomCameraView from "@/src/components/game/autoscore/ZoomCameraView";
 import DartInput from "@/src/components/game/ingame/input/DartInput";
 import {useMutation} from "@/src/hooks/useMutation";
-import {DartProcessedResult, DartRevertRequest, DartThrow} from "@/src/types/api";
+import {CurrentGameState, DartRevertRequest, DartThrow} from "@/src/types/api";
 import {gameService} from "@/src/services/game/gameService";
 
 interface GameViewProps {
@@ -25,9 +25,9 @@ export default function GameView({gameId, playerId, websocketUrl, fps}: GameView
     const {isCameraExpanded, handleToggleCamera} = useCameraUI();
     const [modifier, setModifier] = useState<1 | 2 | 3>(1);
 
-    const [dartProcessedResult, setDartProcessedResult] = useState<Partial<DartProcessedResult>>({
-        remainingScore: 0,
-        currentTurnDarts: [],
+    const [currentGameState, setCurrentGameState] = useState<Partial<CurrentGameState>>({
+        currentRemainingScores: {},
+        currentTurnDarts: {},
     });
 
     const {
@@ -40,12 +40,12 @@ export default function GameView({gameId, playerId, websocketUrl, fps}: GameView
         startCapture,
         stopCapture,
         calibrated
-    } = useDartProcessedResult({
+    } = useCurrentGameState({
         gameId,
         playerId,
         websocketUrl,
-        setDartProcessedResult,
-        dartProcessedResult,
+        setCurrentGameState: setCurrentGameState,
+        currentGameStatePartial: currentGameState,
         autoConnect: isAutoScoreEnabled
     });
 
@@ -75,7 +75,7 @@ export default function GameView({gameId, playerId, websocketUrl, fps}: GameView
         (dartThrow: DartThrow) => gameService.trackDart(playerId, gameId, dartThrow),
         {
             onSuccess: (dartProcessed) => {
-                setDartProcessedResult(dartProcessed);
+                setCurrentGameState(dartProcessed);
             },
             onError: (error) => {
                 console.error('Failed to send dart:', error);
@@ -86,8 +86,8 @@ export default function GameView({gameId, playerId, websocketUrl, fps}: GameView
     const revertDartMutation = useMutation(
         (revertRequest: DartRevertRequest) => gameService.revertDart(playerId, gameId, revertRequest),
         {
-            onSuccess: (dartProcessedResult) => {
-                setDartProcessedResult(dartProcessedResult);
+            onSuccess: (currentGameState) => {
+                setCurrentGameState(currentGameState);
             },
             onError: (error) => {
                 console.error('Failed to revert dart:', error);
@@ -117,9 +117,9 @@ export default function GameView({gameId, playerId, websocketUrl, fps}: GameView
 
     const handleBackPress = async () => {
         console.log("Back button pressed");
-        let currentDarts = dartProcessedResult.currentTurnDarts;
-        if (currentDarts?.length) {
-            let id = currentDarts?.[currentDarts.length - 1].id;
+        let currentPlayerDarts = currentGameState.currentTurnDarts?.[playerId];
+        if (currentPlayerDarts && currentPlayerDarts.length > 0) {
+            let id = currentPlayerDarts[currentPlayerDarts.length - 1].id;
             const revertRequest: DartRevertRequest = {
                 id: id
             }
@@ -146,7 +146,7 @@ export default function GameView({gameId, playerId, websocketUrl, fps}: GameView
                     contentContainerClassName="pb-5 pt-5"
                     showsVerticalScrollIndicator={false}
                 >
-                    <X01ScoreView dartProcessedResult={dartProcessedResult}/>
+                                        <X01ScoreView currentGameStatePartial={currentGameState} playerId={playerId}/>
                 </ScrollView>
 
                 <View className="absolute bottom-0 w-full">

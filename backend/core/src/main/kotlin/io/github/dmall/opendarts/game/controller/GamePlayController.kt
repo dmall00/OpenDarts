@@ -4,7 +4,6 @@ import io.github.dmall.opendarts.game.mapper.GameMapper
 import io.github.dmall.opendarts.game.model.CurrentGameStateTO
 import io.github.dmall.opendarts.game.model.DartRevertRequest
 import io.github.dmall.opendarts.game.model.DartThrowRequest
-import io.github.dmall.opendarts.game.model.GameStateTo
 import io.github.dmall.opendarts.game.service.GameOrchestrator
 import jakarta.validation.Valid
 import org.springframework.beans.factory.annotation.Autowired
@@ -43,8 +42,8 @@ constructor(
     @GetMapping("/{gameId}/state")
     fun getGameState(
         @PathVariable gameId: String,
-    ): ResponseEntity<GameStateTo> {
+    ): ResponseEntity<CurrentGameStateTO> {
         val gameState = gameOrchestrator.getGameState(gameId)
-        return ResponseEntity.ok(gameMapper.toGameStateTo(gameState))
+        return ResponseEntity.ok(gameMapper.toCurrentGameStateTO(gameState))
     }
 }
