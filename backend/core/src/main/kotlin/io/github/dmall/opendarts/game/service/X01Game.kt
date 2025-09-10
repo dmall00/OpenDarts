@@ -365,9 +365,9 @@ constructor(
 
     private fun getCurrentPlayer(gameSession: GameSession): Player {
         val currentLeg = getCurrentLeg(gameSession)
-        val incompleteTurn = currentLeg.turns.find { it.darts.size < 3 }
+        val incompleteTurn = currentLeg.turns.last()
 
-        return incompleteTurn?.player ?: error("No current player found - all turns are complete")
+        return incompleteTurn.player
     }
 
     private fun getConfig(gameSession: GameSession): X01Config = gameSession.game.gameConfig as X01Config

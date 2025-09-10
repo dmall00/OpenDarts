@@ -48,8 +48,7 @@ constructor(
                 EventType.DART_THROW_DETECTED,
             )
         } else {
-            logger.info { "Sending manual dart scoring to auto score stabilizer" }
-            applicationEventPublisher.publishEvent(ManualDartTrackedEvent(this, gameId, playerId, dartThrowRequest))
+            applicationEventPublisher.publishEvent(ManualDartAdjustment(this, gameId, playerId, dartThrowRequest, null))
         }
         return gameState
     }
@@ -63,6 +62,7 @@ constructor(
         val gameSession = gameSessionRepository.findById(gameId).orElseThrow()
         val currentPlayer = playerRepository.findById(playerId).orElseThrow()
         val gameHandler = gameModeRegistry.getGameHandler(gameSession.game.gameMode)
+        applicationEventPublisher.publishEvent(ManualDartAdjustment(this, gameId, playerId, null, dartRevertRequest))
         return gameHandler.revertDartThrow(gameSession, currentPlayer, dartRevertRequest)
     }
 
