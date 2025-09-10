@@ -11,15 +11,17 @@ interface X01ScoreViewProps {
 }
 
 export default function X01ScoreView(props: X01ScoreViewProps) {
-    const playerId = props.playerId || props.currentGameStatePartial.currentPlayer?.id || '';
-    const player = props.currentGameStatePartial.players?.[playerId] || props.currentGameStatePartial.currentPlayer;
+    const playerId = props.playerId || props.currentGameStatePartial.currentPlayer?.id;
+    if (!playerId) {
+        return null;
+    }
     const remainingScore = props.currentGameStatePartial.currentRemainingScores?.[playerId] ?? 0;
     const currentTurnDarts = props.currentGameStatePartial.currentTurnDarts?.[playerId] ?? [];
 
     return (
         <Container variant="section" className="p-base">
             <View className="mb-lg">
-                <ScoreDisplay 
+                <ScoreDisplay
                     value={remainingScore}
                     label="Remaining"
                     variant="large"

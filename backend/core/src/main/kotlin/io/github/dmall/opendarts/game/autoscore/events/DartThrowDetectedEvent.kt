@@ -1,5 +1,6 @@
 package io.github.dmall.opendarts.game.autoscore.events
 
+import io.github.dmall.opendarts.game.model.DartRevertRequest
 import io.github.dmall.opendarts.game.model.DartThrowRequest
 import org.springframework.context.ApplicationEvent
 
@@ -26,11 +27,12 @@ class DartThrowDetectedEvent(
 ) : GameEvent(source, sessionId, playerId, EventType.DART_THROW_DETECTED)
 
 
-class ManualDartTrackedEvent(
+class ManualDartAdjustment(
     source: Any,
     sessionId: String,
     playerId: String,
-    val dartThrowRequest: DartThrowRequest
+    val dartThrowRequest: DartThrowRequest?,
+    val dartRevertRequest: DartRevertRequest?
 ) : GameEvent(source, sessionId, playerId, EventType.DART_THROW_DETECTED)
 
 class TurnSwitchDetectedEvent(

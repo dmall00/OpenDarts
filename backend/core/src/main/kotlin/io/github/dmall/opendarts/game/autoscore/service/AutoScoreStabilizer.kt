@@ -1,7 +1,7 @@
 package io.github.dmall.opendarts.game.autoscore.service
 
 import io.github.dmall.opendarts.game.autoscore.events.DartThrowDetectedEvent
-import io.github.dmall.opendarts.game.autoscore.events.ManualDartTrackedEvent
+import io.github.dmall.opendarts.game.autoscore.events.ManualDartAdjustment
 import io.github.dmall.opendarts.game.autoscore.events.TurnSwitchDetectedEvent
 import io.github.dmall.opendarts.game.autoscore.model.DartDetection
 import io.github.dmall.opendarts.game.autoscore.model.DetectionResult
@@ -54,11 +54,17 @@ constructor(
     }
 
     @EventListener
-    fun consumeManualDartTrackedEvent(manualDartTrackedEvent: ManualDartTrackedEvent) {
-//         val id = composeId(manualDartTrackedEvent.playerId, manualDartTrackedEvent.sessionId)
-//        val detectionState = detectionStates.getOrPut(id) { DetectionState() }
-//        detectionState.confirmedDarts += Pair(0.0, 0.0)
-        // TODO make this compatible with autoscore so there's no invalid state
+    fun consumeManualDartTrackedEvent(manualDartAdjustment: ManualDartAdjustment) {
+        val id = composeId(manualDartAdjustment.playerId, manualDartAdjustment.sessionId)
+        val detectionState = detectionStates.getOrPut(id) { DetectionState() }
+        if (manualDartAdjustment.dartThrowRequest != null) {
+            if (detectionState.confirmedDarts.size < 3) {
+                detectionState.confirmedDarts += Pair(0.0, 0.0)
+            }
+        }
+        if (manualDartAdjustment.dartRevertRequest != null) {
+            detectionState.confirmedDarts.removeLastOrNull()
+        }
     }
 
     private fun handleYoloError(detectionState: DetectionState) {
