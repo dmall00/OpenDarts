@@ -1,0 +1,64 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: opendarts-postgres
+    environment:
+      POSTGRES_DB: opendarts_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - opendarts-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d opendarts_db"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  backend:
+    build:
+      context: backend
+      dockerfile: Dockerfile
+    container_name: opendarts-backend
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: opendarts_db
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+      JWT_SECRET: 181bffe5afd4b7d3cbeb58345477e004b6325064e06b77610339809634ce7352
+      AUTOSCORE_HOST: autoscore-server
+      AUTOSCORE_PORT: 8765
+    ports:
+      - "8080:8080"
+    networks:
+      - opendarts-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  autoscore-server:
+    build:
+      context: autoscore-server
+      dockerfile: Dockerfile
+    image: opendarts-autoscore:latest
+    container_name: opendarts-autoscore
+    ports:
+      - "8765:8765"
+    environment:
+      - LOG_LEVEL=INFO
+    restart: unless-stopped
+    networks:
+      - opendarts-network
+
+networks:
+  opendarts-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
