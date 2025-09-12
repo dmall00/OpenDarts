@@ -12,8 +12,6 @@ packages = ["autoscore", "detector"]
 name = "opendarts-autoscore"
 version = "0.1.0"
 description = "This application serves a websocket server that enables a client to calibrate and score darts automatically."
-readme = "README.md"
-license = { file = "LICENSE" }
 requires-python = ">=3.11, <3.13"
 authors = [
     { name = "David Mall", email = "mall.david@web.de" },
@@ -24,7 +22,7 @@ dependencies = [
     "opencv-python>=4.11.0.86",
     "pydanclick>=0.5.1",
     "pydantic>=2.11.5",
-    "ultralytics>=8.3.147",
+    "ultralytics>=8.3.199",
     "websockets>=15.0.1",
 ]
 
