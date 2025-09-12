@@ -1,0 +1,16 @@
+spring:
+  profiles:
+    active: dev
+  datasource:
+    url: jdbc:postgresql://localhost:5432/opendarts_db
+    username: postgres
+    password: postgres
+
+autoscore:
+  host: localhost
+  port: 8765
+
+logging:
+  level:
+    io.github.dmall.opendarts: INFO
+    org.springframework.web: INFO

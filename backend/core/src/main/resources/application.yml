@@ -2,11 +2,11 @@ server:
   port: 8080
 spring:
   application:
-    name: api-gateway
+    name: opendarts-backend
   datasource:
-    url: jdbc:postgresql://localhost:5432/opendarts_db
-    username: postgres
-    password: postgres
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:opendarts_db}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
@@ -21,11 +21,11 @@ logging:
     root: INFO
 
 jwt:
-  secret: 181bffe5afd4b7d3cbeb58345477e004b6325064e06b77610339809634ce7352
+  secret: ${JWT_SECRET:181bffe5afd4b7d3cbeb58345477e004b6325064e06b77610339809634ce7352}
 
 autoscore:
-  port: 8765
-  host: 192.168.178.34
+  port: ${AUTOSCORE_PORT:8765}
+  host: ${AUTOSCORE_HOST:localhost}
 
 springdoc:
   swagger-ui:

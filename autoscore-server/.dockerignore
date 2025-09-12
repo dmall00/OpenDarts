@@ -1,0 +1,86 @@
+# Python cache and build files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# Documentation and unnecessary files
+doc/
+docs/
+*.md
+CHANGELOG*
+LICENSE*
+
+# Test files
+tests/
+test_*/
+*_test.py
+test_*.py
+.pytest_cache/
+.coverage
+
+# Development and config files
+.env
+.env.*
+*.log
+.mypy_cache/
+.ruff_cache/
+
+# Images and media (not needed for server runtime)
+images/
+saved_images/
+**/*saved_images*/
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.bmp
+*.tiff
+*.svg
+
+# Docker files
+Dockerfile
+.dockerignore
+docker-compose*.yml
+build.sh
+build.bat
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
