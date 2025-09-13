@@ -1,5 +1,5 @@
 import React from 'react';
-import { SafeAreaView, View } from 'react-native';
+import {SafeAreaView, ScrollView, View} from 'react-native';
 import Header from '@/src/components/common/Header';
 import HeaderText from '@/src/components/common/HeaderText';
 
@@ -31,9 +31,13 @@ export default function PageLayout({
                     {headerRight}
                 </View>
             </Header>
-            <View className="p-base pb-3xl">
+            <ScrollView
+                className="flex-1"
+                contentContainerStyle={{padding: 16, paddingBottom: 48}}
+                showsVerticalScrollIndicator={false}
+            >
                 {children}
-            </View>
+            </ScrollView>
         </SafeAreaView>
     );
 }
