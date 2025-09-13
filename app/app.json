@@ -23,7 +23,8 @@
       "permissions": [
         "android.permission.CAMERA"
       ],
-      "package": "com.anonymous.OpenDarts"
+      "package": "com.anonymous.OpenDarts",
+      "usesCleartextTraffic": true
     },
     "web": {
       "bundler": "metro",
