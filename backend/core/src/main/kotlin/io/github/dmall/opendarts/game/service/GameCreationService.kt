@@ -55,6 +55,7 @@ constructor(
         val savedGameSession = gameSessionRepository.save(gameSession)
         val gameHandler = gameModeRegistry.getGameHandler(gameConfig.gameMode)
         gameHandler.initializeGame(savedGameSession)
-        return GameSessionResponse(savedGameSession.id!!)
+        // do this properly later
+        return GameSessionResponse(savedGameSession.id!!, players.first().id!!)
     }
 }

@@ -21,6 +21,12 @@ export class GameService {
             .replace('dartId', String(revertRequest.id));
         return apiService.delete<CurrentGameState>(url, null)
     }
+
+    async getCurrentGameState(gameId: string): Promise<CurrentGameState> {
+        const url = API_ENDPOINTS.GAMES.GET_STATE
+            .replace('gameId', gameId);
+        return apiService.get<CurrentGameState>(url);
+    }
 }
 
 export const gameService = new GameService();

@@ -1,6 +1,6 @@
 import {useState} from 'react';
 import {router} from "expo-router";
-import {CreateGameRequest} from '@/src/types/api';
+import {CreateGameRequest, GameSession} from '@/src/types/api';
 import {useMutation} from '@/src/hooks/useMutation';
 import {gameService} from "@/src/services/game/gameService";
 import GamePicker, {GameConfig} from "@/src/components/game/creation/GamePicker";
@@ -15,9 +15,8 @@ export default function Play() {
         players: ["test"],
     });
 
-    const openGameView = (gameId: String) => {
-        // @ts-ignore
-        router.push(`/game/${gameId}`);
+    const openGameView = (game: GameSession) => {
+        router.push(`/game/${game.playerId}/${game.gameId}`);
     };
 
 
@@ -25,7 +24,7 @@ export default function Play() {
         (gameData: CreateGameRequest) => gameService.createGame(gameData),
         {
             onSuccess: (game) => {
-                openGameView(game.gameId);
+                openGameView(game);
             },
             onError: (error) => {
                 console.error('Failed to create game:', error);

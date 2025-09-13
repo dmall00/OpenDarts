@@ -95,6 +95,22 @@ export default function GameView({gameId, playerId, websocketUrl, fps}: GameView
         }
     );
 
+    const fetchGameStateMutation = useMutation(
+        () => gameService.getCurrentGameState(gameId),
+        {
+            onSuccess: (currentGameState) => {
+                setCurrentGameState(currentGameState);
+            },
+            onError: (error) => {
+                console.error('Failed to fetch game state:', error);
+            }
+        }
+    );
+
+    useEffect(() => {
+        fetchGameStateMutation.mutate(undefined);
+    }, [gameId]);
+
     const handleNumberPress = async (value: number) => {
         console.log(`Number pressed: ${value} with modifier: ${modifier}`);
         const dartThrow: DartThrow = {
