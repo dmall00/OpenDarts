@@ -4,11 +4,6 @@ import {useSettingsStore} from '@/src/stores/settingsStore';
 const getBaseUrl = () => {
     const {expoConfig} = Constants;
     const {serverUrl} = useSettingsStore.getState();
-
-    if (__DEV__) {
-        return `${serverUrl}/app`;
-    }
-
     return `${serverUrl}/app`;
 };
 

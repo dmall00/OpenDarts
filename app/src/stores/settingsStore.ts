@@ -20,7 +20,14 @@ interface SettingsState {
     loadSettings: () => Promise<void>;
 }
 
-const DEFAULT_SERVER_URL = 'http://192.168.178.34:8080';
+const getDefaultServerUrl = () => {
+    if (__DEV__) {
+        return 'http://192.168.178.34:8080';  // HTTP for development
+    }
+    return 'https://192.168.178.34:8443'; // HTTPS for production
+};
+
+const DEFAULT_SERVER_URL = getDefaultServerUrl();
 const DEFAULT_CAMERA_QUALITY = 0.9;
 const DEFAULT_CAMERA_SKIP_PROCESSING = true;
 const DEFAULT_CAMERA_MAX_WIDTH = 1280;
