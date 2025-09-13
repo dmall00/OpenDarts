@@ -32,6 +32,7 @@ export interface Player {
 
 export interface GameSession {
     gameId: string;
+    playerId: string;
 }
 
 export interface CreateGameRequest {
