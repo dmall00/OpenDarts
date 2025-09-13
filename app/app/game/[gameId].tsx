@@ -8,7 +8,7 @@ export default function Game() {
     return (
         <GameView
             gameId={gameId as string}
-            playerId={playerId as string || 'a2d764bd-af37-4291-ab56-003873f8cf01'}
+            playerId={playerId as string || '68cea790-920f-4e88-bf84-8b00031d86ac'}
             websocketUrl={websocketUrl as string}
             fps={fps ? parseInt(fps as string, 10) : undefined}
         />
