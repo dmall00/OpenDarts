@@ -1,11 +1,16 @@
 import axios from 'axios';
-import {API_CONFIG} from "../../config/config";
+import {getApiConfig} from "../../config/config";
 
 class ApiService {
     private axiosInstance: any;
 
     constructor() {
-        this.axiosInstance = axios.create(API_CONFIG);
+        this.axiosInstance = axios.create(getApiConfig());
+    }
+
+    async delete<T>(url: string, config?: any): Promise<T> {
+        const response = await this.axiosInstance.delete(url, config);
+        return response.data;
     }
 
     async get<T>(url: string, config?: any): Promise<T> {
@@ -23,9 +28,12 @@ class ApiService {
         return response.data;
     }
 
-    async delete<T>(url: string, config?: any): Promise<T> {
-        const response = await this.axiosInstance.delete(url, config);
-        return response.data;
+    refreshConfig() {
+        this.updateConfig();
+    }
+
+    private updateConfig() {
+        this.axiosInstance = axios.create(getApiConfig());
     }
 }
 

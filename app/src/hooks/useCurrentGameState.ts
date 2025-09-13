@@ -1,7 +1,7 @@
 import {useEffect, useState} from 'react';
 import {useGameMessages} from './useGameMessages';
 import {CalibrationState, CurrentGameState} from '../types/api';
-import {WEBSOCKET_CONFIG} from '../config/config';
+import {getWebSocketConfig} from '../config/config';
 
 interface UseCurrentGameStateProps {
     gameId: string;
@@ -17,7 +17,7 @@ export const useCurrentGameState = ({
                                            gameId,
                                            playerId,
                                            websocketUrl,
-                                           fps = WEBSOCKET_CONFIG.DEFAULT_FPS,
+                                        fps = getWebSocketConfig().DEFAULT_FPS,
                                         currentGameStatePartial,
                                         setCurrentGameState,
                                            autoConnect = true
@@ -30,16 +30,16 @@ export const useCurrentGameState = ({
     if (websocketUrl) {
         wsUrl = websocketUrl;
     } else {
-        wsUrl = `${WEBSOCKET_CONFIG.DEFAULT_BASE_URL}/ws/app/${playerId}/${gameId}`;
+        wsUrl = `${getWebSocketConfig().DEFAULT_BASE_URL}/ws/app/${playerId}/${gameId}`;
     }
 
     const gameMessages = useGameMessages({
         url: wsUrl,
         fps,
         autoConnect,
-        reconnectAttempts: WEBSOCKET_CONFIG.RECONNECT_ATTEMPTS,
-        reconnectDelay: WEBSOCKET_CONFIG.RECONNECT_DELAY,
-        heartbeatInterval: WEBSOCKET_CONFIG.HEARTBEAT_INTERVAL,
+        reconnectAttempts: getWebSocketConfig().RECONNECT_ATTEMPTS,
+        reconnectDelay: getWebSocketConfig().RECONNECT_DELAY,
+        heartbeatInterval: getWebSocketConfig().HEARTBEAT_INTERVAL,
     });
 
     useEffect(() => {
