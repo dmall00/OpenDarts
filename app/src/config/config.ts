@@ -50,24 +50,37 @@ export const getWebSocketConfig = () => {
 
     return {
         DEFAULT_BASE_URL: wsUrl,
-        DEFAULT_FPS: 1,
         RECONNECT_ATTEMPTS: 10,
         RECONNECT_DELAY: 500,
         HEARTBEAT_INTERVAL: 15000,
     } as const;
 };
 
-export const WEBSOCKET_CONFIG = {
-    DEFAULT_BASE_URL: 'ws://192.168.178.34:8080',
-    DEFAULT_FPS: 1,
-    RECONNECT_ATTEMPTS: 10,
-    RECONNECT_DELAY: 500,
-    HEARTBEAT_INTERVAL: 15000,
-} as const;
+export const getCameraConfig = () => {
+    const {
+        cameraQuality,
+        cameraSkipProcessing,
+        cameraMaxWidth,
+        cameraMaxHeight,
+        cameraFps,
+        cameraDefaultZoom
+    } = useSettingsStore.getState();
+
+    return {
+        DEFAULT_QUALITY: cameraQuality,
+        SKIP_PROCESSING: cameraSkipProcessing,
+        MAX_WIDTH: cameraMaxWidth,
+        MAX_HEIGHT: cameraMaxHeight,
+        DEFAULT_FPS: cameraFps,
+        DEFAULT_ZOOM: cameraDefaultZoom,
+    } as const;
+};
 
 export const CAMERA_CONFIG = {
     DEFAULT_QUALITY: 0.9,
     SKIP_PROCESSING: true,
     MAX_WIDTH: 1280,
     MAX_HEIGHT: 720,
+    DEFAULT_FPS: 1,
+    DEFAULT_ZOOM: 1.8,
 } as const;

@@ -140,7 +140,7 @@ export class CameraService {
                         config.maxHeight ?? 720,
                         'JPEG',
                         Math.round((config.quality ?? 0.6) * 100),
-                        0,
+                        90,  // horizontal phone adjust later to follow phones rotation
                         undefined,
                         false,
                         {mode: 'cover', onlyScaleDown: true}

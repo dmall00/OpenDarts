@@ -1,10 +1,11 @@
-import {Camera, useCameraDevice, useCameraPermission, useCameraFormat} from "react-native-vision-camera";
+import {Camera, useCameraDevice, useCameraFormat, useCameraPermission} from "react-native-vision-camera";
 import React, {useCallback, useEffect, useRef, useState} from "react";
 import {Animated, Text, TouchableOpacity, View} from "react-native";
 import {CameraService} from "@/src/services/camera/cameraService";
 import Button from "@/src/components/ui/Button";
 import Typography from "@/src/components/ui/Typography";
-import {CAMERA_CONFIG} from "@/src/config/config";
+import {getCameraConfig} from "@/src/config/config";
+import {useSettingsStore} from "@/src/stores/settingsStore";
 
 interface ZoomCameraViewProps {
     onClose?: () => void;
@@ -13,12 +14,15 @@ interface ZoomCameraViewProps {
 
 export default function ZoomCameraView({onClose, isVisible = true}: ZoomCameraViewProps) {
     const {hasPermission, requestPermission} = useCameraPermission();
+    const cameraDefaultZoom = useSettingsStore(state => state.cameraDefaultZoom);
     const [zoom, setZoom] = useState(1);
     const [isCameraReady, setIsCameraReady] = useState(false);
+    const hasAppliedInitialZoom = useRef(false);
     const cameraRef = useRef<Camera | null>(null);
     const device = useCameraDevice('back');
+    const cameraConfig = getCameraConfig();
     const format = useCameraFormat(device, [
-        { videoResolution: { width: CAMERA_CONFIG.MAX_WIDTH, height: CAMERA_CONFIG.MAX_HEIGHT } },
+        {videoResolution: {width: cameraConfig.MAX_WIDTH, height: cameraConfig.MAX_HEIGHT}},
         { fps: 30 }
     ]) ?? device?.formats?.[0];
     const cameraService = CameraService.getInstance();
@@ -29,12 +33,14 @@ export default function ZoomCameraView({onClose, isVisible = true}: ZoomCameraVi
 
     const minZoom = 1;
     const maxZoom = 3;
-    const neutralZoom = 1;
+    const neutralZoom = cameraDefaultZoom;
 
     useEffect(() => {
-        setZoom(neutralZoom);
+        setZoom(cameraDefaultZoom);
         setIsCameraReady(false);
-    }, [device, neutralZoom]);
+        hasAppliedInitialZoom.current = false;
+    }, [device]);
+
 
     useEffect(() => {
         if (cameraRef.current && device) {
@@ -73,9 +79,6 @@ export default function ZoomCameraView({onClose, isVisible = true}: ZoomCameraVi
         if (ref && device && format) {
             cameraService.setCameraRef(ref);
             cameraService.setDevice(device);
-            setTimeout(() => {
-                setIsCameraReady(true);
-            }, 100);
         } else {
             setIsCameraReady(false);
         }
@@ -83,6 +86,7 @@ export default function ZoomCameraView({onClose, isVisible = true}: ZoomCameraVi
 
     const handleZoom = (zoomLevel: number) => {
         const clampedZoom = Math.max(minZoom, Math.min(maxZoom, zoomLevel));
+        console.log('handleZoom called with:', zoomLevel, 'clamped to:', clampedZoom);
         setZoom(clampedZoom);
     };
 
@@ -169,7 +173,10 @@ export default function ZoomCameraView({onClose, isVisible = true}: ZoomCameraVi
                         setIsCameraReady(false);
                     }}
                     onInitialized={() => {
-                        setIsCameraReady(true);
+                        console.log('Camera initialized');
+                        setTimeout(() => {
+                            setIsCameraReady(true);
+                        }, 100);
                     }}
                 />
                 {isVisible && !isCameraReady && (

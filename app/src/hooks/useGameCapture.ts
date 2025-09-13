@@ -1,7 +1,7 @@
 import {useCallback, useEffect, useRef, useState} from 'react';
 import {AppState, Platform} from 'react-native';
 import {CameraService} from '../services/camera/cameraService';
-import {CAMERA_CONFIG} from '../config/config';
+import {getCameraConfig} from '../config/config';
 import {useGameStore} from "@/src/stores/gameStore";
 import {isWeb} from "@/src/utils/platform";
 
@@ -30,13 +30,14 @@ export const useGameCapture = ({
 
     const handleCameraCapture = useCallback(async () => {
         try {
+            const cameraConfig = getCameraConfig();
             await cameraService.captureAndSend(
                 sendBinary,
                 {
-                    quality: CAMERA_CONFIG.DEFAULT_QUALITY,
-                    skipProcessing: CAMERA_CONFIG.SKIP_PROCESSING,
-                    maxWidth: CAMERA_CONFIG.MAX_WIDTH,
-                    maxHeight: CAMERA_CONFIG.MAX_HEIGHT,
+                    quality: cameraConfig.DEFAULT_QUALITY,
+                    skipProcessing: cameraConfig.SKIP_PROCESSING,
+                    maxWidth: cameraConfig.MAX_WIDTH,
+                    maxHeight: cameraConfig.MAX_HEIGHT,
                 }
             );
         } catch (error) {

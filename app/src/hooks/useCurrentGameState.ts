@@ -1,7 +1,7 @@
 import {useEffect, useState} from 'react';
 import {useGameMessages} from './useGameMessages';
 import {CalibrationState, CurrentGameState} from '../types/api';
-import {getWebSocketConfig} from '../config/config';
+import {getCameraConfig, getWebSocketConfig} from "@/src/config/config";
 
 interface UseCurrentGameStateProps {
     gameId: string;
@@ -17,7 +17,7 @@ export const useCurrentGameState = ({
                                            gameId,
                                            playerId,
                                            websocketUrl,
-                                        fps = getWebSocketConfig().DEFAULT_FPS,
+                                        fps = getCameraConfig().DEFAULT_FPS,
                                         currentGameStatePartial,
                                         setCurrentGameState,
                                            autoConnect = true
