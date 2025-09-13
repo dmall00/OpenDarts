@@ -9,7 +9,8 @@
     },
     "preview": {
       "android": {
-        "buildType": "apk"
+        "buildType": "apk",
+        "usesCleartextTraffic": true
       }
     }
   }
