@@ -7,7 +7,7 @@ const getBaseUrl = () => {
         return "http://192.168.178.34:8080/app";
     }
 
-    return "https://your-production-server.com/app";
+    return "http://192.168.178.34:8080/app";
 };
 
 export const REST_BASE_URL = getBaseUrl();
