@@ -8,7 +8,14 @@ export default function RootLayout() {
     const loadSettings = useSettingsStore(state => state.loadSettings);
 
     useEffect(() => {
-        loadSettings();
+        const initializeApp = async () => {
+            await loadSettings();
+            // Refresh API service config after settings are loaded
+            const {apiService} = await import('@/src/services/api/api');
+            apiService.refreshConfig();
+        };
+
+        initializeApp();
     }, []);
 
     return (

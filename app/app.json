@@ -8,15 +8,6 @@
     "scheme": "opendarts",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
-    "ios": {
-      "supportsTablet": true,
-      "infoPlist": {
-        "NSCameraUsageDescription": "Allow OpenDarts to access your camera",
-        "NSAppTransportSecurity": {
-          "NSAllowsArbitraryLoads": true
-        }
-      }
-    },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/icon.png",
@@ -27,7 +18,7 @@
         "android.permission.CAMERA"
       ],
       "package": "com.anonymous.OpenDarts",
-      "usesCleartextTraffic": true
+      "allowBackup": false
     },
     "web": {
       "bundler": "metro",
@@ -51,7 +42,8 @@
           "cameraPermissionText": "Allow OpenDarts to access your camera"
         }
       ],
-      "expo-web-browser"
+      "expo-web-browser",
+      "./plugins/trust-local-certs.js"
     ],
     "experiments": {
       "typedRoutes": true

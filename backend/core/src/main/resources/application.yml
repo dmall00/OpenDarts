@@ -1,5 +1,12 @@
 server:
-  port: 8080
+  port: 8443  # HTTPS port
+  ssl:
+    enabled: true
+    key-store: classpath:keystore/opendarts.p12
+    key-store-password: opendarts123
+    key-store-type: PKCS12
+    key-alias: opendarts
+    key-password: opendarts123
 spring:
   application:
     name: opendarts-backend
@@ -33,3 +40,15 @@ springdoc:
     enabled: true
   api-docs:
     path: /v3/api-docs
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+      base-path: /
+      path-mapping:
+        health: health
+  endpoint:
+    health:
+      show-details: when-authorized

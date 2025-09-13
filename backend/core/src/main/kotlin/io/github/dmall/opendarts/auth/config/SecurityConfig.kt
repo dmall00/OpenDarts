@@ -30,10 +30,12 @@ class SecurityConfig
         @Bean
         fun corsConfigurationSource(): CorsConfigurationSource {
             val configuration = CorsConfiguration()
+            // Allow all origins
             configuration.allowedOriginPatterns = listOf("*")
-            configuration.allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
+            configuration.allowedMethods = listOf("*")
             configuration.allowedHeaders = listOf("*")
             configuration.allowCredentials = true
+            configuration.maxAge = 3600L
 
             val source = UrlBasedCorsConfigurationSource()
             source.registerCorsConfiguration("/**", configuration)
@@ -55,6 +57,8 @@ class SecurityConfig
                             "/v3/api-docs/**",
                             "/ws/**",
                             "/app/**",
+                            "/health/**",
+                            "/health"
                         ).permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**")
                         .permitAll()

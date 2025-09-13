@@ -36,6 +36,9 @@ export default function Settings() {
     
     const [isLoading, setIsLoading] = useState(false);
     const [inputKey, setInputKey] = useState(0);
+    const [connectionStatus, setConnectionStatus] = useState<'unknown' | 'testing' | 'success' | 'error'>('unknown');
+    const [connectionError, setConnectionError] = useState<string>('');
+    const [lastTestTime, setLastTestTime] = useState<string>('');
 
     useEffect(() => {
         loadSettings();
@@ -49,7 +52,18 @@ export default function Settings() {
         setLocalCameraMaxHeight(cameraMaxHeight.toString());
         setLocalCameraFps(cameraFps.toString());
         setLocalCameraDefaultZoom(cameraDefaultZoom.toString());
+        setConnectionStatus('unknown');
+        setConnectionError('');
+        setLastTestTime('');
     }, [serverUrl, cameraQuality, cameraSkipProcessing, cameraMaxWidth, cameraMaxHeight, cameraFps, cameraDefaultZoom]);
+
+    useEffect(() => {
+        if (localServerUrl !== serverUrl) {
+            setConnectionStatus('unknown');
+            setConnectionError('');
+            setLastTestTime('');
+        }
+    }, [localServerUrl, serverUrl]);
 
     const handleSave = async () => {
         if (!localServerUrl.trim()) {
@@ -114,6 +128,61 @@ export default function Settings() {
         }
     };
 
+    const testConnection = async () => {
+        setConnectionStatus('testing');
+        setConnectionError('');
+        
+        try {
+            const testUrl = localServerUrl.trim();
+            const healthUrl = testUrl.endsWith('/') ? `${testUrl}health` : `${testUrl}/health`;
+            
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 10000);
+            
+            const response = await fetch(healthUrl, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                },
+                signal: controller.signal,
+            });
+            
+            clearTimeout(timeoutId);
+            
+            if (response.ok) {
+                const data = await response.text();
+                setConnectionStatus('success');
+                setConnectionError('');
+                setLastTestTime(new Date().toLocaleTimeString());
+            } else {
+                const errorText = await response.text().catch(() => 'No response body');
+                const errorMessage = `HTTP ${response.status} ${response.statusText}: ${errorText}`;
+                setConnectionStatus('error');
+                setConnectionError(errorMessage);
+                setLastTestTime(new Date().toLocaleTimeString());
+            }
+        } catch (error: any) {
+            let errorMessage = 'Unknown error occurred';
+            
+            if (error.name === 'AbortError') {
+                errorMessage = 'Request timed out after 10 seconds';
+            } else if (error.message) {
+                errorMessage = error.message;
+            } else if (typeof error === 'string') {
+                errorMessage = error;
+            }
+            
+            if (error.cause) {
+                errorMessage += ` (Cause: ${error.cause})`;
+            }
+            
+            setConnectionStatus('error');
+            setConnectionError(errorMessage);
+            setLastTestTime(new Date().toLocaleTimeString());
+        }
+    };
+
     return (
         <PageLayout title="Settings">
             <Typography variant="title" className="mb-lg">Settings</Typography>
@@ -135,9 +204,60 @@ export default function Settings() {
                             autoCorrect={false}
                             editable={!isLoading}
                         />
-                        <Typography variant="caption" className="mt-sm text-slate-500">
+                        
+                        <View className="mt-md mb-md">
+                            <Button
+                                title={connectionStatus === 'testing' ? "Testing..." : "Test Connection"}
+                                onPress={testConnection}
+                                variant={connectionStatus === 'success' ? 'success' : connectionStatus === 'error' ? 'danger' : 'primary'}
+                                disabled={connectionStatus === 'testing' || !localServerUrl.trim()}
+                            />
+                        </View>
+                        
+                        <Typography variant="caption" className="text-slate-500">
                             The base URL for the OpenDarts server
                         </Typography>
+
+                        {connectionStatus === 'success' && (
+                            <View className="bg-green-50 border border-green-200 rounded-xl p-lg mt-md">
+                                <Typography variant="body" className="text-green-700 font-medium">
+                                    ✓ Connection successful
+                                </Typography>
+                                {lastTestTime && (
+                                    <Typography variant="caption" className="text-green-600 mt-xs">
+                                        {lastTestTime}
+                                    </Typography>
+                                )}
+                            </View>
+                        )}
+                        
+                        {connectionStatus === 'error' && (
+                            <View className="bg-red-50 border border-red-200 rounded-xl p-lg mt-md">
+                                <Typography variant="body" className="text-red-700 font-medium mb-sm">
+                                    ✗ Connection failed
+                                </Typography>
+                                {connectionError && (
+                                    <View className="bg-red-100 rounded-lg p-md mb-sm">
+                                        <Typography variant="caption" className="text-red-800 font-mono">
+                                            {connectionError}
+                                        </Typography>
+                                    </View>
+                                )}
+                                {lastTestTime && (
+                                    <Typography variant="caption" className="text-red-600">
+                                        {lastTestTime}
+                                    </Typography>
+                                )}
+                            </View>
+                        )}
+                        
+                        {connectionStatus === 'testing' && (
+                            <View className="bg-blue-50 border border-blue-200 rounded-xl p-lg mt-md">
+                                <Typography variant="body" className="text-blue-700">
+                                    🔄 Testing connection...
+                                </Typography>
+                            </View>
+                        )}
                     </View>
 
                     <View className="flex-row gap-4">

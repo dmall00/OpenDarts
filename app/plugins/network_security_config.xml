@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- Ultra-permissive base configuration for development -->
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <!-- Trust system certificates -->
+            <certificates src="system"/>
+            <!-- Trust user-added certificates (for self-signed certs) -->
+            <certificates src="user"/>
+        </trust-anchors>
+    </base-config>
+
+    <!-- Debug configuration - allows everything in debug builds -->
+    <debug-overrides>
+        <trust-anchors>
+            <!-- Accept all certificates in debug mode -->
+            <certificates src="user"/>
+            <certificates src="system"/>
+        </trust-anchors>
+    </debug-overrides>
+
+    <!-- Permissive configuration for all private/local IP ranges -->
+    <domain-config cleartextTrafficPermitted="true">
+        <!-- Localhost variants -->
+        <domain includeSubdomains="true">localhost</domain>
+        <domain includeSubdomains="true">127.0.0.1</domain>
+        <domain includeSubdomains="true">0.0.0.0</domain>
+
+        <!-- Android emulator -->
+        <domain includeSubdomains="true">10.0.2.2</domain>
+
+        <!-- Private IP ranges (Class A) -->
+        <domain includeSubdomains="true">10.0.0.0</domain>
+        <domain includeSubdomains="true">10.1.0.0</domain>
+        <domain includeSubdomains="true">10.2.0.0</domain>
+        <domain includeSubdomains="true">10.3.0.0</domain>
+        <domain includeSubdomains="true">10.4.0.0</domain>
+        <domain includeSubdomains="true">10.5.0.0</domain>
+        <domain includeSubdomains="true">10.6.0.0</domain>
+        <domain includeSubdomains="true">10.7.0.0</domain>
+        <domain includeSubdomains="true">10.8.0.0</domain>
+        <domain includeSubdomains="true">10.9.0.0</domain>
+        <domain includeSubdomains="true">10.10.0.0</domain>
+
+        <!-- Private IP ranges (Class B) -->
+        <domain includeSubdomains="true">172.16.0.0</domain>
+        <domain includeSubdomains="true">172.17.0.0</domain>
+        <domain includeSubdomains="true">172.18.0.0</domain>
+        <domain includeSubdomains="true">172.19.0.0</domain>
+        <domain includeSubdomains="true">172.20.0.0</domain>
+        <domain includeSubdomains="true">172.21.0.0</domain>
+        <domain includeSubdomains="true">172.22.0.0</domain>
+        <domain includeSubdomains="true">172.23.0.0</domain>
+        <domain includeSubdomains="true">172.24.0.0</domain>
+        <domain includeSubdomains="true">172.25.0.0</domain>
+        <domain includeSubdomains="true">172.26.0.0</domain>
+        <domain includeSubdomains="true">172.27.0.0</domain>
+        <domain includeSubdomains="true">172.28.0.0</domain>
+        <domain includeSubdomains="true">172.29.0.0</domain>
+        <domain includeSubdomains="true">172.30.0.0</domain>
+        <domain includeSubdomains="true">172.31.0.0</domain>
+
+        <!-- Private IP ranges (Class C) -->
+        <domain includeSubdomains="true">192.168.0.0</domain>
+        <domain includeSubdomains="true">192.168.1.0</domain>
+        <domain includeSubdomains="true">192.168.2.0</domain>
+        <domain includeSubdomains="true">192.168.3.0</domain>
+        <domain includeSubdomains="true">192.168.4.0</domain>
+        <domain includeSubdomains="true">192.168.5.0</domain>
+        <domain includeSubdomains="true">192.168.10.0</domain>
+        <domain includeSubdomains="true">192.168.20.0</domain>
+        <domain includeSubdomains="true">192.168.30.0</domain>
+        <domain includeSubdomains="true">192.168.40.0</domain>
+        <domain includeSubdomains="true">192.168.50.0</domain>
+        <domain includeSubdomains="true">192.168.100.0</domain>
+        <domain includeSubdomains="true">192.168.150.0</domain>
+        <domain includeSubdomains="true">192.168.178.0</domain>
+        <domain includeSubdomains="true">192.168.200.0</domain>
+        <domain includeSubdomains="true">192.168.250.0</domain>
+
+        <!-- Link-local addresses -->
+        <domain includeSubdomains="true">169.254.0.0</domain>
+
+        <!-- Common development domains -->
+        <domain includeSubdomains="true">*.local</domain>
+        <domain includeSubdomains="true">*.test</domain>
+        <domain includeSubdomains="true">*.dev</domain>
+        <domain includeSubdomains="true">*.localhost</domain>
+
+        <trust-anchors>
+            <!-- Trust both user and system certificates for all local domains -->
+            <certificates src="user"/>
+            <certificates src="system"/>
+        </trust-anchors>
+    </domain-config>
+
+    <!-- Additional permissive configuration for HTTPS with any certificate -->
+    <domain-config>
+        <!-- Your specific server -->
+        <domain includeSubdomains="true">192.168.178.34</domain>
+
+        <!-- Any IP in common ranges that might use HTTPS -->
+        <domain includeSubdomains="true">192.168.1.1</domain>
+        <domain includeSubdomains="true">192.168.0.1</domain>
+        <domain includeSubdomains="true">10.0.0.1</domain>
+        <domain includeSubdomains="true">172.16.0.1</domain>
+
+        <trust-anchors>
+            <!-- Accept any certificate for these domains -->
+            <certificates src="user"/>
+            <certificates src="system"/>
+        </trust-anchors>
+    </domain-config>
+</network-security-config>
