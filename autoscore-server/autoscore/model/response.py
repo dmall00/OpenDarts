@@ -2,12 +2,12 @@
 
 from abc import ABC
 from enum import Enum
-from typing import Optional, TypeVar
+from typing import TypeVar
 
-from detector.model.detection_models import CalibrationResult, DetectionResult, ScoringResult
 from pydantic import BaseModel, ConfigDict
 
 from autoscore.model.request import RequestType
+from detector.model.detection_models import CalibrationResult, DetectionResult, ScoringResult
 
 
 class Status(Enum):
@@ -33,12 +33,12 @@ class BaseResponse(ABC, BaseModel):
     request_type: RequestType
     session_id: str
     status: Status
-    message: Optional[str] = None
+    message: str | None = None
     player_id: str | None = None
+
 
 class ErrorResponse(BaseResponse):
     """Response model for error responses."""
-
 
 
 class PingResponse(BaseResponse):

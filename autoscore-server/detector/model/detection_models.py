@@ -2,17 +2,15 @@
 
 import time
 from abc import ABC
-from typing import TYPE_CHECKING, List, Optional, Sequence, TypeVar
+from typing import List, Sequence, TypeVar
 
 import numpy as np
 from pydantic import BaseModel, ConfigDict, Field, field_serializer, field_validator
 
+from detector.model.configuration import ProcessingConfig
 from detector.model.detection_result_code import ResultCode
 from detector.model.image_models import PreprocessingResult
 from detector.model.yolo_dart_class_mapping import YoloDartClassMapping
-
-if TYPE_CHECKING:
-    from detector.model.configuration import ProcessingConfig
 
 
 class Point2D(BaseModel, ABC):
@@ -62,7 +60,7 @@ class YoloDetection(BaseModel):
         """Check if the detection corresponds to a dart class."""
         return YoloDartClassMapping.is_dart(self.class_id)
 
-    def is_high_confidence(self, config: "ProcessingConfig") -> bool:
+    def is_high_confidence(self, config: ProcessingConfig) -> bool:
         """Check if the detection confidence is above the configured threshold."""
         return self.confidence >= config.calibration_confidence_threshold
 
@@ -123,7 +121,7 @@ class DartScore(BaseModel):
 
     @property
     def computed_score(self) -> int:
-        """Get computed dart score"""
+        """Get computed dart score."""
         return self.multiplier * self.single_value
 
     @property
@@ -159,8 +157,8 @@ class AbstractResult(BaseModel, ABC):
 
     processing_time: float
     result_code: ResultCode
-    message: Optional[str] = None
-    details: Optional[str] = None
+    message: str | None = None
+    details: str | None = None
     creation_time: float = Field(default_factory=time.time)
 
     @property
@@ -172,9 +170,9 @@ class AbstractResult(BaseModel, ABC):
 class CalibrationResult(AbstractResult):
     """Result of the calibration process."""
 
-    homography_matrix: Optional[HomoGraphyMatrix] = None
+    homography_matrix: HomoGraphyMatrix | None = None
     calibration_points: List[CalibrationPoint] = Field(default_factory=list)
-    preprocessing_result: Optional[PreprocessingResult] = None
+    preprocessing_result: PreprocessingResult | None = None
 
 
 class ScoringResult(AbstractResult):
@@ -197,9 +195,9 @@ class ScoringResult(AbstractResult):
 class DetectionResult(AbstractResult):
     """Result of the dart detection process, including calibration and scoring."""
 
-    preprocessing_result: Optional[PreprocessingResult] = None
-    calibration_result: Optional[CalibrationResult] = None
-    scoring_result: Optional[ScoringResult] = None
+    preprocessing_result: PreprocessingResult | None = None
+    calibration_result: CalibrationResult | None = None
+    scoring_result: ScoringResult | None = None
 
     @property
     def total_score(self) -> int:

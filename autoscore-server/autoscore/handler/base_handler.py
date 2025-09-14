@@ -1,19 +1,21 @@
 """Base handler for message processing."""
 
 from abc import ABC, abstractmethod
-from typing import Generic
+from typing import Generic, TypeVar
 
 from websockets.asyncio.server import ServerConnection
 
-from autoscore.model.request import REQ, RequestType
+from autoscore.model.request import RequestType
 from autoscore.model.response import (
-    RES,
     ErrorResponse,
     Status,
 )
 
+REQ = TypeVar("REQ")
+RES = TypeVar("RES")
 
-class BaseHandler(Generic[REQ, RES], ABC):
+
+class BaseHandler(Generic[REQ, RES], ABC):  # noqa: UP046
     """Base class for message handlers."""
 
     @abstractmethod
@@ -39,6 +41,10 @@ class BaseHandler(Generic[REQ, RES], ABC):
         request_id: str,
     ) -> None:
         """Send an error response to the websocket."""
-        response = ErrorResponse(request_type=self.get_request_type(), session_id=request_id, status=Status.ERROR, message=error_message,
-                                 )
+        response = ErrorResponse(
+            request_type=self.get_request_type(),
+            session_id=request_id,
+            status=Status.ERROR,
+            message=error_message,
+        )
         await websocket.send(response.model_dump_json())

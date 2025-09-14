@@ -51,7 +51,10 @@ services:
     ports:
       - "8765:8765"
     environment:
-      - LOG_LEVEL=INFO
+      AUTOSCORE_HOST: 0.0.0.0
+      AUTOSCORE_PORT: 8765
+      AUTOSCORE_LOG_LEVEL: INFO
+      AUTOSCORE_SAVE_IMAGES: false
     restart: unless-stopped
     networks:
       - opendarts-network

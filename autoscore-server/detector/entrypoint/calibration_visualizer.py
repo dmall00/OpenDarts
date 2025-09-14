@@ -6,9 +6,10 @@ and homography matrix transformations are applied.
 """
 
 import logging
-from pathlib import Path
-from typing import List, Optional, Tuple
 import os
+from pathlib import Path
+from typing import List, Tuple
+
 os.environ["QT_QPA_PLATFORM"] = "xcb"
 import cv2
 import numpy as np
@@ -38,7 +39,7 @@ class CalibrationVisualizer:
 
     logger = logging.getLogger(__qualname__)
 
-    def __init__(self, config: Optional[ProcessingConfig] = None) -> None:
+    def __init__(self, config: ProcessingConfig | None = None) -> None:
         self.__config = config or ProcessingConfig()
         self.window_name: str = "Calibration Visualization"
         self.dart_board: DartBoard = DartBoard()

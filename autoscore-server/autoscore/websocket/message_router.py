@@ -5,7 +5,15 @@ import logging
 from typing import TYPE_CHECKING, Any, Dict, Type
 
 import websockets.exceptions
-from detector.model.configuration import ProcessingConfig
+from websockets.asyncio.server import ServerConnection
+
+from autoscore.config.settings import ServerSettings
+from autoscore.handler.pipeline_detection_handler import PipelineDetectionHandler
+from autoscore.model.request import BaseRequest, PipelineDetectionRequest, RequestType
+from autoscore.model.response import (
+    ErrorResponse,
+    Status,
+)
 from detector.service.calibration.board_calibration_service import (
     DartBoardCalibrationService,
 )
@@ -13,15 +21,6 @@ from detector.service.dart_image_scoring_service import DartInImageScoringServic
 from detector.service.image_preprocessor import ImagePreprocessor
 from detector.service.scoring.dart_scoring_service import DartScoringService
 from detector.yolo.dart_detector import YoloDartImageProcessor
-from websockets.asyncio.server import ServerConnection
-
-from autoscore.handler.pipeline_detection_handler import PipelineDetectionHandler
-from autoscore.model.request import BaseRequest, CalibrationRequest, PingRequest, PipelineDetectionRequest, RequestType, \
-    ScoringRequest
-from autoscore.model.response import (
-    ErrorResponse,
-    Status,
-)
 
 if TYPE_CHECKING:
     from autoscore.handler.base_handler import BaseHandler
@@ -32,10 +31,10 @@ class MessageRouter:
 
     logger = logging.getLogger(__qualname__)
 
-    def __init__(
-        self,
-    ) -> None:
-        config = ProcessingConfig()
+    def __init__(self, settings: ServerSettings) -> None:
+        self.__settings = settings
+        config = settings.to_processing_config()
+
         yolo_dart_image_processor = YoloDartImageProcessor(config)
         image_preprocessor = ImagePreprocessor(config)
 
@@ -44,6 +43,7 @@ class MessageRouter:
             yolo_image_processor=yolo_dart_image_processor,
             image_preprocessor=image_preprocessor,
         )
+
         scoring_service = DartScoringService(
             config=config,
             yolo_image_processor=yolo_dart_image_processor,
@@ -58,18 +58,13 @@ class MessageRouter:
             image_preprocessor=image_preprocessor,
         )
 
-        self.detection_handler = PipelineDetectionHandler(
-            dart_detection_service=dart_scoring_service
-        )
+        self.detection_handler = PipelineDetectionHandler(dart_detection_service=dart_scoring_service, settings=self.__settings)
 
         self.handlers: Dict[RequestType, BaseHandler] = {
             RequestType.FULL: self.detection_handler,
         }
 
         self.request_types: Dict[RequestType, Type[BaseRequest]] = {
-            RequestType.CALIBRATION: CalibrationRequest,
-            RequestType.SCORING: ScoringRequest,
-            RequestType.PING: PingRequest,
             RequestType.FULL: PipelineDetectionRequest,
         }
 
@@ -133,7 +128,7 @@ class MessageRouter:
     async def _send_error(
         self,
         websocket: ServerConnection,
-        error_message: str ,
+        error_message: str,
         request_id: str | None,
     ) -> None:
         try:

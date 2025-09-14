@@ -2,7 +2,6 @@
 
 import logging
 import time
-from typing import Optional
 
 from detector.model.configuration import ProcessingConfig
 from detector.model.detection_models import (
@@ -27,12 +26,12 @@ class DartInImageScoringService:
 
     def __init__(  # noqa: PLR0913
         self,
-        config: Optional[ProcessingConfig] = None,
-        yolo_image_processor: Optional[YoloDartImageProcessor] = None,
-        yolo_result_parser: Optional[YoloResultParser] = None,
-        calibration_service: Optional[DartBoardCalibrationService] = None,
-        dart_scoring_service: Optional[DartScoringService] = None,
-        image_preprocessor: Optional[ImagePreprocessor] = None,
+        config: ProcessingConfig | None = None,
+        yolo_image_processor: YoloDartImageProcessor | None = None,
+        yolo_result_parser: YoloResultParser | None = None,
+        calibration_service: DartBoardCalibrationService | None = None,
+        dart_scoring_service: DartScoringService | None = None,
+        image_preprocessor: ImagePreprocessor | None = None,
     ) -> None:
         self.__config = config or ProcessingConfig()
         self.__yolo_image_processor = yolo_image_processor or YoloDartImageProcessor(self.__config)
@@ -47,15 +46,14 @@ class DartInImageScoringService:
 
     def detect_and_score(self, image: DartImage) -> DetectionResult:
         """Execute the complete detection and scoring pipeline."""
+        start_time = time.time()
         try:
-            start_time = time.time()
             preprocessing_result = self.__image_preprocessor.preprocess_image(image)
             results = self.__yolo_image_processor.detect(preprocessing_result.dart_image)
             detections = self.__yolo_result_parser.extract_detections(results)
             calibration_result = self.__calibration_service.calibrate_board(detections.calibration_points)
             scoring_result = self.__dart_scoring_service.calculate_scores(calibration_result, detections.original_positions)
             processing_time = round(time.time() - start_time, 3)
-            self.logger.debug("Full detection pipeline took %s seconds", processing_time)
             return self.__create_success_result(
                 scoring_result, calibration_result, preprocessing_result.preprocessing_result, processing_time
             )
@@ -64,18 +62,20 @@ class DartInImageScoringService:
                 self.logger.info(e.details)
             else:
                 self.logger.exception("Dart detection failed")
-            return self.__create_error_result(e.error_code, e.message)
+            return self.__create_error_result(e.error_code, e.message, start_time)
         except Exception as e:
             self.logger.exception("Unknown error during detection pipeline")
-            return self.__create_error_result(ResultCode.UNKNOWN, f"Unknown error occurred: {e}")
+            return self.__create_error_result(ResultCode.UNKNOWN, f"Unknown error occurred: {e}", start_time)
 
-    @staticmethod
+
     def __create_success_result(
+            self,
         scoring_result: ScoringResult,
         calibration_result: CalibrationResult,
         preprocessing_result: PreprocessingResult,
         processing_time: float,
     ) -> DetectionResult:
+        self.logger.info("Full success detection pipeline took %s seconds", processing_time)
         return DetectionResult(
             preprocessing_result=preprocessing_result,
             calibration_result=calibration_result,
@@ -85,8 +85,9 @@ class DartInImageScoringService:
             message=f"Successfully detected {len(scoring_result.dart_detections)} darts",
         )
 
-    @staticmethod
-    def __create_error_result(code: ResultCode, message: str) -> DetectionResult:
+    def __create_error_result(self, code: ResultCode, message: str, start_time: float) -> DetectionResult:
+        processing_time = round(time.time() - start_time, 3)
+        self.logger.info("Full error detection pipeline took %s seconds", processing_time)
         return DetectionResult(
             processing_time=0.0,
             result_code=code,

@@ -27,6 +27,4 @@ class YoloDartClassMapping:
     @classmethod
     def is_dart(cls, class_id: int) -> bool:
         """Check if the class ID corresponds to a dart."""
-        from detector.model.geometry_models import DART_CLASS_ID
-
         return cls.mapping.get(class_id) == "dart" or class_id == DART_CLASS_ID

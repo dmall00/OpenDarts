@@ -11,8 +11,10 @@ import pytest
 import websockets
 from websockets import Server
 
-from autoscore.model.request import CalibrationRequest, PingRequest, PipelineDetectionRequest, RequestType, ScoringRequest
-from autoscore.model.response import CalibrationResponse, PingResponse, PipelineDetectionResponse, ScoringResponse, Status
+from autoscore.config.settings import __load_settings
+from autoscore.model.request import PipelineDetectionRequest, RequestType
+from autoscore.model.response import PipelineDetectionResponse
+from autoscore.websocket.dart_websocket_server import DartWebSocketServer
 
 logger = logging.getLogger("ServerTestIT")
 
@@ -31,9 +33,7 @@ def send_image_base64(file_path: str | Path) -> str:
 @pytest.fixture
 async def websocket_server() -> AsyncGenerator[Server, None]:
     """Start the WebSocket server as a background task."""
-    from autoscore.websocket.dart_websocket_server import DartWebSocketServer
-
-    server = DartWebSocketServer()
+    server = DartWebSocketServer(settings=__load_settings())
 
     websocket_server = await websockets.serve(server.register_connection, "localhost", 8765, max_size=20 * 1024 * 1024)
     await asyncio.sleep(0.1)
@@ -41,8 +41,6 @@ async def websocket_server() -> AsyncGenerator[Server, None]:
     yield websocket_server
     websocket_server.close()
     await websocket_server.wait_closed()
-
-
 
 
 @pytest.mark.asyncio

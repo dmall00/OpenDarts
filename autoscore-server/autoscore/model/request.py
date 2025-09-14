@@ -4,16 +4,14 @@ from abc import ABC
 from enum import Enum
 from typing import TypeVar
 
-from detector.model.detection_models import CalibrationResult
 from pydantic import BaseModel, ConfigDict
+
+from detector.model.detection_models import CalibrationResult
 
 
 class RequestType(Enum):
     """Enumeration of available request types."""
 
-    CALIBRATION = "calibration"
-    SCORING = "SCORING"
-    PING = "PING"
     FULL = "FULL"
     NONE = "NONE"
 

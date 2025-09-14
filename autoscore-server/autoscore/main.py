@@ -6,23 +6,39 @@ import logging
 import click
 import websockets
 
+from autoscore.config.settings import __load_settings
 from autoscore.websocket.dart_websocket_server import DartWebSocketServer
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-)
-logger = logging.getLogger("Main")
+
+def setup_logging(log_level: str) -> None:
+    """Configure logging with the specified level."""
+    logging.basicConfig(
+        level=getattr(logging, log_level.upper()),
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    )
 
 
 async def async_main(host: str, port: int) -> None:
     """Start the WebSocket server."""
-    server = DartWebSocketServer()
+    settings = __load_settings()
 
-    logger.info(f"Starting dart WebSocket server on {host}:{port}")
+    if host != "127.0.0.1":
+        settings.host = host
+    if port != 8765:  # noqa: PLR2004
+        settings.port = port
 
-    async with websockets.serve(server.register_connection, host, port, max_size=20 * 1024 * 1024) as websocket_server:
-        logger.info(f"WebSocket server is running on ws://{host}:{port}")
+    setup_logging(settings.log_level)
+    logger = logging.getLogger("Main")
+
+    server = DartWebSocketServer(settings)
+
+    logger.info("Starting dart WebSocket server on %s:%s", settings.host, settings.port)
+    logger.info("Configuration: Image saving=%s, Log level=%s", settings.save_images, settings.log_level)
+
+    async with websockets.serve(
+        server.register_connection, settings.host, settings.port, max_size=settings.max_message_size
+    ) as websocket_server:
+        logger.info("WebSocket server is running on ws://%s:%s", settings.host, settings.port)
         await websocket_server.serve_forever()
 
 
@@ -34,9 +50,9 @@ def main(host: str, port: int) -> None:
     try:
         asyncio.run(async_main(host, port))
     except KeyboardInterrupt:
-        logger.info("Server shutdown requested")
+        logging.getLogger("Main").info("Server shutdown requested")
     except Exception:
-        logger.exception("Server error")
+        logging.getLogger("Main").exception("Server error")
 
 
 if __name__ == "__main__":

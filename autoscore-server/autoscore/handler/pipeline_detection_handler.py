@@ -2,15 +2,15 @@
 
 import logging
 
-from detector.model.detection_models import ResultCode
-from detector.model.image_models import DartImage
-from detector.service.dart_image_scoring_service import DartInImageScoringService
 from websockets.asyncio.server import ServerConnection
 
+from autoscore.config.settings import ServerSettings
 from autoscore.handler.base_handler import BaseHandler
 from autoscore.model.request import PipelineDetectionRequest, RequestType
 from autoscore.model.response import PipelineDetectionResponse, Status
 from autoscore.util.file_util import base64_to_numpy, save_base64_as_png
+from detector.model.image_models import DartImage
+from detector.service.dart_image_scoring_service import DartInImageScoringService
 
 
 class PipelineDetectionHandler(BaseHandler[PipelineDetectionRequest, PipelineDetectionResponse]):
@@ -18,8 +18,9 @@ class PipelineDetectionHandler(BaseHandler[PipelineDetectionRequest, PipelineDet
 
     logger = logging.getLogger(__qualname__)
 
-    def __init__(self, dart_detection_service: DartInImageScoringService) -> None:
+    def __init__(self, dart_detection_service: DartInImageScoringService, settings: ServerSettings | None = None) -> None:
         self.__dart_detection_service = dart_detection_service
+        self.__settings = settings
 
     def get_request_type(self) -> RequestType:
         """Return the request type handled by this handler."""
@@ -28,11 +29,10 @@ class PipelineDetectionHandler(BaseHandler[PipelineDetectionRequest, PipelineDet
     async def handle(self, websocket: ServerConnection, request: PipelineDetectionRequest) -> None:
         """Handle pipeline detection requests."""
         try:
-            detection_result = self.__dart_detection_service.detect_and_score(
-                image=DartImage(raw_image=base64_to_numpy(request.image)))
+            detection_result = self.__dart_detection_service.detect_and_score(image=DartImage(raw_image=base64_to_numpy(request.image)))
 
-
-            save_base64_as_png(request.image)
+            if self.__settings and self.__settings.save_images:
+                save_base64_as_png(request.image, self.__settings.image_save_directory)
 
             await self.send_response(
                 websocket,
