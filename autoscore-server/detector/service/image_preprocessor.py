@@ -1,7 +1,6 @@
 """Preprocess images for further processing."""
 
 import logging
-from typing import Optional
 
 from detector.model.configuration import ProcessingConfig
 from detector.model.detection_result_code import ResultCode
@@ -16,7 +15,7 @@ class ImagePreprocessor:
 
     logger = logging.getLogger(__qualname__)
 
-    def __init__(self, config: Optional[ProcessingConfig] = None) -> None:
+    def __init__(self, config: ProcessingConfig | None = None) -> None:
         self.__config = config or ProcessingConfig()
         if self.__config.enable_cropping_model:
             self.__image_cropper = YoloDartBoardImageCropper()

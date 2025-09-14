@@ -2,7 +2,7 @@
 
 import logging
 import time
-from typing import List, Optional
+from typing import List
 
 from detector.model.configuration import ProcessingConfig
 from detector.model.detection_models import (
@@ -31,12 +31,12 @@ class DartScoringService:
 
     def __init__(  # noqa: PLR0913
         self,
-        config: Optional[ProcessingConfig] = None,
-        coordinate_transformer: Optional[CoordinateTransformer] = None,
-        score_calculator: Optional[DartPointScoreCalculator] = None,
-        yolo_image_processor: Optional[YoloDartImageProcessor] = None,
-        yolo_result_parser: Optional[YoloResultParser] = None,
-        image_preprocessor: Optional[ImagePreprocessor] = None,
+        config: ProcessingConfig | None = None,
+        coordinate_transformer: CoordinateTransformer | None = None,
+        score_calculator: DartPointScoreCalculator | None = None,
+        yolo_image_processor: YoloDartImageProcessor | None = None,
+        yolo_result_parser: YoloResultParser | None = None,
+        image_preprocessor: ImagePreprocessor | None = None,
     ) -> None:
         self.__config = config or ProcessingConfig()
         self.__coordinate_transformer = coordinate_transformer or CoordinateTransformer(self.__config)
@@ -71,7 +71,7 @@ class DartScoringService:
         return self.__calculate_scores(calibration_result.homography_matrix, original_positions, start_time)  # type: ignore
 
     @staticmethod
-    def __validate_input(image: Optional[DartImage], calibration_result: CalibrationResult) -> None:
+    def __validate_input(image: DartImage | None, calibration_result: CalibrationResult) -> None:
         if image is None or image.raw_image is None:
             raise DartDetectionError(ResultCode.INVALID_INPUT, details="Image cannot be None")
         if calibration_result is None or calibration_result.preprocessing_result is None:

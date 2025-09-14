@@ -1,6 +1,6 @@
 """Basic YOLO inference script."""
 
-from typing import List, Optional
+from typing import List
 
 import cv2
 from ultralytics import YOLO
@@ -17,13 +17,13 @@ from detector.util.file_utils import resize_image
 class YoloScript:
     """Basic YOLO inference script."""
 
-    def __init__(self, model_path: Optional[str] = None) -> None:
+    def __init__(self, model_path: str | None = None) -> None:
         if model_path is None:
             model_path = str(MODEL_PATH / "dart_scorer.pt")
         self.model = YOLO(model_path)
         self.preprocessor = ImagePreprocessor(ProcessingConfig())
 
-    def detect(self, image_path: Optional[str] = None) -> List[Results]:
+    def detect(self, image_path: str | None = None) -> List[Results]:
         """Detect dartboards in an image.an image."""
         if image_path is None:
             image_path = str(IMAGE_PATH / "img_28.png")

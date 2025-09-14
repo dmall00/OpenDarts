@@ -1,7 +1,7 @@
 """Service for scoring darts based on their positions."""
 
 import logging
-from typing import List, Tuple
+from typing import List
 
 import numpy as np
 
@@ -10,9 +10,6 @@ from detector.model.detection_models import DartPosition, DartScore, Transformed
 from detector.model.geometry_models import (
     ANGLE_CALCULATION_EPSILON,
     BOARD_CENTER_COORDINATE,
-    DOUBLE_BULL_SCORE,
-    MISS_SCORE,
-    SINGLE_BULL_SCORE,
 )
 
 

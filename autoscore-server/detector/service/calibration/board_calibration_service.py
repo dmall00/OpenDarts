@@ -2,7 +2,7 @@
 
 import logging
 import time
-from typing import List, Optional
+from typing import List
 
 from detector.model.configuration import ProcessingConfig
 from detector.model.detection_models import CalibrationPoint, CalibrationResult, HomoGraphyMatrix
@@ -22,10 +22,10 @@ class DartBoardCalibrationService:
 
     def __init__(
         self,
-        config: Optional[ProcessingConfig] = None,
-        yolo_image_processor: Optional[YoloDartImageProcessor] = None,
-        yolo_result_parser: Optional[YoloResultParser] = None,
-        image_preprocessor: Optional[ImagePreprocessor] = None,
+        config: ProcessingConfig | None = None,
+        yolo_image_processor: YoloDartImageProcessor | None = None,
+        yolo_result_parser: YoloResultParser | None = None,
+        image_preprocessor: ImagePreprocessor | None = None,
     ) -> None:
         self.__config = config or ProcessingConfig()
         self.__calibration_matrix_calculator = CalibrationMatrixCalculator(self.__config)
@@ -61,7 +61,7 @@ class DartBoardCalibrationService:
         return self.__create_calibration_result(homography, calibration_points, start_time)
 
     @staticmethod
-    def __validate_image(image: Optional[DartImage]) -> None:
+    def __validate_image(image: DartImage | None) -> None:
         if image is None or image.raw_image is None:
             raise DartDetectionError(ResultCode.INVALID_INPUT, details="Image cannot be None")
 
@@ -70,7 +70,7 @@ class DartBoardCalibrationService:
         homography: HomoGraphyMatrix,
         calibration_points: List[CalibrationPoint],
         start_time: float,
-        preprocessing_result: Optional[PreprocessingResult] = None,
+        preprocessing_result: PreprocessingResult | None = None,
     ) -> CalibrationResult:
         calibration_result = CalibrationResult(
             processing_time=round(time.time() - start_time, 3),

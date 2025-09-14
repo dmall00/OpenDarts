@@ -11,6 +11,8 @@ from detector.model.configuration import ProcessingConfig
 from detector.model.detection_models import CalibrationPoint, HomoGraphyMatrix, Point2D
 from detector.model.detection_result_code import ResultCode
 from detector.model.exception import DartDetectionError
+from detector.model.geometry_models import NORMALIZED_COORDINATE_MAX, NORMALIZED_COORDINATE_MIN
+from detector.model.yolo_dart_class_mapping import YoloDartClassMapping
 
 
 class CalibrationMatrixCalculator:
@@ -58,11 +60,9 @@ class CalibrationMatrixCalculator:
     def __ensure_minimum_points(self, valid_count: int, calibration_points: List[CalibrationPoint], valid_mask: np.ndarray) -> None:
         """Ensure we have the minimum required valid points."""
         if valid_count < self.__config.min_calibration_points:
-            from detector.model.yolo_dart_class_mapping import YoloDartClassMapping
-            
             found_points = []
             missing_points = []
-            
+
             found_class_ids = set()
             for i, point in enumerate(calibration_points):
                 if i < len(valid_mask) and valid_mask[i]:
@@ -72,19 +72,22 @@ class CalibrationMatrixCalculator:
                 else:
                     class_name = YoloDartClassMapping.get_class_name(point.class_id)
                     found_points.append(f"{class_name} - INVALID")
-            
+
             expected_class_ids = set(YoloDartClassMapping.mapping.keys())
             expected_class_ids.discard(YoloDartClassMapping.dart_class)
-            
+
             missing_class_ids = expected_class_ids - found_class_ids
             for class_id in missing_class_ids:
                 class_name = YoloDartClassMapping.get_class_name(class_id)
                 missing_points.append(f"{class_name}")
-            
+
             found_details = "\nFound points: " + (", ".join(found_points) if found_points else "None")
             missing_details = "\nMissing points: " + (", ".join(missing_points) if missing_points else "None")
-            
-            msg = f"Only {valid_count} valid calibration points found, minimum {self.__config.min_calibration_points} required{found_details}{missing_details}"
+
+            msg = (
+                f"Only {valid_count} valid calibration points found, minimum {self.__config.min_calibration_points} "
+                f"required{found_details}{missing_details}"
+            )
             raise DartDetectionError(ResultCode.MISSING_CALIBRATION_POINTS, details=msg)
 
     def __compute_homography_matrix(self, calibration_coords: np.ndarray, valid_mask: np.ndarray, image_shape: float) -> np.ndarray:
@@ -123,8 +126,6 @@ class CalibrationMatrixCalculator:
     @staticmethod
     def __get_valid_points_mask(calibration_coords: np.ndarray) -> np.ndarray:
         """Get mask for valid calibration points within image bounds."""
-        from detector.model.geometry_models import NORMALIZED_COORDINATE_MAX, NORMALIZED_COORDINATE_MIN
-
         return np.all(
             np.logical_and(calibration_coords >= NORMALIZED_COORDINATE_MIN, calibration_coords <= NORMALIZED_COORDINATE_MAX),
             axis=1,

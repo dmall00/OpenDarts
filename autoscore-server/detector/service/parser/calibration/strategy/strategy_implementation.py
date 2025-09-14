@@ -2,7 +2,7 @@
 
 import logging
 import math
-from typing import List, Optional, Tuple
+from typing import List, Tuple
 
 from detector.model.configuration import ProcessingConfig
 from detector.model.detection_models import YoloDetection
@@ -19,7 +19,7 @@ class HighestConfidenceStrategy(CalibrationDetectionStrategy):
         calib_index: int,  # noqa: ARG002
         detections: List[YoloDetection],
         config: ProcessingConfig,  # noqa: ARG002
-    ) -> Optional[YoloDetection]:
+    ) -> YoloDetection | None:
         """Select the calibration point with the highest confidence."""
         if not detections:
             return None
@@ -36,7 +36,7 @@ class GeometricDetectionStrategy(CalibrationDetectionStrategy):
         calib_index: int,
         detections: List[YoloDetection],
         config: ProcessingConfig,  # noqa: ARG002
-    ) -> Optional[YoloDetection]:
+    ) -> YoloDetection | None:
         """
         Filter multiple detections for a calibration point using geometric validation,.
 
@@ -138,7 +138,7 @@ class GeometricDetectionStrategy(CalibrationDetectionStrategy):
         return (angle_deg + 360) % 360
 
     @staticmethod
-    def _get_expected_angle_range(calib_index: int) -> Optional[Tuple[float, float]]:
+    def _get_expected_angle_range(calib_index: int) -> Tuple[float, float] | None:
         """Get the expected angle range (min, max) for a calibration point in degrees."""
         # Based on standard dartboard layout with some tolerance
         angle_ranges = {
@@ -162,7 +162,7 @@ class GeometricDetectionStrategy(CalibrationDetectionStrategy):
         return min_angle <= angle <= max_angle
 
     @staticmethod
-    def _get_expected_position(calib_index: int) -> Optional[Tuple[float, float]]:
+    def _get_expected_position(calib_index: int) -> Tuple[float, float] | None:
         """Get the expected normalized (x, y) position for a calibration point."""
         # Positions based on standard dartboard layout
         positions = {
@@ -197,7 +197,7 @@ class FilterDuplicatesStrategy(CalibrationDetectionStrategy):
         calib_index: int,  # noqa: ARG002
         detections: List[YoloDetection],
         config: ProcessingConfig,  # noqa: ARG002
-    ) -> Optional[YoloDetection]:
+    ) -> YoloDetection | None:
         """Filter out duplicate detections by returning None if multiple detections exist."""
         if not detections:
             return None

@@ -5,6 +5,7 @@ from typing import Set
 
 from websockets.asyncio.server import ServerConnection
 
+from autoscore.config.settings import ServerSettings
 from autoscore.websocket.connection_manager import ConnectionManager
 from autoscore.websocket.message_router import MessageRouter
 
@@ -14,10 +15,11 @@ class DartWebSocketServer:
 
     logger = logging.getLogger(__qualname__)
 
-    def __init__(self) -> None:
+    def __init__(self, settings: ServerSettings) -> None:
+        self.__settings = settings
         self.connections: Set[ServerConnection] = set()
         self.connection_manager = ConnectionManager(self.connections)
-        self.message_router = MessageRouter()
+        self.message_router = MessageRouter(settings)
 
     async def register_connection(self, websocket: ServerConnection) -> None:
         """Register and handle a new WebSocket connection."""

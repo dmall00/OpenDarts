@@ -2,7 +2,7 @@
 
 import logging
 from pathlib import Path
-from typing import Optional, Union
+from typing import Union
 
 from detector.model.configuration import ProcessingConfig
 from detector.model.detection_models import DetectionResult
@@ -15,7 +15,7 @@ class DartBoardImageToScorePipeline:
 
     logger = logging.getLogger(__qualname__)
 
-    def __init__(self, config: Optional[ProcessingConfig] = None) -> None:
+    def __init__(self, config: ProcessingConfig | None = None) -> None:
         self.__config = config or ProcessingConfig()
         self._detection_service = DartInImageScoringService(self.__config)
 

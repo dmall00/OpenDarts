@@ -2,7 +2,7 @@
 
 import logging
 import time
-from typing import Optional, Tuple
+from typing import Tuple
 
 import numpy as np
 from ultralytics import YOLO
@@ -19,7 +19,7 @@ class YoloDartBoardImageCropper:
 
     logger = logging.getLogger(__qualname__)
 
-    def __init__(self, config: Optional[ProcessingConfig] = None) -> None:
+    def __init__(self, config: ProcessingConfig | None = None) -> None:
         self.logger.info("Loading YOLO model from: %s", ImmutableConfig.dartboard_model_path)
         self._model = YOLO(ImmutableConfig.dartboard_model_path)
         self.__config = config or ProcessingConfig()
@@ -32,8 +32,6 @@ class YoloDartBoardImageCropper:
         bounding_box = self.__extract_bounding_box(detection_result, image.shape)
         cropped_image = self.__crop_with_bounding_box(image, bounding_box)
 
-        # boxes is guaranteed to exist after validation
-        assert detection_result.boxes is not None
         self.__log_cropping_info(bounding_box, float(detection_result.boxes.conf[0]), cropped_image.shape, start)
 
         x_start, y_start, x_end, y_end = bounding_box
@@ -58,8 +56,6 @@ class YoloDartBoardImageCropper:
         return result
 
     def __extract_bounding_box(self, result: Results, image_shape: Tuple[int, ...]) -> Tuple[int, int, int, int]:
-        # boxes is guaranteed to exist after validation
-        assert result.boxes is not None
         xywh_normalized = result.boxes.xywhn[0]
         img_height, img_width = image_shape[:2]
 

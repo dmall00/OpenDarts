@@ -1,7 +1,5 @@
 """Models for image related operations in dart detection."""
 
-from typing import Optional
-
 import numpy as np
 from pydantic import BaseModel, ConfigDict, field_serializer
 
@@ -30,7 +28,7 @@ class CropInformation(BaseModel):
 class PreprocessingResult(BaseModel):
     """Result of preprocessing an image."""
 
-    crop_info: Optional[CropInformation] = None
+    crop_info: CropInformation | None = None
 
 
 class DartImagePreprocessed(BaseModel):

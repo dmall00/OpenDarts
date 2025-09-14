@@ -3,10 +3,10 @@
 import json
 import logging
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Dict, List
 
 from detector.entrypoint.image_score_pipeline import DartBoardImageToScorePipeline
-from detector.model.detection_models import DetectionResult, DartScore
+from detector.model.detection_models import DetectionResult
 from detector.script import IMAGE_PATH
 
 MINIMUM_MATCH_PERCENTAGE = 0.7
@@ -33,7 +33,7 @@ def extract_dart_scores_from_result(detection_result: DetectionResult) -> List[s
 
     return [
         dart_detection.dart_score.dart_score_str
-        for dart_detection in detection_result.scoring_result.dart_detections  # type: ignore 
+        for dart_detection in detection_result.scoring_result.dart_detections  # type: ignore
         if dart_detection.dart_score is not None
     ]
 
