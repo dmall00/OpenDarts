@@ -335,20 +335,6 @@ constructor(
         )
     }
 
-    private fun getCurrentTurnDarts(
-        currentPlayer: Player,
-        currentLeg: Leg,
-    ): List<DartThrowRequest> {
-        val currentTurn =
-            currentLeg.turns
-                .filter { it.player == currentPlayer }
-                .maxByOrNull { it.turnOrderIndex } ?: return emptyList()
-
-        return currentTurn.darts.map { dart ->
-            DartThrowRequest(score = dart.score, multiplier = dart.multiplier, autoScore = false)
-        }
-    }
-
     private fun getRemainingScore(
         gameSession: GameSession,
         player: Player,

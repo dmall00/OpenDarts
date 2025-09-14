@@ -32,7 +32,8 @@ class PipelineDetectionHandler(BaseHandler[PipelineDetectionRequest, PipelineDet
             detection_result = self.__dart_detection_service.detect_and_score(image=DartImage(raw_image=base64_to_numpy(request.image)))
 
             if self.__settings and self.__settings.save_images:
-                save_base64_as_png(request.image, self.__settings.image_save_directory)
+                path = save_base64_as_png(request.image, self.__settings.image_save_directory)
+                self.logger.info(f"Saved image to {path}")
 
             await self.send_response(
                 websocket,

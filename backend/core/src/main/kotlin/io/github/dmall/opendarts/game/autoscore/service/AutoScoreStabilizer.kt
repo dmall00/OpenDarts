@@ -3,11 +3,9 @@ package io.github.dmall.opendarts.game.autoscore.service
 import io.github.dmall.opendarts.game.autoscore.events.DartThrowDetectedEvent
 import io.github.dmall.opendarts.game.autoscore.events.ManualDartAdjustment
 import io.github.dmall.opendarts.game.autoscore.events.TurnSwitchDetectedEvent
-import io.github.dmall.opendarts.game.autoscore.model.DartDetection
-import io.github.dmall.opendarts.game.autoscore.model.DetectionResult
-import io.github.dmall.opendarts.game.autoscore.model.DetectionState
-import io.github.dmall.opendarts.game.autoscore.model.PipelineDetectionResponse
+import io.github.dmall.opendarts.game.autoscore.model.*
 import io.github.dmall.opendarts.game.model.DartThrowRequest
+import io.github.dmall.opendarts.game.util.DartScoreUtil.getScoreString
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationEventPublisher
@@ -59,10 +57,11 @@ constructor(
         val detectionState = detectionStates.getOrPut(id) { DetectionState() }
         if (manualDartAdjustment.dartThrowRequest != null) {
             if (detectionState.confirmedDarts.size < 3) {
-                detectionState.confirmedDarts += Pair(0.0, 0.0)
+                detectionState.confirmedDarts += ConfirmedDart(Pair(0.0, 0.0), filled = true)
             }
         }
-        if (manualDartAdjustment.dartRevertRequest != null) {
+        val dartRevertRequest = manualDartAdjustment.dartRevertRequest
+        if (dartRevertRequest != null) {
             detectionState.confirmedDarts.removeLastOrNull()
         }
     }
@@ -99,7 +98,7 @@ constructor(
         val currentImageDarts = extractDartPositions(imageDarts)
 
         if (confirmedDarts.size >= 3) {
-            handleThreeDartsConfirmed(currentImageDarts, detectionState, confirmedDarts, playerId, sessionId)
+            handleThreeDartsConfirmed(currentImageDarts, detectionState, playerId, sessionId)
             return
         }
 
@@ -114,7 +113,7 @@ constructor(
 
         if (shouldRegisterMisses) {
             registerMissedDarts(missCount, playerId, sessionId, confirmedDarts)
-            handleThreeDartsConfirmed(currentImageDarts, detectionState, confirmedDarts, playerId, sessionId)
+            handleThreeDartsConfirmed(currentImageDarts, detectionState, playerId, sessionId)
             return
         }
 
@@ -132,7 +131,7 @@ constructor(
         missCount: Int,
         playerId: String,
         sessionId: String,
-        confirmedDarts: MutableList<Pair<Double, Double>>,
+        confirmedDarts: MutableList<ConfirmedDart>,
     ) {
         logger.info { "Registering $missCount missed dart(s) for player $playerId" }
 
@@ -142,26 +141,25 @@ constructor(
             applicationEventPublisher.publishEvent(
                 DartThrowDetectedEvent(this, sessionId, playerId, dartThrowRequest),
             )
-            confirmedDarts.add((-1.0 - i) to -1.0)
+            confirmedDarts.add(ConfirmedDart((-1.0 - i) to -1.0, autoScored = true))
         }
     }
 
     private fun handleThreeDartsConfirmed(
         currentImageDarts: List<Pair<Double, Double>>,
         detectionState: DetectionState,
-        confirmedDarts: MutableList<Pair<Double, Double>>,
         playerId: String,
         sessionId: String,
     ) {
         if (turnSwitchDetector.handleThreeDartsState(currentImageDarts.size, detectionState, playerId, sessionId)) {
-            resetStateForNewTurn(playerId, sessionId, confirmedDarts, detectionState)
+            resetStateForNewTurn(playerId, sessionId, detectionState)
         }
     }
 
     private fun registerNewDarts(
         currentImageDarts: List<Pair<Double, Double>>,
         imageDarts: List<DartDetection>,
-        confirmedDarts: MutableList<Pair<Double, Double>>,
+        confirmedDarts: MutableList<ConfirmedDart>,
         playerId: String,
         sessionId: String,
         detectionState: DetectionState,
@@ -176,16 +174,16 @@ constructor(
 
     private fun findNewDarts(
         currentImageDarts: List<Pair<Double, Double>>,
-        confirmedDarts: List<Pair<Double, Double>>,
+        confirmedDarts: MutableList<ConfirmedDart>,
     ): List<Pair<Double, Double>> =
         currentImageDarts.filter { current ->
-            confirmedDarts.none { stable -> isSameDart(current, stable) }
+            confirmedDarts.none { stable -> isSameDart(current, stable.position) }
         }
 
     private fun submitNewDarts(
         newDarts: List<Pair<Double, Double>>,
         imageDarts: List<DartDetection>,
-        confirmedDarts: MutableList<Pair<Double, Double>>,
+        confirmedDarts: MutableList<ConfirmedDart>,
         playerId: String,
         sessionId: String,
     ) {
@@ -204,7 +202,7 @@ constructor(
                 applicationEventPublisher.publishEvent(
                     DartThrowDetectedEvent(this, sessionId, playerId, dartThrowRequest),
                 )
-                confirmedDarts.add(pos)
+                confirmedDarts.add(ConfirmedDart(pos, scoreString = getScoreString(score, multiplier)))
             }
         }
     }
@@ -221,7 +219,6 @@ constructor(
     private fun resetStateForNewTurn(
         playerId: String,
         sessionId: String,
-        stableDarts: MutableList<Pair<Double, Double>>,
         detectionState: DetectionState,
     ) {
         detectionState.confirmedDarts.clear()
