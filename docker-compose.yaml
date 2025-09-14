@@ -54,10 +54,15 @@ services:
       AUTOSCORE_HOST: 0.0.0.0
       AUTOSCORE_PORT: 8765
       AUTOSCORE_LOG_LEVEL: INFO
-      AUTOSCORE_SAVE_IMAGES: false
+      AUTOSCORE_SAVE_IMAGES: True
+      AUTOSCORE_IMAGE_SAVE_DIRECTORY: /images
+      AUTOSCORE_DART_CONFIDENCE_THRESHOLD: 0.5
+
     restart: unless-stopped
     networks:
       - opendarts-network
+    volumes:
+      - ./autoscore-images:/images
 
 networks:
   opendarts-network:

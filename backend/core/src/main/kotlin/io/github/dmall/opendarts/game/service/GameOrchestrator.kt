@@ -42,6 +42,18 @@ constructor(
         val gameHandler = gameModeRegistry.getGameHandler(gameSession.game.gameMode)
         val gameState = gameHandler.processDartThrow(gameSession, currentPlayer, dartThrowRequest)
         if (dartThrowRequest.autoScore) {
+            if (gameState.bust) {
+                applicationEventPublisher.publishEvent(
+                    ManualDartAdjustment(
+                        this,
+                        gameId,
+                        playerId,
+                        DartThrowRequest(0, 0, false),
+                        null
+                    )
+                )
+            }
+
             appWebSocketHandler.sendWebSocketMessage(
                 gameMapper.toCurrentGameStateTO(gameState),
                 "$playerId-$gameId",

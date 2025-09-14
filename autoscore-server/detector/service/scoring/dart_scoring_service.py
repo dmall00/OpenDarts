@@ -90,7 +90,7 @@ class DartScoringService:
             message="Scores calculated successfully",
         )
 
-        self.logger.info("Scoring completed in %s seconds: %s", scoring_result.processing_time, scoring_result)
+        self.logger.info("%s", scoring_result)
         return scoring_result
 
     @staticmethod
