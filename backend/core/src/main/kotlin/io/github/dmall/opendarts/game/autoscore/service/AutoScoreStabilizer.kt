@@ -17,6 +17,9 @@ private const val DISTANCE_THRESHOLD = 0.01
 private const val CONFIDENCE_THRESHOLD = 0.1
 private const val MISS_DART_CONFIDENCE_THRESHOLD = 0.5
 
+/**
+ * Service that receives the results of the autoscoring python server and manages a state of confirmed darts for a player.
+ */
 @Service
 class AutoScoreStabilizer
 @Autowired
@@ -28,6 +31,9 @@ constructor(
 
     private val detectionStates: MutableMap<String, DetectionState> = Collections.synchronizedMap(mutableMapOf())
 
+    /**
+     * Main entry point to process a dart detection result from the autoscore pipeline
+     */
     fun processDartDetectionResult(detection: PipelineDetectionResponse) {
         if (!isValidDetection(detection)) {
             logger.info { "Invalid autoscore result received" }
@@ -51,6 +57,9 @@ constructor(
         }
     }
 
+    /**
+     * Event listener to sync back from manual scoring
+     */
     @EventListener
     fun consumeManualDartTrackedEvent(manualDartAdjustment: ManualDartAdjustment) {
         val id = composeId(manualDartAdjustment.playerId, manualDartAdjustment.sessionId)
