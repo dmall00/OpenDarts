@@ -66,7 +66,23 @@ constructor(
         val detectionState = detectionStates.getOrPut(id) { DetectionState() }
         if (manualDartAdjustment.dartThrowRequest != null) {
             if (detectionState.confirmedDarts.size < 3) {
-                detectionState.confirmedDarts += ConfirmedDart(Pair(0.0, 0.0), filled = true)
+                if (manualDartAdjustment.bust) {
+                    repeat(3 - detectionState.confirmedDarts.size) {
+                        detectionState.confirmedDarts.add(
+                            ConfirmedDart(
+                                Pair(0.0, 0.0),
+                                getScoreString(0, 0),
+                                DartOrigin.MANUAL_SCORING
+                            )
+                        )
+                    }
+                } else {
+                    detectionState.confirmedDarts += ConfirmedDart(
+                        Pair(0.0, 0.0),
+                        getScoreString(0, 0),
+                        DartOrigin.MANUAL_SCORING
+                    )
+                }
             }
         }
         val dartRevertRequest = manualDartAdjustment.dartRevertRequest
@@ -150,7 +166,7 @@ constructor(
             applicationEventPublisher.publishEvent(
                 DartThrowDetectedEvent(this, sessionId, playerId, dartThrowRequest),
             )
-            confirmedDarts.add(ConfirmedDart((-1.0 - i) to -1.0, autoScored = true))
+            confirmedDarts.add(ConfirmedDart((-1.0 - i) to -1.0, getScoreString(0, 0), DartOrigin.AUTO_SCORING))
         }
     }
 

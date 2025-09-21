@@ -41,27 +41,35 @@ constructor(
         val currentPlayer = playerRepository.findById(playerId).orElseThrow()
         val gameHandler = gameModeRegistry.getGameHandler(gameSession.game.gameMode)
         val gameState = gameHandler.processDartThrow(gameSession, currentPlayer, dartThrowRequest)
-        if (dartThrowRequest.autoScore) {
-            if (gameState.bust) {
-                applicationEventPublisher.publishEvent(
-                    ManualDartAdjustment(
-                        this,
-                        gameId,
-                        playerId,
-                        DartThrowRequest(0, 0, false),
-                        null
-                    )
-                )
-            }
 
+        if (dartThrowRequest.autoScore) {
             appWebSocketHandler.sendWebSocketMessage(
                 gameMapper.toCurrentGameStateTO(gameState),
                 "$playerId-$gameId",
                 EventType.DART_THROW_DETECTED,
             )
-        } else {
-            applicationEventPublisher.publishEvent(ManualDartAdjustment(this, gameId, playerId, dartThrowRequest, null))
         }
+
+        val adjustment = if (gameState.bust) {
+            ManualDartAdjustment(
+                this,
+                gameId,
+                playerId,
+                DartThrowRequest(0, 0, false),
+                null,
+                true
+            )
+        } else {
+            ManualDartAdjustment(
+                this,
+                gameId,
+                playerId,
+                dartThrowRequest,
+                null
+            )
+        }
+        applicationEventPublisher.publishEvent(adjustment)
+
         return gameState
     }
 

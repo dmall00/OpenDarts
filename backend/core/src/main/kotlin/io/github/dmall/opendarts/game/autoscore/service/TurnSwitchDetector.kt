@@ -27,7 +27,7 @@ class TurnSwitchDetector {
             detectionState.isNewTurnAndBoardCleared = true
             return true
         } else {
-            logger.info { "3 darts already confirmed, waiting for board to be cleared." }
+            logger.info { "3 darts already confirmed, waiting for board to be cleared ${detectionState.confirmedDarts}" }
             detectionState.isNewTurnAndBoardCleared = false
             return false
         }

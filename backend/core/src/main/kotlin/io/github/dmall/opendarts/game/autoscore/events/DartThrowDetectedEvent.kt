@@ -32,7 +32,8 @@ class ManualDartAdjustment(
     sessionId: String,
     playerId: String,
     val dartThrowRequest: DartThrowRequest?,
-    val dartRevertRequest: DartRevertRequest?
+    val dartRevertRequest: DartRevertRequest?,
+    val bust: Boolean = false,
 ) : GameEvent(source, sessionId, playerId, EventType.DART_THROW_DETECTED)
 
 class TurnSwitchDetectedEvent(
