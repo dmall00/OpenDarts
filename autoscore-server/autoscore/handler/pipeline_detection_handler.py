@@ -33,7 +33,7 @@ class PipelineDetectionHandler(BaseHandler[PipelineDetectionRequest, PipelineDet
 
             if self.__settings and self.__settings.save_images:
                 path = save_base64_as_png(request.image, self.__settings.image_save_directory)
-                self.logger.info(f"Saved image to {path}")
+                self.logger.info("Saved image to %s", path)
 
             await self.send_response(
                 websocket,

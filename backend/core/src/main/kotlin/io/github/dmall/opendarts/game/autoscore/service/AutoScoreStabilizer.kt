@@ -13,9 +13,10 @@ import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Service
 import java.util.*
 
-private const val DISTANCE_THRESHOLD = 0.01
-private const val CONFIDENCE_THRESHOLD = 0.1
+private const val DISTANCE_THRESHOLD = 0.04
+private const val CONFIDENCE_THRESHOLD = 0.4
 private const val MISS_DART_CONFIDENCE_THRESHOLD = 0.5
+private const val FPS = 1
 
 /**
  * Service that receives the results of the autoscoring python server and manages a state of confirmed darts for a player.
@@ -67,19 +68,25 @@ constructor(
         if (manualDartAdjustment.dartThrowRequest != null) {
             if (detectionState.confirmedDarts.size < 3) {
                 if (manualDartAdjustment.bust) {
+                    logger.info { "Manual bust detected, filling up to 3 darts with misses." }
                     repeat(3 - detectionState.confirmedDarts.size) {
+                        logger.info { "Registering missed dart for bust." }
                         detectionState.confirmedDarts.add(
                             ConfirmedDart(
                                 Pair(0.0, 0.0),
                                 getScoreString(0, 0),
-                                DartOrigin.MANUAL_SCORING
+                                DartOrigin.MANUAL_BUST
                             )
                         )
                     }
                 } else {
+                    logger.info { "Manual dart detected, adding to confirmed darts." }
                     detectionState.confirmedDarts += ConfirmedDart(
                         Pair(0.0, 0.0),
-                        getScoreString(0, 0),
+                        getScoreString(
+                            manualDartAdjustment.dartThrowRequest.score,
+                            manualDartAdjustment.dartThrowRequest.multiplier
+                        ),
                         DartOrigin.MANUAL_SCORING
                     )
                 }
@@ -166,7 +173,7 @@ constructor(
             applicationEventPublisher.publishEvent(
                 DartThrowDetectedEvent(this, sessionId, playerId, dartThrowRequest),
             )
-            confirmedDarts.add(ConfirmedDart((-1.0 - i) to -1.0, getScoreString(0, 0), DartOrigin.AUTO_SCORING))
+            confirmedDarts.add(ConfirmedDart((-1.0 - i) to -1.0, getScoreString(0, 0), DartOrigin.AUTO_SCORE_MISS))
         }
     }
 
@@ -218,7 +225,7 @@ constructor(
             val multiplier = dart.dartScore.multiplier
             val score = dart.dartScore.singleValue
 
-            if (isOverConfidenceThreshold(confidence, score) && newDarts.contains(pos)) {
+            if (isWithinConfidenceThreshold(confidence, score) && newDarts.contains(pos)) {
                 logger.info {
                     "Detected new dart with confidence $confidence and score $score*$multiplier = ${multiplier * score}, pos: $pos"
                 }
@@ -227,12 +234,22 @@ constructor(
                 applicationEventPublisher.publishEvent(
                     DartThrowDetectedEvent(this, sessionId, playerId, dartThrowRequest),
                 )
-                confirmedDarts.add(ConfirmedDart(pos, scoreString = getScoreString(score, multiplier)))
+                confirmedDarts.add(
+                    ConfirmedDart(
+                        pos,
+                        scoreString = getScoreString(score, multiplier),
+                        origin = DartOrigin.AUTO_SCORE
+                    )
+                )
+            } else if (!isWithinConfidenceThreshold(confidence, score)) {
+                logger.info {
+                    "Ignoring detected dart with confidence $confidence and score $score*$multiplier = ${multiplier * score}, pos: $pos"
+                }
             }
         }
     }
 
-    private fun isOverConfidenceThreshold(
+    private fun isWithinConfidenceThreshold(
         confidence: Float,
         score: Int,
     ): Boolean =

@@ -14,12 +14,14 @@ data class CalibrationState(
 )
 enum class DartOrigin {
     MANUAL_SCORING,
-    AUTO_SCORING,
-    BUST
+    MANUAL_BUST,
+    AUTO_SCORE,
+    AUTO_SCORE_MISS,
+    AUTO_SCORE_BUST
 }
 
 data class ConfirmedDart(
     val position: Pair<Double, Double>,
     var scoreString: String? = null,
-    var origin: DartOrigin = DartOrigin.AUTO_SCORING,
+    var origin: DartOrigin = DartOrigin.AUTO_SCORE,
 )

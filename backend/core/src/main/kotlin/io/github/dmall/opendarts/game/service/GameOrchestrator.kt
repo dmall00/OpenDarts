@@ -50,25 +50,27 @@ constructor(
             )
         }
 
-        val adjustment = if (gameState.bust) {
-            ManualDartAdjustment(
-                this,
-                gameId,
-                playerId,
-                DartThrowRequest(0, 0, false),
-                null,
-                true
-            )
-        } else {
-            ManualDartAdjustment(
-                this,
-                gameId,
-                playerId,
-                dartThrowRequest,
-                null
-            )
+        if (!dartThrowRequest.autoScore) {
+            val adjustment = if (gameState.bust) {
+                ManualDartAdjustment(
+                    this,
+                    gameId,
+                    playerId,
+                    DartThrowRequest(0, 0, false),
+                    null,
+                    true
+                )
+            } else {
+                ManualDartAdjustment(
+                    this,
+                    gameId,
+                    playerId,
+                    dartThrowRequest,
+                    null
+                )
+            }
+            applicationEventPublisher.publishEvent(adjustment)
         }
-        applicationEventPublisher.publishEvent(adjustment)
 
         return gameState
     }
@@ -95,6 +97,8 @@ constructor(
     @EventListener
     @Transactional
     fun handleDartThrowDetectedEvent(event: DartThrowDetectedEvent) {
+        // This will process the auto-scored dart but not publish a ManualDartAdjustment event
+        // since dartThrowRequest.autoScore is true
         submitDartThrow(event.sessionId, event.playerId, event.dartThrowRequest)
     }
 

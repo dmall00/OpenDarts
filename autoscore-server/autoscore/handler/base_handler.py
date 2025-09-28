@@ -7,12 +7,13 @@ from websockets.asyncio.server import ServerConnection
 
 from autoscore.model.request import RequestType
 from autoscore.model.response import (
+    BaseResponse,
     ErrorResponse,
     Status,
 )
 
 REQ = TypeVar("REQ")
-RES = TypeVar("RES")
+RES = TypeVar("RES", bound=BaseResponse)
 
 
 class BaseHandler(Generic[REQ, RES], ABC):  # noqa: UP046

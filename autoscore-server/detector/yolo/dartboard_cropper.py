@@ -32,6 +32,9 @@ class YoloDartBoardImageCropper:
         bounding_box = self.__extract_bounding_box(detection_result, image.shape)
         cropped_image = self.__crop_with_bounding_box(image, bounding_box)
 
+        if detection_result.boxes is None or len(detection_result.boxes) == 0:
+            raise DartDetectionError(ResultCode.YOLO_ERROR, details="No bounding boxes detected by YOLO dartboard model")
+
         self.__log_cropping_info(bounding_box, float(detection_result.boxes.conf[0]), cropped_image.shape, start)
 
         x_start, y_start, x_end, y_end = bounding_box
@@ -56,6 +59,9 @@ class YoloDartBoardImageCropper:
         return result
 
     def __extract_bounding_box(self, result: Results, image_shape: Tuple[int, ...]) -> Tuple[int, int, int, int]:
+        if result.boxes is None or len(result.boxes) == 0:
+            raise DartDetectionError(ResultCode.YOLO_ERROR, details="No bounding boxes detected by YOLO dartboard model")
+
         xywh_normalized = result.boxes.xywhn[0]
         img_height, img_width = image_shape[:2]
 
