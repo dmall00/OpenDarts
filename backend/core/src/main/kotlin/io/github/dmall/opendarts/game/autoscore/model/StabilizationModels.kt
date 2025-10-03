@@ -22,18 +22,24 @@ enum class DartOrigin {
     AUTO_SCORE_BUST
 }
 
-data class ConfirmedDart(
-    val position: Pair<Double, Double>,
-    var score: Int = 0,
-    var multiplier: Int = 1,
-    var origin: DartOrigin = DartOrigin.AUTO_SCORE,
+open class AutoScoreDart(
+    open val position: Pair<Double, Double>,
+    open val score: Int,
+    open val multiplier: Int,
 )
 
+data class ConfirmedDart(
+    override val position: Pair<Double, Double>,
+    override val score: Int,
+    override val multiplier: Int,
+    val origin: DartOrigin = DartOrigin.AUTO_SCORE
+) : AutoScoreDart(position, score, multiplier)
+
 data class PendingDart(
-    val position: Pair<Double, Double>,
-    val score: Int,
-    val multiplier: Int,
+    override val position: Pair<Double, Double>,
+    override val score: Int,
+    override val multiplier: Int,
     var appearanceCount: Int = 1,
     var lastSeenFrameIndex: Int = 0,
     var framesSinceLastSeen: Int = 0
-)
+) : AutoScoreDart(position, score, multiplier)

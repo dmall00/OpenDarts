@@ -151,15 +151,14 @@ constructor(
         }
 
         if (detectionState.isNewTurnAndBoardCleared) {
-            updatePendingDarts(currentImageDarts, imageDarts, detectionState)
+            updatePendingDarts(imageDarts, detectionState)
             promoteConfirmedPendingDarts(detectionState, playerId, sessionId)
         } else {
-            logger.info { "Waiting for board to clear before accepting new darts." }
+            logger.info { "Waiting for board to be cleared before accepting new darts." }
         }
     }
 
     private fun updatePendingDarts(
-        currentImageDarts: List<Pair<Double, Double>>,
         imageDarts: List<DartDetection>,
         detectionState: DetectionState
     ) {
@@ -175,17 +174,18 @@ constructor(
             val confidence = dart.originalPosition.confidence
             val multiplier = dart.dartScore.multiplier
             val score = dart.dartScore.singleValue
+            val imageDart = AutoScoreDart(pos, score, multiplier)
 
             if (!isWithinConfidenceThreshold(confidence, score)) {
                 continue
             }
 
-            if (confirmedDarts.any { confirmed -> isSameDart(pos, confirmed.position) }) {
+            if (confirmedDarts.any { confirmedDart -> isSameDart(imageDart, confirmedDart) }) {
                 continue
             }
 
-            val matchingPending = pendingDarts.find { pending ->
-                isSameDart(pos, pending.position) && pending.score == score && pending.multiplier == multiplier
+            val matchingPending = pendingDarts.find { pendingDart ->
+                isSameDart(imageDart, pendingDart)
             }
 
             if (matchingPending != null) {
@@ -307,7 +307,10 @@ constructor(
     }
 
     private fun isSameDart(
-        current: Pair<Double, Double>,
-        previous: Pair<Double, Double>,
-    ): Boolean = calculateDistance(current, previous) < DISTANCE_THRESHOLD
+        current: AutoScoreDart,
+        previous: AutoScoreDart,
+    ): Boolean = calculateDistance(
+        current.position,
+        previous.position
+    ) < DISTANCE_THRESHOLD && current.score == previous.score && current.multiplier == previous.multiplier
 }
