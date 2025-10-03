@@ -6,6 +6,8 @@ data class DetectionState(
     var missingCalibrations: Int = 0,
     val confirmedDarts: MutableList<ConfirmedDart> = mutableListOf(),
     val pendingDarts: MutableList<PendingDart> = mutableListOf(),
+    var frameIndex: Int = 0
+
 )
 
 data class CalibrationState(

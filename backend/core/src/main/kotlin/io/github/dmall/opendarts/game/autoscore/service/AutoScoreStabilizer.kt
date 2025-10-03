@@ -17,7 +17,6 @@ private const val CONFIDENCE_THRESHOLD = 0.4
 private const val MISS_DART_CONFIDENCE_THRESHOLD = 0.5
 private const val FPS = 1
 private const val REQUIRED_APPEARANCES = 2
-private const val FRAME_WINDOW = 3
 private const val MAX_FRAMES_WITHOUT_APPEARANCE = 2
 
 /**
@@ -35,8 +34,6 @@ constructor(
     private val logger = KotlinLogging.logger {}
     private val detectionStates: MutableMap<String, DetectionState> =
         Collections.synchronizedMap(mutableMapOf())
-    private var globalFrameIndex: Int = 0
-
     /** Main entry point to process a dart detection result from the autoscore pipeline */
     fun processDartDetectionResult(detection: PipelineDetectionResponse) {
         if (!isValidDetection(detection)) {
@@ -44,9 +41,9 @@ constructor(
             return
         }
 
-        globalFrameIndex++
         val id = composeId(detection.playerId, detection.sessionId)
         val detectionState = detectionStates.getOrPut(id) { DetectionState() }
+        detectionState.frameIndex++
         when {
             detection.detectionResult.resultCode.isYoloError() -> handleYoloError(detectionState)
             detection.detectionResult.resultCode.isMissingCalibration() ->
@@ -194,7 +191,7 @@ constructor(
 
             if (matchingPending != null) {
                 matchingPending.appearanceCount++
-                matchingPending.lastSeenFrameIndex = globalFrameIndex
+                matchingPending.lastSeenFrameIndex = detectionState.frameIndex
                 matchingPending.framesSinceLastSeen = 0
                 logger.info {
                     "Updated pending dart at $pos with score ${multiplier}x$score, count: ${matchingPending.appearanceCount}"
@@ -206,7 +203,7 @@ constructor(
                         score = score,
                         multiplier = multiplier,
                         appearanceCount = 1,
-                        lastSeenFrameIndex = globalFrameIndex,
+                        lastSeenFrameIndex = detectionState.frameIndex,
                         framesSinceLastSeen = 0,
                     )
                 pendingDarts.add(newPending)
@@ -233,12 +230,6 @@ constructor(
             logger.info {
                 "Promoting pending dart to confirmed: ${pending.position}, score: ${pending.multiplier}x${pending.score}, appeared ${pending.appearanceCount} times"
             }
-
-            val dartThrowRequest = DartThrowRequest(pending.multiplier, pending.score, true)
-            applicationEventPublisher.publishEvent(
-                DartThrowDetectedEvent(this, sessionId, playerId, dartThrowRequest),
-            )
-
             confirmedDarts.add(
                 ConfirmedDart(
                     pending.position,
@@ -247,10 +238,12 @@ constructor(
                     origin = DartOrigin.AUTO_SCORE,
                 )
             )
+            val dartThrowRequest = DartThrowRequest(pending.multiplier, pending.score, true)
+            applicationEventPublisher.publishEvent(
+                DartThrowDetectedEvent(this, sessionId, playerId, dartThrowRequest),
+            )
         }
-
         pendingDarts.removeAll(dartsToPromote)
-
         turnSwitchDetector.checkMaximumDartsReached(confirmedDarts.size, detectionState)
     }
 
