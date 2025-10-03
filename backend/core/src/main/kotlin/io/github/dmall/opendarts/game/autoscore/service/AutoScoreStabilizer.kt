@@ -5,7 +5,6 @@ import io.github.dmall.opendarts.game.autoscore.events.ManualDartAdjustment
 import io.github.dmall.opendarts.game.autoscore.events.TurnSwitchDetectedEvent
 import io.github.dmall.opendarts.game.autoscore.model.*
 import io.github.dmall.opendarts.game.model.DartThrowRequest
-import io.github.dmall.opendarts.game.util.DartScoreUtil.getScoreString
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationEventPublisher
@@ -17,6 +16,9 @@ private const val DISTANCE_THRESHOLD = 0.04
 private const val CONFIDENCE_THRESHOLD = 0.4
 private const val MISS_DART_CONFIDENCE_THRESHOLD = 0.5
 private const val FPS = 1
+private const val REQUIRED_APPEARANCES = 2
+private const val FRAME_WINDOW = 3
+private const val MAX_FRAMES_WITHOUT_APPEARANCE = 2
 
 /**
  * Service that receives the results of the autoscoring python server and manages a state of confirmed darts for a player.
@@ -28,9 +30,10 @@ constructor(
     applicationEventPublisher: ApplicationEventPublisher,
     private val turnSwitchDetector: TurnSwitchDetector,
 ) : AutoScoreBaseService(applicationEventPublisher) {
-    private val logger = KotlinLogging.logger {}
 
+    private val logger = KotlinLogging.logger {}
     private val detectionStates: MutableMap<String, DetectionState> = Collections.synchronizedMap(mutableMapOf())
+    private var globalFrameIndex: Int = 0
 
     /**
      * Main entry point to process a dart detection result from the autoscore pipeline
@@ -41,9 +44,9 @@ constructor(
             return
         }
 
+        globalFrameIndex++
         val id = composeId(detection.playerId, detection.sessionId)
         val detectionState = detectionStates.getOrPut(id) { DetectionState() }
-
         when {
             detection.detectionResult.resultCode.isYoloError() -> handleYoloError(detectionState)
             detection.detectionResult.resultCode.isMissingCalibration() -> handleMissingCalibration(detectionState)
@@ -74,8 +77,9 @@ constructor(
                         detectionState.confirmedDarts.add(
                             ConfirmedDart(
                                 Pair(0.0, 0.0),
-                                getScoreString(0, 0),
-                                DartOrigin.MANUAL_BUST
+                                score = 0,
+                                multiplier = 0,
+                                origin = DartOrigin.MANUAL_BUST
                             )
                         )
                     }
@@ -83,11 +87,9 @@ constructor(
                     logger.info { "Manual dart detected, adding to confirmed darts." }
                     detectionState.confirmedDarts += ConfirmedDart(
                         Pair(0.0, 0.0),
-                        getScoreString(
-                            manualDartAdjustment.dartThrowRequest.score,
-                            manualDartAdjustment.dartThrowRequest.multiplier
-                        ),
-                        DartOrigin.MANUAL_SCORING
+                        score = manualDartAdjustment.dartThrowRequest.score,
+                        multiplier = manualDartAdjustment.dartThrowRequest.multiplier,
+                        origin = DartOrigin.MANUAL_SCORING
                     )
                 }
             }
@@ -114,16 +116,15 @@ constructor(
         sessionId: String,
     ) {
         val imageDarts = detectionResult.scoringResult?.dartDetections ?: return
-
         val dartInfo = imageDarts.mapIndexed { index, dart ->
             val scoreText = if (dart.dartScore.multiplier == 1) {
                 "${dart.dartScore.singleValue}"
             } else {
                 "${dart.dartScore.multiplier}x${dart.dartScore.singleValue}"
             }
+
             "Dart ${index + 1}: $scoreText (confidence: ${String.format("%.3f", dart.originalPosition.confidence)})"
         }.joinToString(", ")
-
         logger.info { "Recognized ${imageDarts.size} darts on board: [$dartInfo]" }
 
         val confirmedDarts = detectionState.confirmedDarts
@@ -150,15 +151,102 @@ constructor(
         }
 
         if (detectionState.isNewTurnAndBoardCleared) {
-            registerNewDarts(currentImageDarts, imageDarts, confirmedDarts, playerId, sessionId, detectionState)
+            updatePendingDarts(currentImageDarts, imageDarts, detectionState)
+            promoteConfirmedPendingDarts(detectionState, playerId, sessionId)
         } else {
             logger.info { "Waiting for board to clear before accepting new darts." }
         }
     }
 
-    /**
-     * Registers missed darts (with score 0) for the current player
-     */
+    private fun updatePendingDarts(
+        currentImageDarts: List<Pair<Double, Double>>,
+        imageDarts: List<DartDetection>,
+        detectionState: DetectionState
+    ) {
+        val pendingDarts = detectionState.pendingDarts
+        val confirmedDarts = detectionState.confirmedDarts
+
+        pendingDarts.forEach { pending ->
+            pending.framesSinceLastSeen++
+        }
+
+        for (dart in imageDarts) {
+            val pos = toPair(dart)
+            val confidence = dart.originalPosition.confidence
+            val multiplier = dart.dartScore.multiplier
+            val score = dart.dartScore.singleValue
+
+            if (!isWithinConfidenceThreshold(confidence, score)) {
+                continue
+            }
+
+            if (confirmedDarts.any { confirmed -> isSameDart(pos, confirmed.position) }) {
+                continue
+            }
+
+            val matchingPending = pendingDarts.find { pending ->
+                isSameDart(pos, pending.position) && pending.score == score && pending.multiplier == multiplier
+            }
+
+            if (matchingPending != null) {
+                matchingPending.appearanceCount++
+                matchingPending.lastSeenFrameIndex = globalFrameIndex
+                matchingPending.framesSinceLastSeen = 0
+                logger.info { "Updated pending dart at $pos with score ${multiplier}x$score, count: ${matchingPending.appearanceCount}" }
+            } else {
+                val newPending = PendingDart(
+                    position = pos,
+                    score = score,
+                    multiplier = multiplier,
+                    appearanceCount = 1,
+                    lastSeenFrameIndex = globalFrameIndex,
+                    framesSinceLastSeen = 0
+                )
+                pendingDarts.add(newPending)
+                logger.info { "Added new pending dart at $pos with score ${multiplier}x$score" }
+            }
+        }
+
+        pendingDarts.removeAll { pending ->
+            pending.framesSinceLastSeen > MAX_FRAMES_WITHOUT_APPEARANCE
+        }
+    }
+
+    private fun promoteConfirmedPendingDarts(
+        detectionState: DetectionState,
+        playerId: String,
+        sessionId: String
+    ) {
+        val pendingDarts = detectionState.pendingDarts
+        val confirmedDarts = detectionState.confirmedDarts
+
+        val dartsToPromote = pendingDarts.filter { it.appearanceCount >= REQUIRED_APPEARANCES }
+
+        for (pending in dartsToPromote) {
+            logger.info {
+                "Promoting pending dart to confirmed: ${pending.position}, score: ${pending.multiplier}x${pending.score}, appeared ${pending.appearanceCount} times"
+            }
+
+            val dartThrowRequest = DartThrowRequest(pending.multiplier, pending.score, true)
+            applicationEventPublisher.publishEvent(
+                DartThrowDetectedEvent(this, sessionId, playerId, dartThrowRequest),
+            )
+
+            confirmedDarts.add(
+                ConfirmedDart(
+                    pending.position,
+                    score = pending.score,
+                    multiplier = pending.multiplier,
+                    origin = DartOrigin.AUTO_SCORE
+                )
+            )
+        }
+
+        pendingDarts.removeAll(dartsToPromote)
+
+        turnSwitchDetector.checkMaximumDartsReached(confirmedDarts.size, detectionState)
+    }
+
     private fun registerMissedDarts(
         missCount: Int,
         playerId: String,
@@ -166,14 +254,20 @@ constructor(
         confirmedDarts: MutableList<ConfirmedDart>,
     ) {
         logger.info { "Registering $missCount missed dart(s) for player $playerId" }
-
         for (i in 0 until missCount) {
             val dartThrowRequest = DartThrowRequest(1, 0, true)
-
             applicationEventPublisher.publishEvent(
                 DartThrowDetectedEvent(this, sessionId, playerId, dartThrowRequest),
             )
-            confirmedDarts.add(ConfirmedDart((-1.0 - i) to -1.0, getScoreString(0, 0), DartOrigin.AUTO_SCORE_MISS))
+
+            confirmedDarts.add(
+                ConfirmedDart(
+                    (-1.0 - i) to -1.0,
+                    score = 0,
+                    multiplier = 0,
+                    origin = DartOrigin.AUTO_SCORE_MISS
+                )
+            )
         }
     }
 
@@ -188,66 +282,8 @@ constructor(
         }
     }
 
-    private fun registerNewDarts(
-        currentImageDarts: List<Pair<Double, Double>>,
-        imageDarts: List<DartDetection>,
-        confirmedDarts: MutableList<ConfirmedDart>,
-        playerId: String,
-        sessionId: String,
-        detectionState: DetectionState,
-    ) {
-        val newDarts = findNewDarts(currentImageDarts, confirmedDarts)
-        submitNewDarts(newDarts, imageDarts, confirmedDarts, playerId, sessionId)
-        turnSwitchDetector.checkMaximumDartsReached(confirmedDarts.size, detectionState)
-    }
-
     private fun extractDartPositions(darts: List<DartDetection>): List<Pair<Double, Double>> =
         darts.map { dart -> toPair(dart) }
-
-    private fun findNewDarts(
-        currentImageDarts: List<Pair<Double, Double>>,
-        confirmedDarts: MutableList<ConfirmedDart>,
-    ): List<Pair<Double, Double>> =
-        currentImageDarts.filter { current ->
-            confirmedDarts.none { stable -> isSameDart(current, stable.position) }
-        }
-
-    private fun submitNewDarts(
-        newDarts: List<Pair<Double, Double>>,
-        imageDarts: List<DartDetection>,
-        confirmedDarts: MutableList<ConfirmedDart>,
-        playerId: String,
-        sessionId: String,
-    ) {
-        for (dart in imageDarts) {
-            val pos = toPair(dart)
-            val confidence = dart.originalPosition.confidence
-            val multiplier = dart.dartScore.multiplier
-            val score = dart.dartScore.singleValue
-
-            if (isWithinConfidenceThreshold(confidence, score) && newDarts.contains(pos)) {
-                logger.info {
-                    "Detected new dart with confidence $confidence and score $score*$multiplier = ${multiplier * score}, pos: $pos"
-                }
-
-                val dartThrowRequest = DartThrowRequest(multiplier, score, true)
-                applicationEventPublisher.publishEvent(
-                    DartThrowDetectedEvent(this, sessionId, playerId, dartThrowRequest),
-                )
-                confirmedDarts.add(
-                    ConfirmedDart(
-                        pos,
-                        scoreString = getScoreString(score, multiplier),
-                        origin = DartOrigin.AUTO_SCORE
-                    )
-                )
-            } else if (!isWithinConfidenceThreshold(confidence, score)) {
-                logger.info {
-                    "Ignoring detected dart with confidence $confidence and score $score*$multiplier = ${multiplier * score}, pos: $pos"
-                }
-            }
-        }
-    }
 
     private fun isWithinConfidenceThreshold(
         confidence: Float,
@@ -264,6 +300,7 @@ constructor(
         detectionState: DetectionState,
     ) {
         detectionState.confirmedDarts.clear()
+        detectionState.pendingDarts.clear()
         turnSwitchDetector.resetStateForNewTurn(playerId, sessionId, detectionState)
         logger.info { "Cleared tracked darts for new turn." }
         applicationEventPublisher.publishEvent(TurnSwitchDetectedEvent(this, sessionId, playerId))
