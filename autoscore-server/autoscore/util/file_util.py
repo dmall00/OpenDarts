@@ -27,7 +27,7 @@ def save_base64_as_png(base64_data: bytes | bytearray | str, output_dir: Path | 
         return None
 
     output_dir.mkdir(parents=True, exist_ok=True)
-    timestamp = datetime.now().strftime("%M-%S_%f")[:-3]  # noqa: DTZ005
+    timestamp = datetime.now().strftime("%m-%d_%H-%M-%S-%f")[:-3]  # noqa: DTZ005
     filename = f"image_{timestamp}.png"
     filepath = output_dir / filename
     image_bytes = base64.b64decode(base64_data) if isinstance(base64_data, str) else bytes(base64_data)
