@@ -12,10 +12,10 @@ class HttpsConfig {
     @Bean
     fun servletContainer(): ServletWebServerFactory {
         val tomcat = TomcatServletWebServerFactory()
-        
+
         // Add HTTP connector that redirects to HTTPS
         tomcat.addAdditionalTomcatConnectors(createStandardConnector())
-        
+
         return tomcat
     }
 
@@ -24,7 +24,7 @@ class HttpsConfig {
         connector.scheme = "http"
         connector.port = 8080
         connector.secure = false
-        connector.redirectPort = 8443  // Redirect HTTP to HTTPS
+        connector.redirectPort = 8443 // Redirect HTTP to HTTPS
         return connector
     }
 }

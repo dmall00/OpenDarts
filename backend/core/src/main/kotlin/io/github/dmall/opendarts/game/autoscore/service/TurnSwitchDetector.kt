@@ -13,9 +13,7 @@ class TurnSwitchDetector {
     private val logger = KotlinLogging.logger {}
     private val zeroFramesCounter = mutableMapOf<String, Int>()
 
-    /**
-     * Checks if the board is cleared for a new turn after three darts have been thrown
-     */
+    /** Checks if the board is cleared for a new turn after three darts have been thrown */
     fun handleThreeDartsState(
         currentImageDartsCount: Int,
         detectionState: DetectionState,
@@ -27,15 +25,15 @@ class TurnSwitchDetector {
             detectionState.isNewTurnAndBoardCleared = true
             return true
         } else {
-            logger.info { "3 darts already confirmed, waiting for board to be cleared ${detectionState.confirmedDarts}" }
+            logger.info {
+                "3 darts already confirmed, waiting for board to be cleared ${detectionState.confirmedDarts}"
+            }
             detectionState.isNewTurnAndBoardCleared = false
             return false
         }
     }
 
-    /**
-     * Resets the detection state for a new turn
-     */
+    /** Resets the detection state for a new turn */
     fun resetStateForNewTurn(
         playerId: String,
         sessionId: String,
@@ -51,9 +49,7 @@ class TurnSwitchDetector {
         }
     }
 
-    /**
-     * Check if the maximum number of darts per turn has been reached
-     */
+    /** Check if the maximum number of darts per turn has been reached */
     fun checkMaximumDartsReached(
         confirmedDartsCount: Int,
         detectionState: DetectionState,
@@ -67,9 +63,9 @@ class TurnSwitchDetector {
     }
 
     /**
-     * Detects if a player has missed the dartboard completely.
-     * If there were darts previously and now we see 0 darts for multiple consecutive frames,
-     * we assume the player missed and should register the remaining throws as zero.
+     * Detects if a player has missed the dartboard completely. If there were darts previously and now
+     * we see 0 darts for multiple consecutive frames, we assume the player missed and should register
+     * the remaining throws as zero.
      *
      * @param sessionPlayerId Combined session and player ID to track per player
      * @param confirmedDartsCount Number of darts confirmed for the current player's turn
@@ -98,7 +94,9 @@ class TurnSwitchDetector {
             val missedDartsCount = MAX_DARTS_PER_TURN - confirmedDartsCount
 
             if (missedDartsCount > 0) {
-                logger.info { "Detected $missedDartsCount missed dart(s) after $currentCount consecutive empty frames" }
+                logger.info {
+                    "Detected $missedDartsCount missed dart(s) after $currentCount consecutive empty frames"
+                }
                 zeroFramesCounter[sessionPlayerId] = 0 // Reset counter
                 return Pair(true, missedDartsCount)
             }
@@ -107,9 +105,7 @@ class TurnSwitchDetector {
         return Pair(false, 0)
     }
 
-    /**
-     * Resets the zero frames counter for a specific player/session
-     */
+    /** Resets the zero frames counter for a specific player/session */
     fun resetMissCounter(sessionPlayerId: String) {
         zeroFramesCounter[sessionPlayerId] = 0
     }

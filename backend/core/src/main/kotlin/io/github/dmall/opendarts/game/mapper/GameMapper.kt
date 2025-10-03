@@ -17,7 +17,7 @@ class GameMapper {
             winner = playerToPlayerTO(currentGameState.winner),
             nextPlayer = playerToPlayerTO(currentGameState.nextPlayer),
             message = currentGameState.message,
-            bust = currentGameState.bust
+            bust = currentGameState.bust,
         )
     }
 
@@ -29,7 +29,7 @@ class GameMapper {
                     multiplier = dart.multiplier,
                     score = dart.score,
                     computedScore = dart.computedScore,
-                    scoreString = dart.scoreString
+                    scoreString = dart.scoreString,
                 )
             }
         }
@@ -37,8 +37,11 @@ class GameMapper {
     fun playerToPlayerTO(player: Player?): PlayerTO? =
         player?.let { PlayerTO(id = it.id!!, name = it.name) }
 
-    fun mapCurrentTurnDartsToPlayerTO(currentTurnDarts: Map<Player, List<Dart>>): Map<String, List<DartResponse>> =
-        currentTurnDarts.mapKeys { (player, _) -> playerToPlayerTO(player)!!.id }
+    fun mapCurrentTurnDartsToPlayerTO(
+        currentTurnDarts: Map<Player, List<Dart>>
+    ): Map<String, List<DartResponse>> =
+        currentTurnDarts
+            .mapKeys { (player, _) -> playerToPlayerTO(player)!!.id }
             .mapValues { (_, darts) -> dartToDartResponse(darts) }
 
     fun mapPlayerScoresToPlayerTO(playerMap: Map<Player, Int>): Map<String, Int> =

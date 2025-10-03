@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.ControllerAdvice
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.ResponseStatus
 
-
 @ControllerAdvice
 class GlobalExceptionHandler {
 
@@ -32,13 +31,13 @@ class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException::class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    fun handleValidationExceptions(ex: MethodArgumentNotValidException): ResponseEntity<Map<String, Any>> {
+    fun handleValidationExceptions(
+        ex: MethodArgumentNotValidException
+    ): ResponseEntity<Map<String, Any>> {
         logger.warn(ex) { "Validation exception occurred: ${ex.message}" }
-        val errorList = ex.bindingResult.fieldErrors.map { error ->
-            mapOf(
-                "field" to error.field,
-                "message" to error.defaultMessage
-            )
+        val errorList =
+            ex.bindingResult.fieldErrors.map { error ->
+                mapOf("field" to error.field, "message" to error.defaultMessage)
         }
 
         val responseBody = mapOf("errors" to errorList)

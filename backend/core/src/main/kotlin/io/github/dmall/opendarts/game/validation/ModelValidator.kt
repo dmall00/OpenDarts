@@ -13,7 +13,7 @@ import kotlin.reflect.KClass
 annotation class ValidDartThrowRequest(
     val message: String = "Invalid DartThrowRequest",
     val groups: Array<KClass<*>> = [],
-    val payload: Array<KClass<out Payload>> = []
+    val payload: Array<KClass<out Payload>> = [],
 )
 
 class DartThrowRequestValidator : ConstraintValidator<ValidDartThrowRequest, DartThrowRequest> {
@@ -26,26 +26,31 @@ class DartThrowRequestValidator : ConstraintValidator<ValidDartThrowRequest, Dar
 
         if (!multiplierValid) {
             context.disableDefaultConstraintViolation()
-            context.buildConstraintViolationWithTemplate("Multiplier must be between 1 and 3")
-                .addPropertyNode("multiplier").addConstraintViolation()
+            context
+                .buildConstraintViolationWithTemplate("Multiplier must be between 1 and 3")
+                .addPropertyNode("multiplier")
+                .addConstraintViolation()
             return false
         }
 
         if (!scoreValid) {
             context.disableDefaultConstraintViolation()
-            context.buildConstraintViolationWithTemplate("Score must be 0-20 or exactly 25")
-                .addPropertyNode("score").addConstraintViolation()
+            context
+                .buildConstraintViolationWithTemplate("Score must be 0-20 or exactly 25")
+                .addPropertyNode("score")
+                .addConstraintViolation()
             return false
         }
 
         if (tripleBullInvalid) {
             context.disableDefaultConstraintViolation()
-            context.buildConstraintViolationWithTemplate("Multiplier cannot be 3 when score is 25")
-                .addPropertyNode("score").addConstraintViolation()
+            context
+                .buildConstraintViolationWithTemplate("Multiplier cannot be 3 when score is 25")
+                .addPropertyNode("score")
+                .addConstraintViolation()
             return false
         }
 
         return true
     }
-
 }

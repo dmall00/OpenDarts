@@ -45,7 +45,8 @@ class JwtAuthenticationFilter(
         return TokenInfo(null, null)
     }
 
-    private fun isAuthenticationRequired(): Boolean = SecurityContextHolder.getContext().authentication == null
+    private fun isAuthenticationRequired(): Boolean =
+        SecurityContextHolder.getContext().authentication == null
 
     private fun authenticateUser(
         tokenInfo: TokenInfo,

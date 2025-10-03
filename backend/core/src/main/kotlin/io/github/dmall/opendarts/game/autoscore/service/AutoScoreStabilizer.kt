@@ -21,7 +21,8 @@ private const val FRAME_WINDOW = 3
 private const val MAX_FRAMES_WITHOUT_APPEARANCE = 2
 
 /**
- * Service that receives the results of the autoscoring python server and manages a state of confirmed darts for a player.
+ * Service that receives the results of the autoscoring python server and manages a state of
+ * confirmed darts for a player.
  */
 @Service
 class AutoScoreStabilizer
@@ -32,12 +33,11 @@ constructor(
 ) : AutoScoreBaseService(applicationEventPublisher) {
 
     private val logger = KotlinLogging.logger {}
-    private val detectionStates: MutableMap<String, DetectionState> = Collections.synchronizedMap(mutableMapOf())
+    private val detectionStates: MutableMap<String, DetectionState> =
+        Collections.synchronizedMap(mutableMapOf())
     private var globalFrameIndex: Int = 0
 
-    /**
-     * Main entry point to process a dart detection result from the autoscore pipeline
-     */
+    /** Main entry point to process a dart detection result from the autoscore pipeline */
     fun processDartDetectionResult(detection: PipelineDetectionResponse) {
         if (!isValidDetection(detection)) {
             logger.info { "Invalid autoscore result received" }
@@ -49,7 +49,9 @@ constructor(
         val detectionState = detectionStates.getOrPut(id) { DetectionState() }
         when {
             detection.detectionResult.resultCode.isYoloError() -> handleYoloError(detectionState)
-            detection.detectionResult.resultCode.isMissingCalibration() -> handleMissingCalibration(detectionState)
+            detection.detectionResult.resultCode.isMissingCalibration() ->
+                handleMissingCalibration(detectionState)
+
             else ->
                 handleDartRecognition(
                     detection.detectionResult,
@@ -61,9 +63,7 @@ constructor(
         }
     }
 
-    /**
-     * Event listener to sync back from manual scoring
-     */
+    /** Event listener to sync back from manual scoring */
     @EventListener
     fun consumeManualDartTrackedEvent(manualDartAdjustment: ManualDartAdjustment) {
         val id = composeId(manualDartAdjustment.playerId, manualDartAdjustment.sessionId)
@@ -79,18 +79,19 @@ constructor(
                                 Pair(0.0, 0.0),
                                 score = 0,
                                 multiplier = 0,
-                                origin = DartOrigin.MANUAL_BUST
+                                origin = DartOrigin.MANUAL_BUST,
                             )
                         )
                     }
                 } else {
                     logger.info { "Manual dart detected, adding to confirmed darts." }
-                    detectionState.confirmedDarts += ConfirmedDart(
-                        Pair(0.0, 0.0),
-                        score = manualDartAdjustment.dartThrowRequest.score,
-                        multiplier = manualDartAdjustment.dartThrowRequest.multiplier,
-                        origin = DartOrigin.MANUAL_SCORING
-                    )
+                    detectionState.confirmedDarts +=
+                        ConfirmedDart(
+                            Pair(0.0, 0.0),
+                            score = manualDartAdjustment.dartThrowRequest.score,
+                            multiplier = manualDartAdjustment.dartThrowRequest.multiplier,
+                            origin = DartOrigin.MANUAL_SCORING,
+                        )
                 }
             }
         }
@@ -116,15 +117,24 @@ constructor(
         sessionId: String,
     ) {
         val imageDarts = detectionResult.scoringResult?.dartDetections ?: return
-        val dartInfo = imageDarts.mapIndexed { index, dart ->
-            val scoreText = if (dart.dartScore.multiplier == 1) {
-                "${dart.dartScore.singleValue}"
-            } else {
-                "${dart.dartScore.multiplier}x${dart.dartScore.singleValue}"
-            }
+        val dartInfo =
+            imageDarts
+                .mapIndexed { index, dart ->
+                    val scoreText =
+                        if (dart.dartScore.multiplier == 1) {
+                            "${dart.dartScore.singleValue}"
+                        } else {
+                            "${dart.dartScore.multiplier}x${dart.dartScore.singleValue}"
+                        }
 
-            "Dart ${index + 1}: $scoreText (confidence: ${String.format("%.3f", dart.originalPosition.confidence)})"
-        }.joinToString(", ")
+                    "Dart ${index + 1}: $scoreText (confidence: ${
+                        String.format(
+                            "%.3f",
+                            dart.originalPosition.confidence
+                        )
+                    })"
+                }
+                .joinToString(", ")
         logger.info { "Recognized ${imageDarts.size} darts on board: [$dartInfo]" }
 
         val confirmedDarts = detectionState.confirmedDarts
@@ -135,7 +145,8 @@ constructor(
             return
         }
 
-        val hasDartsOnBoardBefore = !detectionState.isNewTurnAndBoardCleared || confirmedDarts.isNotEmpty()
+        val hasDartsOnBoardBefore =
+            !detectionState.isNewTurnAndBoardCleared || confirmedDarts.isNotEmpty()
         val (shouldRegisterMisses, missCount) =
             turnSwitchDetector.detectMissedDarts(
                 id,
@@ -158,16 +169,11 @@ constructor(
         }
     }
 
-    private fun updatePendingDarts(
-        imageDarts: List<DartDetection>,
-        detectionState: DetectionState
-    ) {
+    private fun updatePendingDarts(imageDarts: List<DartDetection>, detectionState: DetectionState) {
         val pendingDarts = detectionState.pendingDarts
         val confirmedDarts = detectionState.confirmedDarts
 
-        pendingDarts.forEach { pending ->
-            pending.framesSinceLastSeen++
-        }
+        pendingDarts.forEach { pending -> pending.framesSinceLastSeen++ }
 
         for (dart in imageDarts) {
             val pos = toPair(dart)
@@ -184,24 +190,25 @@ constructor(
                 continue
             }
 
-            val matchingPending = pendingDarts.find { pendingDart ->
-                isSameDart(imageDart, pendingDart)
-            }
+            val matchingPending = pendingDarts.find { pendingDart -> isSameDart(imageDart, pendingDart) }
 
             if (matchingPending != null) {
                 matchingPending.appearanceCount++
                 matchingPending.lastSeenFrameIndex = globalFrameIndex
                 matchingPending.framesSinceLastSeen = 0
-                logger.info { "Updated pending dart at $pos with score ${multiplier}x$score, count: ${matchingPending.appearanceCount}" }
+                logger.info {
+                    "Updated pending dart at $pos with score ${multiplier}x$score, count: ${matchingPending.appearanceCount}"
+                }
             } else {
-                val newPending = PendingDart(
-                    position = pos,
-                    score = score,
-                    multiplier = multiplier,
-                    appearanceCount = 1,
-                    lastSeenFrameIndex = globalFrameIndex,
-                    framesSinceLastSeen = 0
-                )
+                val newPending =
+                    PendingDart(
+                        position = pos,
+                        score = score,
+                        multiplier = multiplier,
+                        appearanceCount = 1,
+                        lastSeenFrameIndex = globalFrameIndex,
+                        framesSinceLastSeen = 0,
+                    )
                 pendingDarts.add(newPending)
                 logger.info { "Added new pending dart at $pos with score ${multiplier}x$score" }
             }
@@ -215,7 +222,7 @@ constructor(
     private fun promoteConfirmedPendingDarts(
         detectionState: DetectionState,
         playerId: String,
-        sessionId: String
+        sessionId: String,
     ) {
         val pendingDarts = detectionState.pendingDarts
         val confirmedDarts = detectionState.confirmedDarts
@@ -237,7 +244,7 @@ constructor(
                     pending.position,
                     score = pending.score,
                     multiplier = pending.multiplier,
-                    origin = DartOrigin.AUTO_SCORE
+                    origin = DartOrigin.AUTO_SCORE,
                 )
             )
         }
@@ -265,7 +272,7 @@ constructor(
                     (-1.0 - i) to -1.0,
                     score = 0,
                     multiplier = 0,
-                    origin = DartOrigin.AUTO_SCORE_MISS
+                    origin = DartOrigin.AUTO_SCORE_MISS,
                 )
             )
         }
@@ -277,7 +284,14 @@ constructor(
         playerId: String,
         sessionId: String,
     ) {
-        if (turnSwitchDetector.handleThreeDartsState(currentImageDarts.size, detectionState, playerId, sessionId)) {
+        if (
+            turnSwitchDetector.handleThreeDartsState(
+                currentImageDarts.size,
+                detectionState,
+                playerId,
+                sessionId,
+            )
+        ) {
             resetStateForNewTurn(playerId, sessionId, detectionState)
         }
     }
@@ -289,7 +303,8 @@ constructor(
         confidence: Float,
         score: Int,
     ): Boolean =
-        (confidence > CONFIDENCE_THRESHOLD && score != 0) || (confidence > MISS_DART_CONFIDENCE_THRESHOLD && score == 0)
+        (confidence > CONFIDENCE_THRESHOLD && score != 0) ||
+                (confidence > MISS_DART_CONFIDENCE_THRESHOLD && score == 0)
 
     private fun toPair(dart: DartDetection): Pair<Double, Double> =
         dart.transformedPosition.x.toDouble() to dart.transformedPosition.y.toDouble()
@@ -309,8 +324,8 @@ constructor(
     private fun isSameDart(
         current: AutoScoreDart,
         previous: AutoScoreDart,
-    ): Boolean = calculateDistance(
-        current.position,
-        previous.position
-    ) < DISTANCE_THRESHOLD && current.score == previous.score && current.multiplier == previous.multiplier
+    ): Boolean =
+        calculateDistance(current.position, previous.position) < DISTANCE_THRESHOLD &&
+                current.score == previous.score &&
+                current.multiplier == previous.multiplier
 }

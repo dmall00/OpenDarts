@@ -7,7 +7,8 @@ import kotlin.math.sqrt
 abstract class AutoScoreBaseService(
     protected val applicationEventPublisher: ApplicationEventPublisher,
 ) {
-    protected fun isValidDetection(detection: PipelineDetectionResponse): Boolean = detection.status.isSuccess()
+    protected fun isValidDetection(detection: PipelineDetectionResponse): Boolean =
+        detection.status.isSuccess()
 
     protected fun composeId(
         playerId: String,

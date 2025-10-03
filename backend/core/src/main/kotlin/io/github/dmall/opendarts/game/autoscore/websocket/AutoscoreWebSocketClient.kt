@@ -40,7 +40,8 @@ class AutoscoreWebSocketClient(
     fun connect() {
         try {
             val client = StandardWebSocketClient()
-            val handler = AutoscoreWebSocketReceiver(this, objectMapper, autoScoreStabilizer, calibrationService)
+            val handler =
+                AutoscoreWebSocketReceiver(this, objectMapper, autoScoreStabilizer, calibrationService)
             client.execute(handler, "ws://${autoScoreProperties.host}:${autoScoreProperties.port}")
             logger.info {
                 "Connecting to autoscoring server at ws://${autoScoreProperties.host}:${autoScoreProperties.port}"

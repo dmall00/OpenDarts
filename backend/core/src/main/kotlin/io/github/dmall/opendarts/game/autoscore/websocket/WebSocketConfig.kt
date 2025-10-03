@@ -14,9 +14,7 @@ class WebSocketConfig(
 ) : WebSocketConfigurer {
     @Override
     override fun registerWebSocketHandlers(registry: WebSocketHandlerRegistry) {
-        registry
-            .addHandler(appWebSocketHandler, "/ws/app/{playerId}/{gameId}")
-            .setAllowedOrigins("*")
+        registry.addHandler(appWebSocketHandler, "/ws/app/{playerId}/{gameId}").setAllowedOrigins("*")
     }
 
     @Bean

@@ -5,7 +5,7 @@ data class DetectionState(
     var yoloErrors: Int = 0,
     var missingCalibrations: Int = 0,
     val confirmedDarts: MutableList<ConfirmedDart> = mutableListOf(),
-    val pendingDarts: MutableList<PendingDart> = mutableListOf()
+    val pendingDarts: MutableList<PendingDart> = mutableListOf(),
 )
 
 data class CalibrationState(
@@ -19,7 +19,7 @@ enum class DartOrigin {
     MANUAL_BUST,
     AUTO_SCORE,
     AUTO_SCORE_MISS,
-    AUTO_SCORE_BUST
+    AUTO_SCORE_BUST,
 }
 
 open class AutoScoreDart(
@@ -32,7 +32,7 @@ data class ConfirmedDart(
     override val position: Pair<Double, Double>,
     override val score: Int,
     override val multiplier: Int,
-    val origin: DartOrigin = DartOrigin.AUTO_SCORE
+    val origin: DartOrigin = DartOrigin.AUTO_SCORE,
 ) : AutoScoreDart(position, score, multiplier)
 
 data class PendingDart(
@@ -41,5 +41,5 @@ data class PendingDart(
     override val multiplier: Int,
     var appearanceCount: Int = 1,
     var lastSeenFrameIndex: Int = 0,
-    var framesSinceLastSeen: Int = 0
+    var framesSinceLastSeen: Int = 0,
 ) : AutoScoreDart(position, score, multiplier)

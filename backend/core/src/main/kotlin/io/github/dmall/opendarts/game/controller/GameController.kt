@@ -19,5 +19,4 @@ class GameController @Autowired constructor(private val gameCreationService: Gam
         val response = gameCreationService.createGame(gameConfig)
         return ResponseEntity.ok(response)
     }
-
 }

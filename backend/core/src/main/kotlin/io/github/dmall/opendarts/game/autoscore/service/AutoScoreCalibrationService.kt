@@ -17,156 +17,163 @@ private const val POSITION_SIMILARITY_THRESHOLD = 0.1
 
 @Service
 class AutoScoreCalibrationService
-    @Autowired
-    constructor(
-        applicationEventPublisher: ApplicationEventPublisher,
-    ) : AutoScoreBaseService(applicationEventPublisher) {
-        private val logger = KotlinLogging.logger {}
+@Autowired
+constructor(
+    applicationEventPublisher: ApplicationEventPublisher,
+) : AutoScoreBaseService(applicationEventPublisher) {
+    private val logger = KotlinLogging.logger {}
 
-        private val calibrationStates: MutableMap<String, CalibrationState> = Collections.synchronizedMap(mutableMapOf())
+    private val calibrationStates: MutableMap<String, CalibrationState> =
+        Collections.synchronizedMap(mutableMapOf())
 
-        fun isBoardCalibrated(detection: PipelineDetectionResponse): Boolean {
-            if (!isValidDetection(detection)) {
-                logger.info { "Invalid autoscore result received" }
-                return false
-            }
-            val id = composeId(detection.playerId, detection.sessionId)
-            val calibrationState = calibrationStates.getOrPut(id) { CalibrationState() }
+    fun isBoardCalibrated(detection: PipelineDetectionResponse): Boolean {
+        if (!isValidDetection(detection)) {
+            logger.info { "Invalid autoscore result received" }
+            return false
+        }
+        val id = composeId(detection.playerId, detection.sessionId)
+        val calibrationState = calibrationStates.getOrPut(id) { CalibrationState() }
 
-            if (detection.detectionResult.calibrationResult == null) {
+        if (detection.detectionResult.calibrationResult == null) {
+            calibrationState.consecutiveFailedCalibrations++
+            logger.info { "No calibration result received" }
+            return false
+        }
+        return when {
+            detection.detectionResult.resultCode.isYoloError() -> {
                 calibrationState.consecutiveFailedCalibrations++
-                logger.info { "No calibration result received" }
-                return false
+
+                false
             }
-            return when {
-                detection.detectionResult.resultCode.isYoloError() -> {
-                    calibrationState.consecutiveFailedCalibrations++
 
-                    false
-                }
-
-                detection.detectionResult.resultCode.isMissingCalibration() -> {
-                    calibrationState.consecutiveFailedCalibrations++
-                    false
-                }
-
-                else ->
-                    determineCalibration(
-                        calibrationState,
-                        detection.detectionResult.calibrationResult,
-                        detection.playerId,
-                        detection.sessionId,
-                    )
+            detection.detectionResult.resultCode.isMissingCalibration() -> {
+                calibrationState.consecutiveFailedCalibrations++
+                false
             }
+
+            else ->
+                determineCalibration(
+                    calibrationState,
+                    detection.detectionResult.calibrationResult,
+                    detection.playerId,
+                    detection.sessionId,
+                )
+        }
+    }
+
+    private fun determineCalibration(
+        calibrationState: CalibrationState,
+        calibrationResult: CalibrationResult,
+        playerId: String,
+        gameId: String,
+    ): Boolean {
+        val calibrationPoints = calibrationResult.calibrationPoints
+
+        val calibrationList = calibrationState.calibrationList
+
+        if (!hasConsistentClassLabels(calibrationState, calibrationPoints)) {
+            handleFailedCalibration(calibrationState, playerId, gameId)
+            return false
         }
 
-        private fun determineCalibration(
-            calibrationState: CalibrationState,
-            calibrationResult: CalibrationResult,
-            playerId: String,
-            gameId: String,
-        ): Boolean {
-            val calibrationPoints = calibrationResult.calibrationPoints
-
-            val calibrationList = calibrationState.calibrationList
-
-            if (!hasConsistentClassLabels(calibrationState, calibrationPoints)) {
-                handleFailedCalibration(calibrationState, playerId, gameId)
-                return false
-            }
-
-            if (calibrationList.size < MIN_CALIBRATION) {
-                addFirstCalibrations(calibrationList, calibrationPoints)
-                calibrationState.consecutiveCalibrations++
-                logger.info { "Calibration ${calibrationState.consecutiveCalibrations}/$MIN_CALIBRATION collected" }
-                calibrationState.consecutiveFailedCalibrations = 0
-                return false
-            }
-
-            if (calibrationState.consecutiveCalibrations == MIN_CALIBRATION) {
-                logger.info { "Board calibrated with ${calibrationState.consecutiveCalibrations} calibrations" }
-                applicationEventPublisher.publishEvent(CalibrationEvent(this, gameId, playerId, true))
-            }
-
-            logger.debug { "Passed calibration: $calibrationResult" }
+        if (calibrationList.size < MIN_CALIBRATION) {
+            addFirstCalibrations(calibrationList, calibrationPoints)
             calibrationState.consecutiveCalibrations++
-            calibrationState.consecutiveFailedCalibrations = 0
-            return true
-        }
-
-        private fun addFirstCalibrations(
-            calibrationList: MutableList<Map<Int, Pair<Double, Double>>>,
-            calibrationPoints: List<CalibrationPoint>,
-        ) {
-            val pointMap = mutableMapOf<Int, Pair<Double, Double>>()
-            calibrationList.add(pointMap)
-            calibrationPoints.forEach {
-                if (!isMissingCalibrationPoint(it.x, it.y)) {
-                    pointMap[it.classId] = Pair(it.x, it.y)
-                }
+            logger.info {
+                "Calibration ${calibrationState.consecutiveCalibrations}/$MIN_CALIBRATION collected"
             }
-            logger.debug { "Added initial calibration: $calibrationList" }
+            calibrationState.consecutiveFailedCalibrations = 0
+            return false
         }
 
-        private fun hasConsistentClassLabels(
-            calibrationState: CalibrationState,
-            newPoints: List<CalibrationPoint>,
-        ): Boolean {
-            return calibrationState.calibrationList.all { prevCalibration ->
-                newPoints.all { newPoint ->
-                    if (isMissingCalibrationPoint(newPoint.x, newPoint.y)) {
+        if (calibrationState.consecutiveCalibrations == MIN_CALIBRATION) {
+            logger.info {
+                "Board calibrated with ${calibrationState.consecutiveCalibrations} calibrations"
+            }
+            applicationEventPublisher.publishEvent(CalibrationEvent(this, gameId, playerId, true))
+        }
+
+        logger.debug { "Passed calibration: $calibrationResult" }
+        calibrationState.consecutiveCalibrations++
+        calibrationState.consecutiveFailedCalibrations = 0
+        return true
+    }
+
+    private fun addFirstCalibrations(
+        calibrationList: MutableList<Map<Int, Pair<Double, Double>>>,
+        calibrationPoints: List<CalibrationPoint>,
+    ) {
+        val pointMap = mutableMapOf<Int, Pair<Double, Double>>()
+        calibrationList.add(pointMap)
+        calibrationPoints.forEach {
+            if (!isMissingCalibrationPoint(it.x, it.y)) {
+                pointMap[it.classId] = Pair(it.x, it.y)
+            }
+        }
+        logger.debug { "Added initial calibration: $calibrationList" }
+    }
+
+    private fun hasConsistentClassLabels(
+        calibrationState: CalibrationState,
+        newPoints: List<CalibrationPoint>,
+    ): Boolean {
+        return calibrationState.calibrationList.all { prevCalibration ->
+            newPoints.all { newPoint ->
+                if (isMissingCalibrationPoint(newPoint.x, newPoint.y)) {
+                    return@all true
+                }
+
+                val prevCalibrationPoint = prevCalibration[newPoint.classId]
+                if (prevCalibrationPoint != null) {
+                    if (isMissingCalibrationPoint(prevCalibrationPoint.first, prevCalibrationPoint.second)) {
                         return@all true
                     }
 
-                    val prevCalibrationPoint = prevCalibration[newPoint.classId]
-                    if (prevCalibrationPoint != null) {
-                        if (isMissingCalibrationPoint(prevCalibrationPoint.first, prevCalibrationPoint.second)) {
-                            return@all true
+                    val distance =
+                        calculateDistance(
+                            prevCalibrationPoint,
+                            Pair(newPoint.x, newPoint.y),
+                        )
+                    if (distance >= POSITION_SIMILARITY_THRESHOLD) {
+                        logger.warn {
+                            "Class label inconsistency: classId ${newPoint.classId} with $distance with prev ${calibrationState.calibrationList}"
                         }
-
-                        val distance =
-                            calculateDistance(
-                                prevCalibrationPoint,
-                                Pair(newPoint.x, newPoint.y),
-                            )
-                        if (distance >= POSITION_SIMILARITY_THRESHOLD) {
-                            logger.warn {
-                                "Class label inconsistency: classId ${newPoint.classId} with $distance with prev ${calibrationState.calibrationList}"
-                            }
-                            return@all false
-                        }
+                        return@all false
                     }
-                    true
                 }
+                true
             }
         }
-
-        private fun handleFailedCalibration(
-            calibrationState: CalibrationState,
-            playerId: String,
-            gameId: String,
-        ) {
-            calibrationState.consecutiveFailedCalibrations++
-            logger.warn { "Failed calibration ${calibrationState.consecutiveFailedCalibrations}/$MAX_INVALID_CALIBRATION" }
-
-            if (calibrationState.consecutiveFailedCalibrations >= MAX_INVALID_CALIBRATION) {
-                applicationEventPublisher.publishEvent(CalibrationEvent(this, gameId, playerId, false))
-                resetCalibrationState(calibrationState)
-                logger.info { "Resetting calibration state after $MAX_INVALID_CALIBRATION consecutive failures" }
-            }
-        }
-
-        private fun resetCalibrationState(calibrationState: CalibrationState) {
-            calibrationState.consecutiveCalibrations = 0
-            calibrationState.consecutiveFailedCalibrations = 0
-            calibrationState.calibrationList.clear()
-        }
-
-        /**
-         * When a calibration point is not there it will be returned as -1, -1
-         */
-        private fun isMissingCalibrationPoint(
-            x: Double,
-            y: Double,
-        ): Boolean = x == -1.0 && y == -1.0
     }
+
+    private fun handleFailedCalibration(
+        calibrationState: CalibrationState,
+        playerId: String,
+        gameId: String,
+    ) {
+        calibrationState.consecutiveFailedCalibrations++
+        logger.warn {
+            "Failed calibration ${calibrationState.consecutiveFailedCalibrations}/$MAX_INVALID_CALIBRATION"
+        }
+
+        if (calibrationState.consecutiveFailedCalibrations >= MAX_INVALID_CALIBRATION) {
+            applicationEventPublisher.publishEvent(CalibrationEvent(this, gameId, playerId, false))
+            resetCalibrationState(calibrationState)
+            logger.info {
+                "Resetting calibration state after $MAX_INVALID_CALIBRATION consecutive failures"
+            }
+        }
+    }
+
+    private fun resetCalibrationState(calibrationState: CalibrationState) {
+        calibrationState.consecutiveCalibrations = 0
+        calibrationState.consecutiveFailedCalibrations = 0
+        calibrationState.calibrationList.clear()
+    }
+
+    /** When a calibration point is not there it will be returned as -1, -1 */
+    private fun isMissingCalibrationPoint(
+        x: Double,
+        y: Double,
+    ): Boolean = x == -1.0 && y == -1.0
+}

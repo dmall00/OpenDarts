@@ -26,7 +26,6 @@ class DartThrowDetectedEvent(
     val dartThrowRequest: DartThrowRequest,
 ) : GameEvent(source, sessionId, playerId, EventType.DART_THROW_DETECTED)
 
-
 class ManualDartAdjustment(
     source: Any,
     sessionId: String,

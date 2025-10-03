@@ -7,7 +7,7 @@ enum class Status(
     ERROR(1),
     ;
 
-    fun isSuccess() = this == Status.SUCCESS
+    fun isSuccess() = this == SUCCESS
 }
 
 sealed class AutoScoreResponse(

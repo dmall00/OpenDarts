@@ -79,7 +79,12 @@ class GameSession {
     @JoinColumn(nullable = false)
     lateinit var game: Game
 
-    @OneToMany(mappedBy = "gameSession", cascade = [CascadeType.ALL], fetch = FetchType.EAGER, orphanRemoval = true)
+    @OneToMany(
+        mappedBy = "gameSession",
+        cascade = [CascadeType.ALL],
+        fetch = FetchType.EAGER,
+        orphanRemoval = true,
+    )
     var dartSets: MutableList<DartSet> = mutableListOf()
 
     @ManyToMany

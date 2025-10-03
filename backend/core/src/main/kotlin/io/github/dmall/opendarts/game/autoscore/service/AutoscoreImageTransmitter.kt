@@ -29,7 +29,7 @@ class AutoscoreImageTransmitter(
 
             logger.debug {
                 "Sent PipelineDetectionRequest with gameId: $gameSessionId and $playerId " +
-                    "original: ${imageBytes.size}"
+                        "original: ${imageBytes.size}"
             }
         } catch (e: Exception) {
             logger.error(e) { "Failed to send PipelineDetectionRequest" }

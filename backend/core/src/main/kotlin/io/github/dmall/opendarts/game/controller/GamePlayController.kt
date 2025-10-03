@@ -32,12 +32,12 @@ constructor(
     fun revertLastTurnDart(
         @PathVariable playerId: String,
         @PathVariable gameId: String,
-        @PathVariable dartId: Long
+        @PathVariable dartId: Long,
     ): ResponseEntity<CurrentGameStateTO> {
-        val currentGameState = gameOrchestrator.revertDartThrow(gameId, playerId, DartRevertRequest(dartId))
+        val currentGameState =
+            gameOrchestrator.revertDartThrow(gameId, playerId, DartRevertRequest(dartId))
         return ResponseEntity.ok(gameMapper.toCurrentGameStateTO(currentGameState))
     }
-
 
     @GetMapping("/{gameId}/state")
     fun getGameState(

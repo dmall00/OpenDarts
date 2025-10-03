@@ -18,13 +18,15 @@ import java.util.concurrent.ConcurrentHashMap
 class AppWebSocketHandler(
     private val autoscoreImageTransmitter: AutoscoreImageTransmitter,
 ) : BinaryWebSocketHandler() {
-    private val sessions: MutableMap<String, WebSocketSession> = ConcurrentHashMap<String, WebSocketSession>()
+    private val sessions: MutableMap<String, WebSocketSession> =
+        ConcurrentHashMap<String, WebSocketSession>()
 
     private val logger = KotlinLogging.logger {}
 
     private val objectMapper: ObjectMapper = jacksonObjectMapper()
 
-    private fun Pair<String, String>.joinWith(delimiter: String = "-"): String = "${first}${delimiter}$second"
+    private fun Pair<String, String>.joinWith(delimiter: String = "-"): String =
+        "${first}${delimiter}$second"
 
     override fun afterConnectionEstablished(session: WebSocketSession) {
         val sessionId = extractIdsFromSession(session).joinWith()
@@ -39,9 +41,7 @@ class AppWebSocketHandler(
     ) {
         val sizeInBytes = message.payload.remaining()
         val sizeInMB = sizeInBytes / (1024.0 * 1024.0)
-        logger.debug {
-            "Received binary message, size: ${String.format("%.2f", sizeInMB)} MB"
-        }
+        logger.debug { "Received binary message, size: ${String.format("%.2f", sizeInMB)} MB" }
 
         try {
             val (playerId, gameSessionId) = extractIdsFromSession(session)

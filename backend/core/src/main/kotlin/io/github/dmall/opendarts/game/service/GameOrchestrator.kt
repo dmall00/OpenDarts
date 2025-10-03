@@ -26,7 +26,7 @@ constructor(
     private val gameModeRegistry: GameModeRegistry,
     private val appWebSocketHandler: AppWebSocketHandler,
     private val gameMapper: GameMapper,
-    private val applicationEventPublisher: ApplicationEventPublisher
+    private val applicationEventPublisher: ApplicationEventPublisher,
 ) {
 
     private val logger = KotlinLogging.logger {}
@@ -51,24 +51,12 @@ constructor(
         }
 
         if (!dartThrowRequest.autoScore) {
-            val adjustment = if (gameState.bust) {
-                ManualDartAdjustment(
-                    this,
-                    gameId,
-                    playerId,
-                    DartThrowRequest(0, 0, false),
-                    null,
-                    true
-                )
-            } else {
-                ManualDartAdjustment(
-                    this,
-                    gameId,
-                    playerId,
-                    dartThrowRequest,
-                    null
-                )
-            }
+            val adjustment =
+                if (gameState.bust) {
+                    ManualDartAdjustment(this, gameId, playerId, DartThrowRequest(0, 0, false), null, true)
+                } else {
+                    ManualDartAdjustment(this, gameId, playerId, dartThrowRequest, null)
+                }
             applicationEventPublisher.publishEvent(adjustment)
         }
 
@@ -79,12 +67,14 @@ constructor(
     fun revertDartThrow(
         gameId: String,
         playerId: String,
-        dartRevertRequest: DartRevertRequest
+        dartRevertRequest: DartRevertRequest,
     ): CurrentGameState {
         val gameSession = gameSessionRepository.findById(gameId).orElseThrow()
         val currentPlayer = playerRepository.findById(playerId).orElseThrow()
         val gameHandler = gameModeRegistry.getGameHandler(gameSession.game.gameMode)
-        applicationEventPublisher.publishEvent(ManualDartAdjustment(this, gameId, playerId, null, dartRevertRequest))
+        applicationEventPublisher.publishEvent(
+            ManualDartAdjustment(this, gameId, playerId, null, dartRevertRequest)
+        )
         return gameHandler.revertDartThrow(gameSession, currentPlayer, dartRevertRequest)
     }
 

@@ -8,27 +8,20 @@ import jakarta.validation.constraints.NotNull
 data class DartThrowRequest(
     val multiplier: Int,
     val score: Int,
-
-    @field:NotNull
-    val autoScore: Boolean
+    @field:NotNull val autoScore: Boolean,
 )
 
-data class DartRevertRequest(
-    val id: Long
-)
+data class DartRevertRequest(val id: Long)
 
 data class DartResponse(
     val id: Long,
     val multiplier: Int,
     val score: Int,
     val computedScore: Int,
-    val scoreString: String
+    val scoreString: String,
 )
 
-data class PlayerTO(
-    val id: String,
-    val name: String
-)
+data class PlayerTO(val id: String, val name: String)
 
 data class CurrentGameState(
     val currentTurnDarts: Map<Player, List<Dart>>,
@@ -60,5 +53,3 @@ data class CurrentGameStateTO(
     val message: String? = null,
     val bust: Boolean = false,
 )
-
-
