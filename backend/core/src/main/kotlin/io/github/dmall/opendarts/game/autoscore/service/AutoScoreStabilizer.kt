@@ -14,7 +14,7 @@ import java.util.*
 
 private const val DISTANCE_THRESHOLD = 0.04
 private const val CONFIDENCE_THRESHOLD = 0.4
-private const val MISS_DART_CONFIDENCE_THRESHOLD = 0.5
+private const val MISS_DART_CONFIDENCE_THRESHOLD = 0.8
 private const val FPS = 1
 private const val REQUIRED_APPEARANCES = 2
 private const val MAX_FRAMES_WITHOUT_APPEARANCE = 2
@@ -23,6 +23,9 @@ private const val MAX_FRAMES_WITHOUT_APPEARANCE = 2
  * Service that receives the results of the autoscoring python server and manages a state of
  * confirmed darts for a player.
  */
+// TODO handle case where two darts are close to each other and same score
+// TODO bug with bust where 1 - 2 misses go into next turn
+// TODO feature to block dart that was removed from being recognized again in the same turn
 @Service
 class AutoScoreStabilizer
 @Autowired
