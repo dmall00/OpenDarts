@@ -41,7 +41,15 @@ class AppWebSocketHandler(private val autoscoreImageTransmitter: AutoscoreImageT
 
     try {
       val (playerId, gameSessionId) = extractIdsFromSession(session)
-      val imageBytes = message.payload.array()
+      val messageBytes = message.payload.array()
+
+      val imageBytes: ByteArray =
+        if (BinaryProtocolParser.hasMetadata(messageBytes)) {
+          val parsed = BinaryProtocolParser.parseBinaryMessage(messageBytes)
+          parsed.imageData
+        } else {
+          messageBytes
+        }
 
       autoscoreImageTransmitter.sendPipelineDetectionRequest(imageBytes, gameSessionId, playerId)
     } catch (e: Exception) {

@@ -4,10 +4,11 @@ import {CameraService} from '../services/camera/cameraService';
 import {getCameraConfig} from '../config/config';
 import {useGameStore} from "@/src/stores/gameStore";
 import {isWeb} from "@/src/utils/platform";
+import {AutoScoreMessage} from '@/src/utils/binaryProtocol';
 
 interface UseGameCaptureProps {
     isConnected: boolean;
-    sendBinary: (data: string | ArrayBuffer | Blob) => boolean;
+    sendBinary: (data: string | ArrayBuffer | Blob, autoScoreMessage?: AutoScoreMessage) => boolean | Promise<boolean>;
     startCapture: (callback: () => Promise<void>) => void;
     stopCapture: () => void;
     isCameraActive?: boolean;

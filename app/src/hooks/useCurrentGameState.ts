@@ -1,7 +1,8 @@
-import {useEffect, useState} from 'react';
+import {useEffect, useRef, useState} from 'react';
 import {useGameMessages} from './useGameMessages';
 import {CalibrationState, CurrentGameState} from '../types/api';
 import {getCameraConfig, getWebSocketConfig} from "@/src/config/config";
+import {AutoScoreMessage} from '@/src/utils/binaryProtocol';
 
 interface UseCurrentGameStateProps {
     gameId: string;
@@ -25,6 +26,7 @@ export const useCurrentGameState = ({
 
 
     const [calibrated, setCalibrated] = useState(false);
+    const frameCounterRef = useRef(0);
 
     let wsUrl: string;
     if (websocketUrl) {
@@ -63,8 +65,31 @@ export const useCurrentGameState = ({
         })
     })
 
-    const sendCameraFrame = (imageData: string | ArrayBuffer | Blob) => {
-        return gameMessages.sendBinary(imageData);
+    const sendCameraFrame = async (imageData: string | ArrayBuffer | Blob) => {
+        let data = imageData;
+        
+        if (imageData instanceof Blob) {
+            data = await new Promise<ArrayBuffer>((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    if (reader.result instanceof ArrayBuffer) {
+                        resolve(reader.result);
+                    } else {
+                        reject(new Error('Failed to convert Blob to ArrayBuffer'));
+                    }
+                };
+                reader.onerror = reject;
+                reader.readAsArrayBuffer(imageData);
+            });
+        }
+        
+        if (data instanceof ArrayBuffer) {
+            const autoScoreMessage: AutoScoreMessage = {
+                timestamp: Date.now(),
+            };
+            return gameMessages.sendBinary(data, autoScoreMessage);
+        }
+        return gameMessages.sendBinary(data);
     };
 
     return {

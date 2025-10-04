@@ -1,5 +1,6 @@
 import {useCallback, useEffect, useRef, useState} from 'react';
 import useWebSocketLib, {ReadyState} from 'react-use-websocket';
+import {AutoScoreMessage, createBinaryMessageWithAdditionalData} from '@/src/utils/binaryProtocol';
 
 export interface WebSocketConfig {
     url: string;
@@ -133,11 +134,16 @@ export const useWebSocket = (config: WebSocketConfig) => {
         }
         return false;
     }, [readyState, sendJsonMessage]);
-    const sendBinary = useCallback((data: string | ArrayBuffer | Blob) => {
+    const sendBinary = useCallback((data: string | ArrayBuffer | Blob, autoScoreMessage?: AutoScoreMessage) => {
         const ws = getWebSocket();
         if (ws && readyState === ReadyState.OPEN) {
             try {
-                (ws as WebSocket).send(data);
+                if (autoScoreMessage && data instanceof ArrayBuffer) {
+                    const messageWithAdditionalData = createBinaryMessageWithAdditionalData(data, autoScoreMessage);
+                    (ws as WebSocket).send(messageWithAdditionalData);
+                } else {
+                    (ws as WebSocket).send(data);
+                }
                 return true;
             } catch (error) {
                 setError('Failed to send data');

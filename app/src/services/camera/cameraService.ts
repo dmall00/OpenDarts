@@ -1,5 +1,6 @@
 import {Camera, CameraDevice} from 'react-native-vision-camera';
 import {isWeb} from "@/src/utils/platform";
+import {AutoScoreMessage} from '@/src/utils/binaryProtocol';
 
 let ImageResizer: any = null;
 if (!isWeb()) {
@@ -184,7 +185,7 @@ export class CameraService {
     }
 
     public async captureAndSend(
-        sendBinaryFunction: (data: string | ArrayBuffer | Blob) => boolean,
+        sendBinaryFunction: (data: string | ArrayBuffer | Blob, autoScoreMessage?: AutoScoreMessage) => boolean | Promise<boolean>,
         config: CameraConfig = {}
     ): Promise<boolean> {
         if (isWeb()) {
@@ -214,7 +215,7 @@ export class CameraService {
                 imageType: blob.type
             });
 
-            return sendBinaryFunction(blob);
+            return await sendBinaryFunction(blob);
         } catch (error) {
             if (this._isRecording && this.cameraRef) {
                 console.error('Failed to capture and send camera data:', error);
