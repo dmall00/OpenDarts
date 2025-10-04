@@ -4,10 +4,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan
 import org.springframework.boot.runApplication
 
-@SpringBootApplication
-@ConfigurationPropertiesScan
-class OpenDartsApplication
+@SpringBootApplication @ConfigurationPropertiesScan class OpenDartsApplication
 
 fun main(args: Array<String>) {
-    runApplication<OpenDartsApplication>(*args)
+  runApplication<OpenDartsApplication>(*args)
 }

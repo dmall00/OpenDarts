@@ -15,62 +15,53 @@ import org.springframework.web.filter.OncePerRequestFilter
 import java.io.IOException
 
 class JwtAuthenticationFilter(
-    private val jwtUtil: JwtUtil,
-    private val userDetailsService: CustomUserDetailsService,
+  private val jwtUtil: JwtUtil,
+  private val userDetailsService: CustomUserDetailsService,
 ) : OncePerRequestFilter() {
-    @Throws(ServletException::class, IOException::class)
-    override fun doFilterInternal(
-        request: HttpServletRequest,
-        response: HttpServletResponse,
-        chain: FilterChain,
-    ) {
-        val tokenInfo = extractJwtTokenFromRequest(request)
+  @Throws(ServletException::class, IOException::class)
+  override fun doFilterInternal(
+    request: HttpServletRequest,
+    response: HttpServletResponse,
+    chain: FilterChain,
+  ) {
+    val tokenInfo = extractJwtTokenFromRequest(request)
 
-        if (tokenInfo.username != null && isAuthenticationRequired()) {
-            authenticateUser(tokenInfo, request)
-        }
-
-        chain.doFilter(request, response)
+    if (tokenInfo.username != null && isAuthenticationRequired()) {
+      authenticateUser(tokenInfo, request)
     }
 
-    private fun extractJwtTokenFromRequest(request: HttpServletRequest): TokenInfo {
-        val authorizationHeader = request.getHeader(HttpHeaders.AUTHORIZATION)
+    chain.doFilter(request, response)
+  }
 
-        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
-            val token = authorizationHeader.substring(7)
-            val username = jwtUtil.extractUsername(token)
-            return TokenInfo(token, username)
-        }
+  private fun extractJwtTokenFromRequest(request: HttpServletRequest): TokenInfo {
+    val authorizationHeader = request.getHeader(HttpHeaders.AUTHORIZATION)
 
-        return TokenInfo(null, null)
+    if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+      val token = authorizationHeader.substring(7)
+      val username = jwtUtil.extractUsername(token)
+      return TokenInfo(token, username)
     }
 
-    private fun isAuthenticationRequired(): Boolean =
-        SecurityContextHolder.getContext().authentication == null
+    return TokenInfo(null, null)
+  }
 
-    private fun authenticateUser(
-        tokenInfo: TokenInfo,
-        request: HttpServletRequest,
-    ) {
-        val userDetails = userDetailsService.loadUserByUsername(tokenInfo.username!!)
+  private fun isAuthenticationRequired(): Boolean =
+    SecurityContextHolder.getContext().authentication == null
 
-        if (jwtUtil.validateToken(tokenInfo.token, userDetails)) {
-            setAuthenticationContext(userDetails, request)
-        }
+  private fun authenticateUser(tokenInfo: TokenInfo, request: HttpServletRequest) {
+    val userDetails = userDetailsService.loadUserByUsername(tokenInfo.username!!)
+
+    if (jwtUtil.validateToken(tokenInfo.token, userDetails)) {
+      setAuthenticationContext(userDetails, request)
     }
+  }
 
-    private fun setAuthenticationContext(
-        userDetails: UserDetails,
-        request: HttpServletRequest,
-    ) {
-        val authentication =
-            UsernamePasswordAuthenticationToken(userDetails, null, userDetails.authorities)
-        authentication.details = WebAuthenticationDetailsSource().buildDetails(request)
-        SecurityContextHolder.getContext().authentication = authentication
-    }
+  private fun setAuthenticationContext(userDetails: UserDetails, request: HttpServletRequest) {
+    val authentication =
+      UsernamePasswordAuthenticationToken(userDetails, null, userDetails.authorities)
+    authentication.details = WebAuthenticationDetailsSource().buildDetails(request)
+    SecurityContextHolder.getContext().authentication = authentication
+  }
 
-    private data class TokenInfo(
-        val token: String?,
-        val username: String?,
-    )
+  private data class TokenInfo(val token: String?, val username: String?)
 }

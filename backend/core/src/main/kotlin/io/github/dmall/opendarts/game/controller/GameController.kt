@@ -14,9 +14,9 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/app/game")
 class GameController @Autowired constructor(private val gameCreationService: GameCreationService) {
 
-    @PostMapping
-    fun createGame(@RequestBody gameConfig: GameConfigTo): ResponseEntity<GameSessionResponse> {
-        val response = gameCreationService.createGame(gameConfig)
-        return ResponseEntity.ok(response)
-    }
+  @PostMapping
+  fun createGame(@RequestBody gameConfig: GameConfigTo): ResponseEntity<GameSessionResponse> {
+    val response = gameCreationService.createGame(gameConfig)
+    return ResponseEntity.ok(response)
+  }
 }

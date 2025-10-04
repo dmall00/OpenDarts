@@ -14,48 +14,48 @@ import org.springframework.transaction.annotation.Transactional
 class GameCreationService
 @Autowired
 constructor(
-    val gameRepository: GameRepository,
-    val gameSessionRepository: GameSessionRepository,
-    val playerRepository: PlayerRepository,
-    val gameModeRegistry: GameModeRegistry,
-    val entityManager: EntityManager,
+  val gameRepository: GameRepository,
+  val gameSessionRepository: GameSessionRepository,
+  val playerRepository: PlayerRepository,
+  val gameModeRegistry: GameModeRegistry,
+  val entityManager: EntityManager,
 ) {
 
-    fun createGame(gameConfig: GameConfigTo): GameSessionResponse {
-        val players =
-            gameConfig.players.map { player ->
-                playerRepository.findByName(player)
-                    ?: throw IllegalStateException("Player $player not found")
-            }
+  fun createGame(gameConfig: GameConfigTo): GameSessionResponse {
+    val players =
+      gameConfig.players.map { player ->
+        playerRepository.findByName(player)
+          ?: throw IllegalStateException("Player $player not found")
+      }
 
-        val x01Config =
-            X01Config().apply {
-                this.startingScore = gameConfig.score
-                this.legs = 1
-                this.sets = 1
-                this.doubleOut = true
-                this.startingPlayer = players.first()
-                this.playerOrder.addAll(players.map { it.id!! })
-            }
-        entityManager.persist(x01Config)
-        entityManager.flush()
+    val x01Config =
+      X01Config().apply {
+        this.startingScore = gameConfig.score
+        this.legs = 1
+        this.sets = 1
+        this.doubleOut = true
+        this.startingPlayer = players.first()
+        this.playerOrder.addAll(players.map { it.id!! })
+      }
+    entityManager.persist(x01Config)
+    entityManager.flush()
 
-        val game =
-            Game().apply {
-                this.gameMode = gameConfig.gameMode
-                this.gameConfig = x01Config
-            }
+    val game =
+      Game().apply {
+        this.gameMode = gameConfig.gameMode
+        this.gameConfig = x01Config
+      }
 
-        val savedGame = gameRepository.save(game)
-        val gameSession =
-            GameSession().apply {
-                this.game = savedGame
-                this.players.addAll(players)
-            }
-        val savedGameSession = gameSessionRepository.save(gameSession)
-        val gameHandler = gameModeRegistry.getGameHandler(gameConfig.gameMode)
-        gameHandler.initializeGame(savedGameSession)
-        // do this properly later
-        return GameSessionResponse(savedGameSession.id!!, players.first().id!!)
-    }
+    val savedGame = gameRepository.save(game)
+    val gameSession =
+      GameSession().apply {
+        this.game = savedGame
+        this.players.addAll(players)
+      }
+    val savedGameSession = gameSessionRepository.save(gameSession)
+    val gameHandler = gameModeRegistry.getGameHandler(gameConfig.gameMode)
+    gameHandler.initializeGame(savedGameSession)
+    // do this properly later
+    return GameSessionResponse(savedGameSession.id!!, players.first().id!!)
+  }
 }

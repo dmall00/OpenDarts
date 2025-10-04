@@ -8,9 +8,9 @@ import org.springframework.context.annotation.Configuration
 @Configuration
 class OpenApiConfig {
 
-    @Bean
-    fun customOpenAPI(): OpenAPI {
-        return OpenAPI()
-            .info(Info().title("opendarts API").version("1.0").description("API documentation"))
-    }
+  @Bean
+  fun customOpenAPI(): OpenAPI {
+    return OpenAPI()
+      .info(Info().title("opendarts API").version("1.0").description("API documentation"))
+  }
 }

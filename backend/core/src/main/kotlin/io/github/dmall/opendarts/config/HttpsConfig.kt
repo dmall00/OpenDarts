@@ -9,22 +9,22 @@ import org.springframework.context.annotation.Configuration
 @Configuration
 class HttpsConfig {
 
-    @Bean
-    fun servletContainer(): ServletWebServerFactory {
-        val tomcat = TomcatServletWebServerFactory()
+  @Bean
+  fun servletContainer(): ServletWebServerFactory {
+    val tomcat = TomcatServletWebServerFactory()
 
-        // Add HTTP connector that redirects to HTTPS
-        tomcat.addAdditionalTomcatConnectors(createStandardConnector())
+    // Add HTTP connector that redirects to HTTPS
+    tomcat.addAdditionalTomcatConnectors(createStandardConnector())
 
-        return tomcat
-    }
+    return tomcat
+  }
 
-    private fun createStandardConnector(): Connector {
-        val connector = Connector("org.apache.coyote.http11.Http11NioProtocol")
-        connector.scheme = "http"
-        connector.port = 8080
-        connector.secure = false
-        connector.redirectPort = 8443 // Redirect HTTP to HTTPS
-        return connector
-    }
+  private fun createStandardConnector(): Connector {
+    val connector = Connector("org.apache.coyote.http11.Http11NioProtocol")
+    connector.scheme = "http"
+    connector.port = 8080
+    connector.secure = false
+    connector.redirectPort = 8443 // Redirect HTTP to HTTPS
+    return connector
+  }
 }

@@ -11,18 +11,18 @@ import org.springframework.context.annotation.Primary
 @Configuration
 class ObjectMapperConfig {
 
-    @Bean
-    @SnakeCase
-    fun pythonApiObjectMapper(): ObjectMapper {
-        return ObjectMapper().registerKotlinModule().apply {
-            propertyNamingStrategy = PropertyNamingStrategies.SNAKE_CASE
-            configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-        }
+  @Bean
+  @SnakeCase
+  fun pythonApiObjectMapper(): ObjectMapper {
+    return ObjectMapper().registerKotlinModule().apply {
+      propertyNamingStrategy = PropertyNamingStrategies.SNAKE_CASE
+      configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
     }
+  }
 
-    @Bean
-    @Primary
-    fun defaultObjectMapper(): ObjectMapper {
-        return ObjectMapper().registerKotlinModule()
-    }
+  @Bean
+  @Primary
+  fun defaultObjectMapper(): ObjectMapper {
+    return ObjectMapper().registerKotlinModule()
+  }
 }

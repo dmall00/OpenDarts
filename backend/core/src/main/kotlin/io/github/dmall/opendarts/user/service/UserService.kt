@@ -12,17 +12,17 @@ import org.springframework.stereotype.Service
 class UserService
 @Autowired
 constructor(
-    val userRepository: UserRepository,
-    val passwordEncoder: PasswordEncoder,
-    val userMapper: UserMapper,
+  val userRepository: UserRepository,
+  val passwordEncoder: PasswordEncoder,
+  val userMapper: UserMapper,
 ) {
 
-    fun save(user: UserDto): User {
-        user.password = passwordEncoder.encode(user.password)
-        return userRepository.save(userMapper.dtoToEntity(user))
-    }
+  fun save(user: UserDto): User {
+    user.password = passwordEncoder.encode(user.password)
+    return userRepository.save(userMapper.dtoToEntity(user))
+  }
 
-    fun findByUsername(username: String): User? {
-        return userRepository.findByUsername(username)
-    }
+  fun findByUsername(username: String): User? {
+    return userRepository.findByUsername(username)
+  }
 }

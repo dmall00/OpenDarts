@@ -13,9 +13,9 @@ class PlayerController
 @Autowired
 constructor(private val playerCreationService: PlayerCreationService) {
 
-    @PostMapping
-    fun createPlayer(userName: String): ResponseEntity<Void> {
-        playerCreationService.createPlayer(userName)
-        return ResponseEntity.ok().build()
-    }
+  @PostMapping
+  fun createPlayer(userName: String): ResponseEntity<Void> {
+    playerCreationService.createPlayer(userName)
+    return ResponseEntity.ok().build()
+  }
 }

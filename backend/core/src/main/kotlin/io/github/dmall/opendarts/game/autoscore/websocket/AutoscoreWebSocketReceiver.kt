@@ -11,44 +11,35 @@ import org.springframework.web.socket.WebSocketSession
 import org.springframework.web.socket.handler.TextWebSocketHandler
 
 class AutoscoreWebSocketReceiver(
-    private val autoScoreWebSocketClient: AutoscoreWebSocketClient,
-    private val objectMapper: ObjectMapper,
-    private val autoScoreStabilizer: AutoScoreStabilizer,
-    private val calibrationService: AutoScoreCalibrationService,
+  private val autoScoreWebSocketClient: AutoscoreWebSocketClient,
+  private val objectMapper: ObjectMapper,
+  private val autoScoreStabilizer: AutoScoreStabilizer,
+  private val calibrationService: AutoScoreCalibrationService,
 ) : TextWebSocketHandler() {
-    val logger = KotlinLogging.logger {}
+  val logger = KotlinLogging.logger {}
 
-    override fun afterConnectionEstablished(session: WebSocketSession) {
-        autoScoreWebSocketClient.setSession(session)
-        logger.info { "Websocket connection to python server established" }
+  override fun afterConnectionEstablished(session: WebSocketSession) {
+    autoScoreWebSocketClient.setSession(session)
+    logger.info { "Websocket connection to python server established" }
+  }
+
+  public override fun handleTextMessage(session: WebSocketSession, message: TextMessage) {
+    val detection = objectMapper.readValue(message.payload, PipelineDetectionResponse::class.java)
+    logger.debug { "Received detection response: $detection" }
+
+    if (calibrationService.isBoardCalibrated(detection)) {
+      autoScoreStabilizer.processDartDetectionResult(detection)
     }
+  }
 
-    public override fun handleTextMessage(
-        session: WebSocketSession,
-        message: TextMessage,
-    ) {
-        val detection = objectMapper.readValue(message.payload, PipelineDetectionResponse::class.java)
-        logger.debug { "Received detection response: $detection" }
-
-        if (calibrationService.isBoardCalibrated(detection)) {
-            autoScoreStabilizer.processDartDetectionResult(detection)
-        }
+  override fun afterConnectionClosed(session: WebSocketSession, status: CloseStatus) {
+    autoScoreWebSocketClient.clearSession()
+    logger.warn {
+      "Websocket connection to python server closed with status: ${status.code} - ${status.reason}"
     }
+  }
 
-    override fun afterConnectionClosed(
-        session: WebSocketSession,
-        status: CloseStatus,
-    ) {
-        autoScoreWebSocketClient.clearSession()
-        logger.warn {
-            "Websocket connection to python server closed with status: ${status.code} - ${status.reason}"
-        }
-    }
-
-    override fun handleTransportError(
-        session: WebSocketSession,
-        exception: Throwable,
-    ) {
-        logger.error(exception) { "Transport error in websocket connection to python server" }
-    }
+  override fun handleTransportError(session: WebSocketSession, exception: Throwable) {
+    logger.error(exception) { "Transport error in websocket connection to python server" }
+  }
 }

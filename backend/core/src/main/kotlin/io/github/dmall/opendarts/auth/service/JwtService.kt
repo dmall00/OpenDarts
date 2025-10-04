@@ -11,20 +11,20 @@ import org.springframework.stereotype.Service
 class JwtService
 @Autowired
 constructor(
-    val authenticationManager: AuthenticationManager,
-    val userDetailsService: CustomUserDetailsService,
-    val jwtUtil: JwtUtil,
+  val authenticationManager: AuthenticationManager,
+  val userDetailsService: CustomUserDetailsService,
+  val jwtUtil: JwtUtil,
 ) {
 
-    fun createJwtToken(authenticationRequest: AuthenticationRequest): String {
-        authenticationManager.authenticate(
-            UsernamePasswordAuthenticationToken(
-                authenticationRequest.username,
-                authenticationRequest.password,
-            )
-        )
+  fun createJwtToken(authenticationRequest: AuthenticationRequest): String {
+    authenticationManager.authenticate(
+      UsernamePasswordAuthenticationToken(
+        authenticationRequest.username,
+        authenticationRequest.password,
+      )
+    )
 
-        val userDetails = userDetailsService.loadUserByUsername(authenticationRequest.username)
-        return jwtUtil.generateToken(userDetails)
-    }
+    val userDetails = userDetailsService.loadUserByUsername(authenticationRequest.username)
+    return jwtUtil.generateToken(userDetails)
+  }
 }
