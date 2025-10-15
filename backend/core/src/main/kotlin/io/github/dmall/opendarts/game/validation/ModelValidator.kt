@@ -1,5 +1,6 @@
 package io.github.dmall.opendarts.game.validation
 
+import io.github.dmall.opendarts.game.model.DartCorrectionRequest
 import io.github.dmall.opendarts.game.model.DartThrowRequest
 import jakarta.validation.Constraint
 import jakarta.validation.ConstraintValidator
@@ -18,6 +19,54 @@ annotation class ValidDartThrowRequest(
 
 class DartThrowRequestValidator : ConstraintValidator<ValidDartThrowRequest, DartThrowRequest> {
   override fun isValid(value: DartThrowRequest?, context: ConstraintValidatorContext): Boolean {
+    if (value == null) return true
+
+    val multiplierValid = value.multiplier in 1..3
+    val scoreValid = (value.score in 0..20) || (value.score == 25)
+    val tripleBullInvalid = value.multiplier == 3 && value.score == 25
+
+    if (!multiplierValid) {
+      context.disableDefaultConstraintViolation()
+      context
+        .buildConstraintViolationWithTemplate("Multiplier must be between 1 and 3")
+        .addPropertyNode("multiplier")
+        .addConstraintViolation()
+      return false
+    }
+
+    if (!scoreValid) {
+      context.disableDefaultConstraintViolation()
+      context
+        .buildConstraintViolationWithTemplate("Score must be 0-20 or exactly 25")
+        .addPropertyNode("score")
+        .addConstraintViolation()
+      return false
+    }
+
+    if (tripleBullInvalid) {
+      context.disableDefaultConstraintViolation()
+      context
+        .buildConstraintViolationWithTemplate("Multiplier cannot be 3 when score is 25")
+        .addPropertyNode("score")
+        .addConstraintViolation()
+      return false
+    }
+
+    return true
+  }
+}
+
+@Target(AnnotationTarget.CLASS)
+@Retention(AnnotationRetention.RUNTIME)
+@Constraint(validatedBy = [DartCorrectionRequestValidator::class])
+annotation class ValidDartCorrectionRequest(
+  val message: String = "Invalid DartCorrectionRequest",
+  val groups: Array<KClass<*>> = [],
+  val payload: Array<KClass<out Payload>> = [],
+)
+
+class DartCorrectionRequestValidator : ConstraintValidator<ValidDartCorrectionRequest, DartCorrectionRequest> {
+  override fun isValid(value: DartCorrectionRequest?, context: ConstraintValidatorContext): Boolean {
     if (value == null) return true
 
     val multiplierValid = value.multiplier in 1..3

@@ -141,7 +141,7 @@ class X01Game @Autowired constructor(val gameSessionRepository: GameSessionRepos
   ): CurrentGameState {
     val currentLeg = getCurrentLeg(gameSession)
     val currentTurn = getCurrentTurnForRevert(currentLeg, currentPlayer)
-    removeLastDartFromTurnIfPresent(currentTurn)
+    removeDartById(currentTurn, dartRevertRequest.id)
     gameSessionRepository.save(gameSession)
     val nextPlayer = gameSession.players.firstOrNull { it.id != currentPlayer.id }
     return CurrentGameState(
@@ -158,12 +158,61 @@ class X01Game @Autowired constructor(val gameSessionRepository: GameSessionRepos
     )
   }
 
-  private fun removeLastDartFromTurnIfPresent(currentTurn: Turn) {
-    if (currentTurn.darts.isNotEmpty()) {
-      val lastDart = currentTurn.darts.removeLast()
-      logger.info { "Removed dart: ${lastDart.scoreString} from turn" }
+  override fun correctDartThrow(
+    gameSession: GameSession,
+    currentPlayer: Player,
+    dartCorrectionRequest: DartCorrectionRequest,
+    dartThrowRequest: DartThrowRequest,
+  ): CurrentGameState {
+    val currentLeg = getCurrentLeg(gameSession)
+    val currentTurn = getCurrentTurnForRevert(currentLeg, currentPlayer)
+
+    logger.info { "Correcting dart with ID ${dartCorrectionRequest.dartId}" }
+    logger.info { "Current darts in turn: ${currentTurn.darts.map { "id=${it.id}, score=${it.scoreString}" }}" }
+
+    val dartIndex = currentTurn.darts.indexOfFirst { it.id == dartCorrectionRequest.dartId }
+    if (dartIndex == -1) {
+        logger.error { "Dart with ID ${dartCorrectionRequest.dartId} not found in current turn" }
+        throw NotFoundException("Dart with ID ${dartCorrectionRequest.dartId} not found in current turn")
+    }
+
+    logger.info { "Found dart at index $dartIndex" }
+
+    currentTurn.darts.removeAt(dartIndex)
+
+    val correctedDart = Dart().apply {
+      this.score = dartThrowRequest.score
+      this.multiplier = dartThrowRequest.multiplier
+      this.turn = currentTurn
+      this.autoScore = dartThrowRequest.autoScore
+    }
+
+    currentTurn.darts.add(dartIndex, correctedDart)
+
+    gameSessionRepository.saveAndFlush(gameSession)
+
+    val nextPlayer = gameSession.players.firstOrNull { it.id != currentPlayer.id }
+    return CurrentGameState(
+      currentTurnDarts = getCurrentTurnDarts(currentPlayer, currentTurn, nextPlayer),
+      currentPlayer = currentPlayer,
+      currentRemainingScores = getCurrentRemainingScores(currentLeg),
+      legWon = false,
+      setWon = false,
+      gameWon = false,
+      winner = null,
+      nextPlayer = currentPlayer,
+      message = "Dart corrected",
+      bust = false,
+    )
+  }
+
+  private fun removeDartById(currentTurn: Turn, dartId: Long) {
+    val dartToRemove = currentTurn.darts.find { it.id == dartId }
+    if (dartToRemove != null) {
+      currentTurn.darts.remove(dartToRemove)
+      logger.info { "Removed dart with ID $dartId: ${dartToRemove.scoreString} from turn" }
     } else {
-      logger.info { "No darts to remove from turn" }
+      logger.warn { "No dart found with ID $dartId in current turn" }
     }
   }
 

@@ -2,6 +2,7 @@ package io.github.dmall.opendarts.game.controller
 
 import io.github.dmall.opendarts.game.mapper.GameMapper
 import io.github.dmall.opendarts.game.model.CurrentGameStateTO
+import io.github.dmall.opendarts.game.model.DartCorrectionRequest
 import io.github.dmall.opendarts.game.model.DartRevertRequest
 import io.github.dmall.opendarts.game.model.DartThrowRequest
 import io.github.dmall.opendarts.game.service.GameOrchestrator
@@ -33,6 +34,17 @@ constructor(private val gameOrchestrator: GameOrchestrator, private val gameMapp
   ): ResponseEntity<CurrentGameStateTO> {
     val currentGameState =
       gameOrchestrator.revertDartThrow(gameId, playerId, DartRevertRequest(dartId))
+    return ResponseEntity.ok(gameMapper.toCurrentGameStateTO(currentGameState))
+  }
+
+  @PutMapping("/{gameId}/{playerId}/dart/correct")
+  fun correctDart(
+    @PathVariable playerId: String,
+    @PathVariable gameId: String,
+    @Valid @RequestBody dartCorrectionRequest: DartCorrectionRequest,
+  ): ResponseEntity<CurrentGameStateTO> {
+    val currentGameState =
+      gameOrchestrator.correctDartThrow(gameId, playerId, dartCorrectionRequest)
     return ResponseEntity.ok(gameMapper.toCurrentGameStateTO(currentGameState))
   }
 

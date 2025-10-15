@@ -114,10 +114,10 @@ class Turn {
 
   @ManyToOne(optional = false) @JoinColumn(nullable = false) lateinit var leg: Leg
 
-  // Track the order of this turn within the leg (0-based index)
   @Column(nullable = false) var turnOrderIndex: Int = 0
 
   @OneToMany(mappedBy = "turn", cascade = [CascadeType.ALL], orphanRemoval = true)
+  @OrderColumn(name = "dart_order")
   val darts: MutableList<Dart> = mutableListOf()
 }
 

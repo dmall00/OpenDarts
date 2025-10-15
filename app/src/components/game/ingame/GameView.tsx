@@ -100,10 +100,15 @@ export default function GameView({gameId, playerId, websocketUrl, fps}: GameView
         (correctionRequest: DartCorrectionRequest) => gameService.correctDart(playerId, gameId, correctionRequest),
         {
             onSuccess: (currentGameState) => {
+                console.log('Correction success, new darts:', currentGameState.currentTurnDarts?.[playerId]);
                 setCurrentGameState(currentGameState);
+                setSelectedDartForCorrection(null);
+                setModifier(1);
             },
             onError: (error) => {
                 console.error('Failed to correct dart:', error);
+                setSelectedDartForCorrection(null);
+                setModifier(1);
             }
         }
     );
@@ -126,14 +131,13 @@ export default function GameView({gameId, playerId, websocketUrl, fps}: GameView
 
     const handleNumberPress = async (value: number) => {
         if (selectedDartForCorrection) {
+            console.log('Correcting dart:', selectedDartForCorrection.id, 'to score:', value, 'multiplier:', modifier);
             const correctionRequest: DartCorrectionRequest = {
                 dartId: selectedDartForCorrection.id,
                 score: value,
                 multiplier: modifier
             };
             await correctDartMutation.mutate(correctionRequest);
-            setSelectedDartForCorrection(null);
-            setModifier(1);
         } else {
             console.log(`Number pressed: ${value} with modifier: ${modifier}`);
             const dartThrow: DartThrow = {
@@ -173,10 +177,13 @@ export default function GameView({gameId, playerId, websocketUrl, fps}: GameView
     };
 
     const handleDartPress = (dart: DartThrowResponse) => {
+        console.log('Dart pressed:', dart.id, 'selectedDartId:', selectedDartForCorrection?.id);
         if (selectedDartForCorrection?.id === dart.id) {
+            console.log('Deselecting dart');
             setSelectedDartForCorrection(null);
             setModifier(1);
         } else {
+            console.log('Selecting dart for correction');
             setSelectedDartForCorrection(dart);
             setModifier(dart.multiplier as 1 | 2 | 3);
         }

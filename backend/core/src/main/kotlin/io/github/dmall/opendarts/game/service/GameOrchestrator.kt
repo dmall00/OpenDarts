@@ -3,10 +3,7 @@ package io.github.dmall.opendarts.game.service
 import io.github.dmall.opendarts.game.autoscore.events.*
 import io.github.dmall.opendarts.game.autoscore.websocket.AppWebSocketHandler
 import io.github.dmall.opendarts.game.mapper.GameMapper
-import io.github.dmall.opendarts.game.model.AppCalibrationResponse
-import io.github.dmall.opendarts.game.model.CurrentGameState
-import io.github.dmall.opendarts.game.model.DartRevertRequest
-import io.github.dmall.opendarts.game.model.DartThrowRequest
+import io.github.dmall.opendarts.game.model.*
 import io.github.dmall.opendarts.game.repository.GameSessionRepository
 import io.github.dmall.opendarts.game.repository.PlayerRepository
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -76,6 +73,30 @@ constructor(
       ManualDartAdjustment(this, gameId, playerId, null, dartRevertRequest)
     )
     return gameHandler.revertDartThrow(gameSession, currentPlayer, dartRevertRequest)
+  }
+
+  @Transactional
+  fun correctDartThrow(
+    gameId: String,
+    playerId: String,
+    dartCorrectionRequest: DartCorrectionRequest,
+  ): CurrentGameState {
+    val gameSession = gameSessionRepository.findById(gameId).orElseThrow()
+    val currentPlayer = playerRepository.findById(playerId).orElseThrow()
+    val gameHandler = gameModeRegistry.getGameHandler(gameSession.game.gameMode)
+    
+    val dartThrowRequest = DartThrowRequest(
+      dartCorrectionRequest.multiplier,
+      dartCorrectionRequest.score,
+      false
+    )
+    
+    return gameHandler.correctDartThrow(
+      gameSession,
+      currentPlayer,
+      dartCorrectionRequest,
+      dartThrowRequest
+    )
   }
 
   fun getGameState(gameId: String): CurrentGameState {

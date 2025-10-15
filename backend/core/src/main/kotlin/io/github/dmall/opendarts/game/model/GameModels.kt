@@ -1,6 +1,7 @@
 package io.github.dmall.opendarts.game.model
 
 import com.fasterxml.jackson.annotation.JsonInclude
+import io.github.dmall.opendarts.game.validation.ValidDartCorrectionRequest
 import io.github.dmall.opendarts.game.validation.ValidDartThrowRequest
 import jakarta.validation.constraints.NotNull
 
@@ -12,6 +13,13 @@ data class DartThrowRequest(
 )
 
 data class DartRevertRequest(val id: Long)
+
+@ValidDartCorrectionRequest
+data class DartCorrectionRequest(
+  val dartId: Long,
+  val multiplier: Int,
+  val score: Int,
+)
 
 data class DartResponse(
   val id: Long,
