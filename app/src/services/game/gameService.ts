@@ -1,4 +1,4 @@
-import {CreateGameRequest, CurrentGameState, DartRevertRequest, DartThrow, GameSession} from '../../types/api';
+import {CreateGameRequest, CurrentGameState, DartCorrectionRequest, DartRevertRequest, DartThrow, GameSession} from '../../types/api';
 import {API_ENDPOINTS} from "@/src/config/config";
 import apiService from "@/src/services/api/api";
 
@@ -20,6 +20,13 @@ export class GameService {
             .replace('playerId', playerId)
             .replace('dartId', String(revertRequest.id));
         return apiService.delete<CurrentGameState>(url, null)
+    }
+
+    async correctDart(playerId: string, gameId: string, correction: DartCorrectionRequest): Promise<CurrentGameState> {
+        const url = API_ENDPOINTS.GAMES.CORRECT
+            .replace('gameId', gameId)
+            .replace('playerId', playerId);
+        return apiService.put<CurrentGameState>(url, correction)
     }
 
     async getCurrentGameState(gameId: string): Promise<CurrentGameState> {

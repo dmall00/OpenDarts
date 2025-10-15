@@ -5,8 +5,10 @@ import ScoreDisplay from "@/src/components/ui/ScoreDisplay";
 import Container from "@/src/components/ui/Container";
 
 interface X01CurrentScoreBoxesProps {
-    dartThrows?: DartThrowResponse[]
-    currentGameStatePartial?: Partial<CurrentGameState>
+    dartThrows?: DartThrowResponse[];
+    currentGameStatePartial?: Partial<CurrentGameState>;
+    onDartPress?: (dart: DartThrowResponse) => void;
+    selectedDartId?: number | null;
 }
 
 export default function X01CurrentScoreBoxes(props: X01CurrentScoreBoxesProps) {
@@ -17,7 +19,12 @@ export default function X01CurrentScoreBoxes(props: X01CurrentScoreBoxesProps) {
         const dartThrow = dartThrows[index];
         return (
             <View key={index} className="flex-1 mx-xs">
-                <ScoreBox text={dartThrow ? dartThrow.scoreString : ""} />
+                <ScoreBox 
+                    text={dartThrow ? dartThrow.scoreString : ""} 
+                    onPress={dartThrow ? () => props.onDartPress?.(dartThrow) : undefined}
+                    disabled={!dartThrow}
+                    isSelected={dartThrow?.id === props.selectedDartId}
+                />
             </View>
         );
     });

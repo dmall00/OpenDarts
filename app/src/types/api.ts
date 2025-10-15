@@ -55,6 +55,12 @@ export interface DartRevertRequest {
     id: number
 }
 
+export interface DartCorrectionRequest {
+    dartId: number;
+    score: number;
+    multiplier: number;
+}
+
 export interface DartThrowResponse {
     id: number
     score: number;

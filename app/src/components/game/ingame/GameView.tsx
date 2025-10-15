@@ -10,7 +10,7 @@ import {useCameraUI} from "@/src/hooks/useCameraUI";
 import ZoomCameraView from "@/src/components/game/autoscore/ZoomCameraView";
 import DartInput from "@/src/components/game/ingame/input/DartInput";
 import {useMutation} from "@/src/hooks/useMutation";
-import {CurrentGameState, DartRevertRequest, DartThrow} from "@/src/types/api";
+import {CurrentGameState, DartCorrectionRequest, DartRevertRequest, DartThrow, DartThrowResponse} from "@/src/types/api";
 import {gameService} from "@/src/services/game/gameService";
 
 interface GameViewProps {
@@ -24,6 +24,7 @@ export default function GameView({gameId, playerId, websocketUrl, fps}: GameView
     const isAutoScoreEnabled = useGameStore((state) => state.isAutoScoreEnabled);
     const {isCameraExpanded, handleToggleCamera} = useCameraUI();
     const [modifier, setModifier] = useState<1 | 2 | 3>(1);
+    const [selectedDartForCorrection, setSelectedDartForCorrection] = useState<DartThrowResponse | null>(null);
 
     const [currentGameState, setCurrentGameState] = useState<Partial<CurrentGameState>>({
         currentRemainingScores: {},
@@ -95,6 +96,18 @@ export default function GameView({gameId, playerId, websocketUrl, fps}: GameView
         }
     );
 
+    const correctDartMutation = useMutation(
+        (correctionRequest: DartCorrectionRequest) => gameService.correctDart(playerId, gameId, correctionRequest),
+        {
+            onSuccess: (currentGameState) => {
+                setCurrentGameState(currentGameState);
+            },
+            onError: (error) => {
+                console.error('Failed to correct dart:', error);
+            }
+        }
+    );
+
     const fetchGameStateMutation = useMutation(
         () => gameService.getCurrentGameState(gameId),
         {
@@ -112,13 +125,23 @@ export default function GameView({gameId, playerId, websocketUrl, fps}: GameView
     }, [gameId]);
 
     const handleNumberPress = async (value: number) => {
-        console.log(`Number pressed: ${value} with modifier: ${modifier}`);
-        const dartThrow: DartThrow = {
-            score: value, multiplier: modifier
+        if (selectedDartForCorrection) {
+            const correctionRequest: DartCorrectionRequest = {
+                dartId: selectedDartForCorrection.id,
+                score: value,
+                multiplier: modifier
+            };
+            await correctDartMutation.mutate(correctionRequest);
+            setSelectedDartForCorrection(null);
+            setModifier(1);
+        } else {
+            console.log(`Number pressed: ${value} with modifier: ${modifier}`);
+            const dartThrow: DartThrow = {
+                score: value, multiplier: modifier
+            }
+            await throwDartMutation.mutate(dartThrow);
+            setModifier(1);
         }
-        await throwDartMutation.mutate(dartThrow);
-        // Reset modifier after use
-        setModifier(1);
     };
 
     const handleDoublePress = () => {
@@ -132,15 +155,30 @@ export default function GameView({gameId, playerId, websocketUrl, fps}: GameView
     };
 
     const handleBackPress = async () => {
-        console.log("Back button pressed");
-        let currentPlayerDarts = currentGameState.currentTurnDarts?.[playerId];
-        if (currentPlayerDarts && currentPlayerDarts.length > 0) {
-            let id = currentPlayerDarts[currentPlayerDarts.length - 1].id;
-            const revertRequest: DartRevertRequest = {
-                id: id
+        if (selectedDartForCorrection) {
+            setSelectedDartForCorrection(null);
+            setModifier(1);
+        } else {
+            console.log("Back button pressed");
+            let currentPlayerDarts = currentGameState.currentTurnDarts?.[playerId];
+            if (currentPlayerDarts && currentPlayerDarts.length > 0) {
+                let id = currentPlayerDarts[currentPlayerDarts.length - 1].id;
+                const revertRequest: DartRevertRequest = {
+                    id: id
+                }
+                console.log("Revert request", revertRequest);
+                await revertDartMutation.mutate(revertRequest)
             }
-            console.log("Revert request", revertRequest);
-            await revertDartMutation.mutate(revertRequest)
+        }
+    };
+
+    const handleDartPress = (dart: DartThrowResponse) => {
+        if (selectedDartForCorrection?.id === dart.id) {
+            setSelectedDartForCorrection(null);
+            setModifier(1);
+        } else {
+            setSelectedDartForCorrection(dart);
+            setModifier(dart.multiplier as 1 | 2 | 3);
         }
     };
 
@@ -162,7 +200,12 @@ export default function GameView({gameId, playerId, websocketUrl, fps}: GameView
                     contentContainerClassName="pb-5 pt-5"
                     showsVerticalScrollIndicator={false}
                 >
-                                        <X01ScoreView currentGameStatePartial={currentGameState} playerId={playerId}/>
+                    <X01ScoreView 
+                        currentGameStatePartial={currentGameState} 
+                        playerId={playerId}
+                        onDartPress={handleDartPress}
+                        selectedDartId={selectedDartForCorrection?.id ?? null}
+                    />
                 </ScrollView>
 
                 <View className="absolute bottom-0 w-full">
