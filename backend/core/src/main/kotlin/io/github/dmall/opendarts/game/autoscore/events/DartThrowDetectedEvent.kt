@@ -30,6 +30,7 @@ class ManualDartAdjustment(
   playerId: String,
   val dartThrowRequest: DartThrowRequest?,
   val dartRevertRequest: DartRevertRequest?,
+      val lastDartId: Long,
   val bust: Boolean = false,
 ) : GameEvent(source, sessionId, playerId, EventType.DART_THROW_DETECTED)
 

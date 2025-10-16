@@ -15,11 +15,7 @@ data class DartThrowRequest(
 data class DartRevertRequest(val id: Long)
 
 @ValidDartCorrectionRequest
-data class DartCorrectionRequest(
-  val dartId: Long,
-  val multiplier: Int,
-  val score: Int,
-)
+data class DartCorrectionRequest(val dartId: Long, val multiplier: Int, val score: Int)
 
 data class DartResponse(
   val id: Long,
@@ -42,7 +38,13 @@ data class CurrentGameState(
   val nextPlayer: Player? = null,
   val message: String? = null,
   val bust: Boolean = false,
-)
+) {
+  fun getLastDartId(playerId: String): Long? {
+    return currentTurnDarts.keys
+      .find { it.id == playerId }
+      ?.let { currentTurnDarts[it]?.lastOrNull()?.id }
+  }
+}
 
 data class AppCalibrationResponse(val calibrated: Boolean)
 

@@ -34,6 +34,7 @@ data class ConfirmedDart(
   override val score: Int,
   override val multiplier: Int,
   val origin: DartOrigin = DartOrigin.AUTO_SCORE,
+  val internalId: Long,
 ) : AutoScoreDart(position, score, multiplier)
 
 data class PendingDart(

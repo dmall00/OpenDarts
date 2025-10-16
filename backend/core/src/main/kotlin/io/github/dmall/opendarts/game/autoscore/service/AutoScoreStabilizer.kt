@@ -1,10 +1,10 @@
 package io.github.dmall.opendarts.game.autoscore.service
 
-import io.github.dmall.opendarts.game.autoscore.events.DartThrowDetectedEvent
 import io.github.dmall.opendarts.game.autoscore.events.ManualDartAdjustment
 import io.github.dmall.opendarts.game.autoscore.events.TurnSwitchDetectedEvent
 import io.github.dmall.opendarts.game.autoscore.model.*
 import io.github.dmall.opendarts.game.model.DartThrowRequest
+import io.github.dmall.opendarts.game.service.GameOrchestrator
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationEventPublisher
@@ -32,6 +32,7 @@ class AutoScoreStabilizer
 constructor(
   applicationEventPublisher: ApplicationEventPublisher,
   private val turnSwitchDetector: TurnSwitchDetector,
+  private val orchestrator: GameOrchestrator,
 ) : AutoScoreBaseService(applicationEventPublisher) {
 
   private val logger = KotlinLogging.logger {}
@@ -81,6 +82,7 @@ constructor(
                 score = 0,
                 multiplier = 0,
                 origin = DartOrigin.MANUAL_BUST,
+                  manualDartAdjustment.lastDartId
               )
             )
           }
@@ -92,6 +94,7 @@ constructor(
               score = manualDartAdjustment.dartThrowRequest.score,
               multiplier = manualDartAdjustment.dartThrowRequest.multiplier,
               origin = DartOrigin.MANUAL_SCORING,
+                manualDartAdjustment.lastDartId
             )
         }
       }
@@ -223,7 +226,7 @@ constructor(
   private fun promoteConfirmedPendingDarts(
     detectionState: DetectionState,
     playerId: String,
-    sessionId: String,
+    gameSessionId: String,
   ) {
     val pendingDarts = detectionState.pendingDarts
     val confirmedDarts = detectionState.confirmedDarts
@@ -234,17 +237,18 @@ constructor(
       logger.info {
         "Promoting pending dart to confirmed: ${pending.position}, score: ${pending.multiplier}x${pending.score}, appeared ${pending.appearanceCount} times"
       }
+
+      val dartThrowRequest = DartThrowRequest(pending.multiplier, pending.score, true)
+      val gameState = orchestrator.submitDartThrow(gameSessionId, playerId, dartThrowRequest)
+
       confirmedDarts.add(
         ConfirmedDart(
           pending.position,
           score = pending.score,
           multiplier = pending.multiplier,
           origin = DartOrigin.AUTO_SCORE,
+          internalId = gameState.getLastDartId(playerId)!!,
         )
-      )
-      val dartThrowRequest = DartThrowRequest(pending.multiplier, pending.score, true)
-      applicationEventPublisher.publishEvent(
-        DartThrowDetectedEvent(this, sessionId, playerId, dartThrowRequest)
       )
     }
     pendingDarts.removeAll(dartsToPromote)
@@ -260,16 +264,16 @@ constructor(
     logger.info { "Registering $missCount missed dart(s) for player $playerId" }
     for (i in 0 until missCount) {
       val dartThrowRequest = DartThrowRequest(1, 0, true)
-      applicationEventPublisher.publishEvent(
-        DartThrowDetectedEvent(this, sessionId, playerId, dartThrowRequest)
-      )
 
-      confirmedDarts.add(
+        val gameState = orchestrator.submitDartThrow(sessionId, playerId, dartThrowRequest)
+
+        confirmedDarts.add(
         ConfirmedDart(
           (-1.0 - i) to -1.0,
           score = 0,
           multiplier = 0,
           origin = DartOrigin.AUTO_SCORE_MISS,
+            internalId = gameState.getLastDartId(playerId)!!
         )
       )
     }

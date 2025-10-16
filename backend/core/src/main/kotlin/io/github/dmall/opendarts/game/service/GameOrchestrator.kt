@@ -30,11 +30,11 @@ constructor(
 
   @Transactional
   fun submitDartThrow(
-    gameId: String,
-    playerId: String,
-    dartThrowRequest: DartThrowRequest,
+      gameSessionId: String,
+      playerId: String,
+      dartThrowRequest: DartThrowRequest,
   ): CurrentGameState {
-    val gameSession = gameSessionRepository.findById(gameId).orElseThrow()
+    val gameSession = gameSessionRepository.findById(gameSessionId).orElseThrow()
     val currentPlayer = playerRepository.findById(playerId).orElseThrow()
     val gameHandler = gameModeRegistry.getGameHandler(gameSession.game.gameMode)
     val gameState = gameHandler.processDartThrow(gameSession, currentPlayer, dartThrowRequest)
@@ -42,7 +42,7 @@ constructor(
     if (dartThrowRequest.autoScore) {
       appWebSocketHandler.sendWebSocketMessage(
         gameMapper.toCurrentGameStateTO(gameState),
-        "$playerId-$gameId",
+        "$playerId-$gameSessionId",
         EventType.DART_THROW_DETECTED,
       )
     }
@@ -50,9 +50,9 @@ constructor(
     if (!dartThrowRequest.autoScore) {
       val adjustment =
         if (gameState.bust) {
-          ManualDartAdjustment(this, gameId, playerId, DartThrowRequest(0, 0, false), null, true)
+          ManualDartAdjustment(this, gameSessionId, playerId, DartThrowRequest(0, 0, false), null,gameState.getLastDartId(playerId)!!, true)
         } else {
-          ManualDartAdjustment(this, gameId, playerId, dartThrowRequest, null)
+          ManualDartAdjustment(this, gameSessionId, playerId, dartThrowRequest, null, gameState.getLastDartId(playerId)!!)
         }
       applicationEventPublisher.publishEvent(adjustment)
     }
@@ -69,10 +69,12 @@ constructor(
     val gameSession = gameSessionRepository.findById(gameId).orElseThrow()
     val currentPlayer = playerRepository.findById(playerId).orElseThrow()
     val gameHandler = gameModeRegistry.getGameHandler(gameSession.game.gameMode)
+      val gameState = gameHandler.revertDartThrow(gameSession, currentPlayer, dartRevertRequest)
     applicationEventPublisher.publishEvent(
-      ManualDartAdjustment(this, gameId, playerId, null, dartRevertRequest)
+      ManualDartAdjustment(this, gameId, playerId, null, dartRevertRequest, gameState.getLastDartId(playerId)!!)
     )
-    return gameHandler.revertDartThrow(gameSession, currentPlayer, dartRevertRequest)
+
+      return gameState
   }
 
   @Transactional
@@ -127,7 +129,7 @@ constructor(
   @EventListener
   fun handleCalibrationEvent(event: CalibrationEvent) {
     appWebSocketHandler.sendWebSocketMessage(
-      AppCalibrationResponse(event.calibrated),
+        AppCalibrationResponse(event.calibrated),
       "${event.playerId}-${event.sessionId}",
       event.type,
     )
