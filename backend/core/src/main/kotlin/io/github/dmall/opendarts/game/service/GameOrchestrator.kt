@@ -1,6 +1,9 @@
 package io.github.dmall.opendarts.game.service
 
-import io.github.dmall.opendarts.game.autoscore.events.*
+import io.github.dmall.opendarts.game.autoscore.events.CalibrationEvent
+import io.github.dmall.opendarts.game.autoscore.events.EventType
+import io.github.dmall.opendarts.game.autoscore.events.ManualDartAdjustment
+import io.github.dmall.opendarts.game.autoscore.events.TurnSwitchDetectedEvent
 import io.github.dmall.opendarts.game.autoscore.websocket.AppWebSocketHandler
 import io.github.dmall.opendarts.game.mapper.GameMapper
 import io.github.dmall.opendarts.game.model.*
@@ -105,14 +108,6 @@ constructor(
     val gameSession = gameSessionRepository.findById(gameId).orElseThrow()
     val gameHandler = gameModeRegistry.getGameHandler(gameSession.game.gameMode)
     return gameHandler.getCurrentGameState(gameSession)
-  }
-
-  @EventListener
-  @Transactional
-  fun handleDartThrowDetectedEvent(event: DartThrowDetectedEvent) {
-    // This will process the auto-scored dart but not publish a ManualDartAdjustment event
-    // since dartThrowRequest.autoScore is true
-    submitDartThrow(event.sessionId, event.playerId, event.dartThrowRequest)
   }
 
   @EventListener

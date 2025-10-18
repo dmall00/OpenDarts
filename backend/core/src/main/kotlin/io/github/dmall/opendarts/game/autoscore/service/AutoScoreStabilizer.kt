@@ -82,7 +82,7 @@ constructor(
                 score = 0,
                 multiplier = 0,
                 origin = DartOrigin.MANUAL_BUST,
-                  manualDartAdjustment.lastDartId
+                internalId = manualDartAdjustment.lastDartId,
               )
             )
           }
@@ -94,7 +94,7 @@ constructor(
               score = manualDartAdjustment.dartThrowRequest.score,
               multiplier = manualDartAdjustment.dartThrowRequest.multiplier,
               origin = DartOrigin.MANUAL_SCORING,
-                manualDartAdjustment.lastDartId
+              internalId = manualDartAdjustment.lastDartId,
             )
         }
       }
@@ -265,15 +265,15 @@ constructor(
     for (i in 0 until missCount) {
       val dartThrowRequest = DartThrowRequest(1, 0, true)
 
-        val gameState = orchestrator.submitDartThrow(sessionId, playerId, dartThrowRequest)
+      val gameState = orchestrator.submitDartThrow(sessionId, playerId, dartThrowRequest)
 
-        confirmedDarts.add(
+      confirmedDarts.add(
         ConfirmedDart(
           (-1.0 - i) to -1.0,
           score = 0,
           multiplier = 0,
           origin = DartOrigin.AUTO_SCORE_MISS,
-            internalId = gameState.getLastDartId(playerId)!!
+          internalId = gameState.getLastDartId(playerId)!!,
         )
       )
     }
