@@ -15,11 +15,11 @@ import org.springframework.stereotype.Service
 import java.util.*
 
 private const val DISTANCE_THRESHOLD = 0.04
-private const val CONFIDENCE_THRESHOLD = 0.4
+private const val CONFIDENCE_THRESHOLD = 0.35
 private const val MISS_DART_CONFIDENCE_THRESHOLD = 0.8
 private const val FPS = 1
 private const val REQUIRED_APPEARANCES = 2
-private const val MAX_FRAMES_WITHOUT_APPEARANCE = 2
+private const val MAX_FRAMES_WITHOUT_APPEARANCE = 3
 
 /**
  * Service that receives the results of the autoscoring python server and manages a state of
@@ -32,9 +32,9 @@ private const val MAX_FRAMES_WITHOUT_APPEARANCE = 2
 class AutoScoreStabilizer
 @Autowired
 constructor(
-    applicationEventPublisher: ApplicationEventPublisher,
-    private val turnSwitchDetector: TurnSwitchDetector,
-    @Lazy private val orchestrator: GameOrchestrator,
+  applicationEventPublisher: ApplicationEventPublisher,
+  private val turnSwitchDetector: TurnSwitchDetector,
+  @Lazy private val orchestrator: GameOrchestrator,
 ) : AutoScoreBaseService(applicationEventPublisher) {
 
   private val logger = KotlinLogging.logger {}
@@ -105,23 +105,44 @@ constructor(
       }
       AdjustmentType.REVERT -> {
         val removedDart = detectionState.confirmedDarts.removeLastOrNull()
-        detectionState.revertedDarts += removedDart ?: return
-        logger.info { "Manual dart revert requested, removed dart: $removedDart" }
+        if (removedDart != null) {
+          if (removedDart.origin == DartOrigin.AUTO_SCORE) {
+            detectionState.pendingDarts.removeAll { pending -> isSameDart(pending, removedDart) }
+            detectionState.revertedDarts += removedDart
+            logger.info {
+              "Dart revert requested, removed auto-scored dart: $removedDart and cleared from all tracking"
+            }
+          } else {
+            logger.info {
+              "Manual dart revert requested, removed manually scored dart: $removedDart"
+            }
+          }
+        }
       }
       AdjustmentType.CORRECT -> {
         val correction = manualDartAdjustment.dartCorrectionRequest
-        detectionState.confirmedDarts
-          .indexOfFirst { it.internalId == correction?.dartId }
-          .takeIf { it != -1 }
-          ?.let {
-            val dartToReplace = detectionState.confirmedDarts[it]
-            dartToReplace.score = correction!!.score
-            dartToReplace.multiplier = correction.multiplier
-            dartToReplace.internalId = manualDartAdjustment.lastDartId
-            logger.info {
-              "Corrected $dartToReplace to new score ${correction.score} and multiplier ${correction.multiplier}"
-            }
+        val confirmedDart =
+          detectionState.confirmedDarts.find { it.internalId == correction?.dartId }
+
+        if (confirmedDart != null && correction != null) {
+          val oldConfirmedDart =
+            ConfirmedDart(
+              confirmedDart.position,
+              score = confirmedDart.score,
+              multiplier = confirmedDart.multiplier,
+              origin = DartOrigin.AUTO_SCORE,
+              internalId = confirmedDart.internalId,
+            )
+
+          confirmedDart.score = correction.score
+          confirmedDart.multiplier = correction.multiplier
+          confirmedDart.internalId = correction.dartId
+
+          detectionState.revertedDarts += oldConfirmedDart
+          logger.info {
+            "Corrected $oldConfirmedDart to new score ${correction.score} and multiplier ${correction.multiplier}, blocked original dart at position ${oldConfirmedDart.position}"
           }
+        }
       }
     }
   }
@@ -197,6 +218,7 @@ constructor(
   private fun updatePendingDarts(imageDarts: List<DartDetection>, detectionState: DetectionState) {
     val pendingDarts = detectionState.pendingDarts
     val confirmedDarts = detectionState.confirmedDarts
+    val revertedDarts = detectionState.revertedDarts
 
     pendingDarts.forEach { pending -> pending.framesSinceLastSeen++ }
 
@@ -212,6 +234,13 @@ constructor(
       }
 
       if (confirmedDarts.any { confirmedDart -> isSameDart(imageDart, confirmedDart) }) {
+        continue
+      }
+
+      if (revertedDarts.any { revertedDart -> isSameDart(imageDart, revertedDart) }) {
+        logger.info {
+          "Skipping dart at $pos with score ${multiplier}x$score - matches reverted/corrected dart"
+        }
         continue
       }
 
@@ -255,14 +284,6 @@ constructor(
     val dartsToPromote = pendingDarts.filter { it.appearanceCount >= REQUIRED_APPEARANCES }
 
     for (pending in dartsToPromote) {
-
-      if (detectionState.revertedDarts.any { isSameDart(pending, it) }) {
-        logger.info {
-          "Pending dart at ${pending.position} with score ${pending.multiplier}x${pending.score} was reverted manually, skipping promotion."
-        }
-        continue
-      }
-
       logger.info {
         "Promoting pending dart to confirmed: ${pending.position}, score: ${pending.multiplier}x${pending.score}, appeared ${pending.appearanceCount} times"
       }
