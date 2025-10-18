@@ -71,7 +71,7 @@ constructor(
   fun consumeManualDartTrackedEvent(manualDartAdjustment: ManualDartAdjustment) {
     val id = composeId(manualDartAdjustment.playerId, manualDartAdjustment.sessionId)
     val detectionState = detectionStates.getOrPut(id) { DetectionState() }
-    
+
     when (manualDartAdjustment.adjustmentType) {
       AdjustmentType.THROW -> {
         if (detectionState.confirmedDarts.size < 3) {
@@ -103,11 +103,24 @@ constructor(
         }
       }
       AdjustmentType.REVERT -> {
-          val removedDart = detectionState.confirmedDarts.removeLastOrNull()
-          logger.info { "Manual dart revert requested, removed dart: $removedDart" }
+        val removedDart = detectionState.confirmedDarts.removeLastOrNull()
+        detectionState.revertedDarts += removedDart ?: return
+        logger.info { "Manual dart revert requested, removed dart: $removedDart" }
       }
       AdjustmentType.CORRECT -> {
-        logger.info { "Manual dart correction requested, dartId: ${manualDartAdjustment.dartCorrectionRequest?.dartId}, new score: ${manualDartAdjustment.dartCorrectionRequest?.multiplier}x${manualDartAdjustment.dartCorrectionRequest?.score}" }
+        val correction = manualDartAdjustment.dartCorrectionRequest
+        detectionState.confirmedDarts
+          .indexOfFirst { it.internalId == correction?.dartId }
+          .takeIf { it != -1 }
+          ?.let {
+            val dartToReplace = detectionState.confirmedDarts[it]
+            dartToReplace.score = correction!!.score
+            dartToReplace.multiplier = correction.multiplier
+            dartToReplace.internalId = manualDartAdjustment.lastDartId
+            logger.info {
+              "Corrected $dartToReplace to new score ${correction.score} and multiplier ${correction.multiplier}"
+            }
+          }
       }
     }
   }
@@ -241,6 +254,14 @@ constructor(
     val dartsToPromote = pendingDarts.filter { it.appearanceCount >= REQUIRED_APPEARANCES }
 
     for (pending in dartsToPromote) {
+
+      if (detectionState.revertedDarts.any { isSameDart(pending, it) }) {
+        logger.info {
+          "Pending dart at ${pending.position} with score ${pending.multiplier}x${pending.score} was reverted manually, skipping promotion."
+        }
+        continue
+      }
+
       logger.info {
         "Promoting pending dart to confirmed: ${pending.position}, score: ${pending.multiplier}x${pending.score}, appeared ${pending.appearanceCount} times"
       }
@@ -321,6 +342,7 @@ constructor(
   ) {
     detectionState.confirmedDarts.clear()
     detectionState.pendingDarts.clear()
+    detectionState.revertedDarts.clear()
     turnSwitchDetector.resetStateForNewTurn(playerId, sessionId, detectionState)
     logger.info { "Cleared tracked darts for new turn." }
     applicationEventPublisher.publishEvent(TurnSwitchDetectedEvent(this, sessionId, playerId))

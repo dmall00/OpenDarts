@@ -30,9 +30,9 @@ constructor(
 
   @Transactional
   fun submitDartThrow(
-      gameSessionId: String,
-      playerId: String,
-      dartThrowRequest: DartThrowRequest,
+    gameSessionId: String,
+    playerId: String,
+    dartThrowRequest: DartThrowRequest,
   ): CurrentGameState {
     val gameSession = gameSessionRepository.findById(gameSessionId).orElseThrow()
     val currentPlayer = playerRepository.findById(playerId).orElseThrow()
@@ -50,9 +50,28 @@ constructor(
     if (!dartThrowRequest.autoScore) {
       val adjustment =
         if (gameState.bust) {
-          ManualDartAdjustment(this, gameSessionId, playerId, AdjustmentType.THROW, DartThrowRequest(0, 0, false), null, null, gameState.getLastDartId(playerId)!!, true)
+          ManualDartAdjustment(
+            this,
+            gameSessionId,
+            playerId,
+            AdjustmentType.THROW,
+            DartThrowRequest(0, 0, false),
+            null,
+            null,
+            gameState.getLastDartId(playerId)!!,
+            true,
+          )
         } else {
-          ManualDartAdjustment(this, gameSessionId, playerId, AdjustmentType.THROW, dartThrowRequest, null, null, gameState.getLastDartId(playerId)!!)
+          ManualDartAdjustment(
+            this,
+            gameSessionId,
+            playerId,
+            AdjustmentType.THROW,
+            dartThrowRequest,
+            null,
+            null,
+            gameState.getLastDartId(playerId)!!,
+          )
         }
       applicationEventPublisher.publishEvent(adjustment)
     }
@@ -69,12 +88,21 @@ constructor(
     val gameSession = gameSessionRepository.findById(gameId).orElseThrow()
     val currentPlayer = playerRepository.findById(playerId).orElseThrow()
     val gameHandler = gameModeRegistry.getGameHandler(gameSession.game.gameMode)
-      val gameState = gameHandler.revertDartThrow(gameSession, currentPlayer, dartRevertRequest)
+    val gameState = gameHandler.revertDartThrow(gameSession, currentPlayer, dartRevertRequest)
     applicationEventPublisher.publishEvent(
-      ManualDartAdjustment(this, gameId, playerId, AdjustmentType.REVERT, null, dartRevertRequest, null, gameState.getLastDartId(playerId)!!)
+      ManualDartAdjustment(
+        this,
+        gameId,
+        playerId,
+        AdjustmentType.REVERT,
+        null,
+        dartRevertRequest,
+        null,
+        gameState.getLastDartId(playerId)!!,
+      )
     )
 
-      return gameState
+    return gameState
   }
 
   @Transactional
@@ -86,24 +114,25 @@ constructor(
     val gameSession = gameSessionRepository.findById(gameId).orElseThrow()
     val currentPlayer = playerRepository.findById(playerId).orElseThrow()
     val gameHandler = gameModeRegistry.getGameHandler(gameSession.game.gameMode)
-    
-    val dartThrowRequest = DartThrowRequest(
-      dartCorrectionRequest.multiplier,
-      dartCorrectionRequest.score,
-      false
-    )
-    
-    val gameState = gameHandler.correctDartThrow(
-      gameSession,
-      currentPlayer,
-      dartCorrectionRequest,
-      dartThrowRequest
-    )
-    
+
+    val dartThrowRequest =
+      DartThrowRequest(dartCorrectionRequest.multiplier, dartCorrectionRequest.score, false)
+
+    val gameState = gameHandler.correctDartThrow(gameSession, currentPlayer, dartCorrectionRequest)
+
     applicationEventPublisher.publishEvent(
-      ManualDartAdjustment(this, gameId, playerId, AdjustmentType.CORRECT, dartThrowRequest, null, dartCorrectionRequest, gameState.getLastDartId(playerId)!!)
+      ManualDartAdjustment(
+        this,
+        gameId,
+        playerId,
+        AdjustmentType.CORRECT,
+        dartThrowRequest,
+        null,
+        dartCorrectionRequest,
+        gameState.getLastDartId(playerId)!!,
+      )
     )
-    
+
     return gameState
   }
 
@@ -127,7 +156,7 @@ constructor(
   @EventListener
   fun handleCalibrationEvent(event: CalibrationEvent) {
     appWebSocketHandler.sendWebSocketMessage(
-        AppCalibrationResponse(event.calibrated),
+      AppCalibrationResponse(event.calibrated),
       "${event.playerId}-${event.sessionId}",
       event.type,
     )

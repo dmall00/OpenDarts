@@ -5,6 +5,7 @@ data class DetectionState(
   var yoloErrors: Int = 0,
   var missingCalibrations: Int = 0,
   val confirmedDarts: MutableList<ConfirmedDart> = mutableListOf(),
+  val revertedDarts: MutableList<ConfirmedDart> = mutableListOf(),
   val pendingDarts: MutableList<PendingDart> = mutableListOf(),
   var frameIndex: Int = 0,
 )
@@ -31,10 +32,10 @@ open class AutoScoreDart(
 
 data class ConfirmedDart(
   override val position: Pair<Double, Double>,
-  override val score: Int,
-  override val multiplier: Int,
-  val origin: DartOrigin = DartOrigin.AUTO_SCORE,
-  val internalId: Long,
+  override var score: Int,
+  override var multiplier: Int,
+  var origin: DartOrigin = DartOrigin.AUTO_SCORE,
+  var internalId: Long,
 ) : AutoScoreDart(position, score, multiplier)
 
 data class PendingDart(
