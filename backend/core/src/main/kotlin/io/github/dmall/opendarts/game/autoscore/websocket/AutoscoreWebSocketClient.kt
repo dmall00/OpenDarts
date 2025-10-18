@@ -8,6 +8,7 @@ import io.github.dmall.opendarts.game.autoscore.service.AutoScoreStabilizer
 import io.github.oshai.kotlinlogging.KotlinLogging
 import jakarta.annotation.PostConstruct
 import jakarta.annotation.PreDestroy
+import org.springframework.context.annotation.Lazy
 import org.springframework.stereotype.Component
 import org.springframework.web.socket.TextMessage
 import org.springframework.web.socket.WebSocketSession
@@ -18,7 +19,7 @@ import java.util.concurrent.atomic.AtomicReference
 class AutoscoreWebSocketClient(
   private val autoScoreProperties: AutoScoreProperties,
   @SnakeCase private val objectMapper: ObjectMapper,
-  private val autoScoreStabilizer: AutoScoreStabilizer,
+  @Lazy private val autoScoreStabilizer: AutoScoreStabilizer,
   private val calibrationService: AutoScoreCalibrationService,
 ) {
   private val pythonSession: AtomicReference<WebSocketSession?> =

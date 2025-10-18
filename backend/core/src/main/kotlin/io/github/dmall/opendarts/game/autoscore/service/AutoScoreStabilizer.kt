@@ -9,6 +9,7 @@ import io.github.dmall.opendarts.game.service.GameOrchestrator
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.ApplicationEventPublisher
+import org.springframework.context.annotation.Lazy
 import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Service
 import java.util.*
@@ -31,9 +32,9 @@ private const val MAX_FRAMES_WITHOUT_APPEARANCE = 2
 class AutoScoreStabilizer
 @Autowired
 constructor(
-  applicationEventPublisher: ApplicationEventPublisher,
-  private val turnSwitchDetector: TurnSwitchDetector,
-  private val orchestrator: GameOrchestrator,
+    applicationEventPublisher: ApplicationEventPublisher,
+    private val turnSwitchDetector: TurnSwitchDetector,
+    @Lazy private val orchestrator: GameOrchestrator,
 ) : AutoScoreBaseService(applicationEventPublisher) {
 
   private val logger = KotlinLogging.logger {}
