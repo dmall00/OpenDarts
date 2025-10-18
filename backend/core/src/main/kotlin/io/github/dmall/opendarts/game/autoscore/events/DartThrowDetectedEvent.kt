@@ -1,5 +1,6 @@
 package io.github.dmall.opendarts.game.autoscore.events
 
+import io.github.dmall.opendarts.game.model.DartCorrectionRequest
 import io.github.dmall.opendarts.game.model.DartRevertRequest
 import io.github.dmall.opendarts.game.model.DartThrowRequest
 import org.springframework.context.ApplicationEvent
@@ -24,13 +25,19 @@ class DartThrowDetectedEvent(
   val dartThrowRequest: DartThrowRequest,
 ) : GameEvent(source, sessionId, playerId, EventType.DART_THROW_DETECTED)
 
+enum class AdjustmentType {
+  THROW, REVERT, CORRECT
+}
+
 class ManualDartAdjustment(
   source: Any,
   sessionId: String,
   playerId: String,
+  val adjustmentType: AdjustmentType,
   val dartThrowRequest: DartThrowRequest?,
   val dartRevertRequest: DartRevertRequest?,
-      val lastDartId: Long,
+  val dartCorrectionRequest: DartCorrectionRequest?,
+  val lastDartId: Long,
   val bust: Boolean = false,
 ) : GameEvent(source, sessionId, playerId, EventType.DART_THROW_DETECTED)
 

@@ -1,5 +1,6 @@
 package io.github.dmall.opendarts.game.autoscore.service
 
+import io.github.dmall.opendarts.game.autoscore.events.AdjustmentType
 import io.github.dmall.opendarts.game.autoscore.events.ManualDartAdjustment
 import io.github.dmall.opendarts.game.autoscore.events.TurnSwitchDetectedEvent
 import io.github.dmall.opendarts.game.autoscore.model.*
@@ -70,38 +71,44 @@ constructor(
   fun consumeManualDartTrackedEvent(manualDartAdjustment: ManualDartAdjustment) {
     val id = composeId(manualDartAdjustment.playerId, manualDartAdjustment.sessionId)
     val detectionState = detectionStates.getOrPut(id) { DetectionState() }
-    if (manualDartAdjustment.dartThrowRequest != null) {
-      if (detectionState.confirmedDarts.size < 3) {
-        if (manualDartAdjustment.bust) {
-          logger.info { "Manual bust detected, filling up to 3 darts with misses." }
-          repeat(3 - detectionState.confirmedDarts.size) {
-            logger.info { "Registering missed dart for bust." }
-            detectionState.confirmedDarts.add(
+    
+    when (manualDartAdjustment.adjustmentType) {
+      AdjustmentType.THROW -> {
+        if (detectionState.confirmedDarts.size < 3) {
+          if (manualDartAdjustment.bust) {
+            logger.info { "Manual bust detected, filling up to 3 darts with misses." }
+            repeat(3 - detectionState.confirmedDarts.size) {
+              logger.info { "Registering missed dart for bust." }
+              detectionState.confirmedDarts.add(
+                ConfirmedDart(
+                  Pair(0.0, 0.0),
+                  score = 0,
+                  multiplier = 0,
+                  origin = DartOrigin.MANUAL_BUST,
+                  internalId = manualDartAdjustment.lastDartId,
+                )
+              )
+            }
+          } else {
+            logger.info { "Manual dart detected, adding to confirmed darts." }
+            detectionState.confirmedDarts +=
               ConfirmedDart(
                 Pair(0.0, 0.0),
-                score = 0,
-                multiplier = 0,
-                origin = DartOrigin.MANUAL_BUST,
+                score = manualDartAdjustment.dartThrowRequest?.score ?: 0,
+                multiplier = manualDartAdjustment.dartThrowRequest?.multiplier ?: 1,
+                origin = DartOrigin.MANUAL_SCORING,
                 internalId = manualDartAdjustment.lastDartId,
               )
-            )
           }
-        } else {
-          logger.info { "Manual dart detected, adding to confirmed darts." }
-          detectionState.confirmedDarts +=
-            ConfirmedDart(
-              Pair(0.0, 0.0),
-              score = manualDartAdjustment.dartThrowRequest.score,
-              multiplier = manualDartAdjustment.dartThrowRequest.multiplier,
-              origin = DartOrigin.MANUAL_SCORING,
-              internalId = manualDartAdjustment.lastDartId,
-            )
         }
       }
-    }
-    val dartRevertRequest = manualDartAdjustment.dartRevertRequest
-    if (dartRevertRequest != null) {
-      detectionState.confirmedDarts.removeLastOrNull()
+      AdjustmentType.REVERT -> {
+          val removedDart = detectionState.confirmedDarts.removeLastOrNull()
+          logger.info { "Manual dart revert requested, removed dart: $removedDart" }
+      }
+      AdjustmentType.CORRECT -> {
+        logger.info { "Manual dart correction requested, dartId: ${manualDartAdjustment.dartCorrectionRequest?.dartId}, new score: ${manualDartAdjustment.dartCorrectionRequest?.multiplier}x${manualDartAdjustment.dartCorrectionRequest?.score}" }
+      }
     }
   }
 

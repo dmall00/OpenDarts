@@ -1,9 +1,6 @@
 package io.github.dmall.opendarts.game.service
 
-import io.github.dmall.opendarts.game.autoscore.events.CalibrationEvent
-import io.github.dmall.opendarts.game.autoscore.events.EventType
-import io.github.dmall.opendarts.game.autoscore.events.ManualDartAdjustment
-import io.github.dmall.opendarts.game.autoscore.events.TurnSwitchDetectedEvent
+import io.github.dmall.opendarts.game.autoscore.events.*
 import io.github.dmall.opendarts.game.autoscore.websocket.AppWebSocketHandler
 import io.github.dmall.opendarts.game.mapper.GameMapper
 import io.github.dmall.opendarts.game.model.*
@@ -53,9 +50,9 @@ constructor(
     if (!dartThrowRequest.autoScore) {
       val adjustment =
         if (gameState.bust) {
-          ManualDartAdjustment(this, gameSessionId, playerId, DartThrowRequest(0, 0, false), null,gameState.getLastDartId(playerId)!!, true)
+          ManualDartAdjustment(this, gameSessionId, playerId, AdjustmentType.THROW, DartThrowRequest(0, 0, false), null, null, gameState.getLastDartId(playerId)!!, true)
         } else {
-          ManualDartAdjustment(this, gameSessionId, playerId, dartThrowRequest, null, gameState.getLastDartId(playerId)!!)
+          ManualDartAdjustment(this, gameSessionId, playerId, AdjustmentType.THROW, dartThrowRequest, null, null, gameState.getLastDartId(playerId)!!)
         }
       applicationEventPublisher.publishEvent(adjustment)
     }
@@ -74,7 +71,7 @@ constructor(
     val gameHandler = gameModeRegistry.getGameHandler(gameSession.game.gameMode)
       val gameState = gameHandler.revertDartThrow(gameSession, currentPlayer, dartRevertRequest)
     applicationEventPublisher.publishEvent(
-      ManualDartAdjustment(this, gameId, playerId, null, dartRevertRequest, gameState.getLastDartId(playerId)!!)
+      ManualDartAdjustment(this, gameId, playerId, AdjustmentType.REVERT, null, dartRevertRequest, null, gameState.getLastDartId(playerId)!!)
     )
 
       return gameState
@@ -96,12 +93,18 @@ constructor(
       false
     )
     
-    return gameHandler.correctDartThrow(
+    val gameState = gameHandler.correctDartThrow(
       gameSession,
       currentPlayer,
       dartCorrectionRequest,
       dartThrowRequest
     )
+    
+    applicationEventPublisher.publishEvent(
+      ManualDartAdjustment(this, gameId, playerId, AdjustmentType.CORRECT, dartThrowRequest, null, dartCorrectionRequest, gameState.getLastDartId(playerId)!!)
+    )
+    
+    return gameState
   }
 
   fun getGameState(gameId: String): CurrentGameState {

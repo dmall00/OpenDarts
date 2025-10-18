@@ -162,7 +162,6 @@ class X01Game @Autowired constructor(val gameSessionRepository: GameSessionRepos
     gameSession: GameSession,
     currentPlayer: Player,
     dartCorrectionRequest: DartCorrectionRequest,
-    dartThrowRequest: DartThrowRequest,
   ): CurrentGameState {
     val currentLeg = getCurrentLeg(gameSession)
     val currentTurn = getCurrentTurnForRevert(currentLeg, currentPlayer)
@@ -181,10 +180,10 @@ class X01Game @Autowired constructor(val gameSessionRepository: GameSessionRepos
     currentTurn.darts.removeAt(dartIndex)
 
     val correctedDart = Dart().apply {
-      this.score = dartThrowRequest.score
-      this.multiplier = dartThrowRequest.multiplier
+      this.score = dartCorrectionRequest.score
+      this.multiplier = dartCorrectionRequest.multiplier
       this.turn = currentTurn
-      this.autoScore = dartThrowRequest.autoScore
+      this.autoScore = false
     }
 
     currentTurn.darts.add(dartIndex, correctedDart)

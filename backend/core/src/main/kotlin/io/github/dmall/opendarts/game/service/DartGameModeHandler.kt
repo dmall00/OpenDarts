@@ -25,6 +25,5 @@ interface DartGameModeHandler {
     gameSession: GameSession,
     currentPlayer: Player,
     dartCorrectionRequest: DartCorrectionRequest,
-    dartThrowRequest: DartThrowRequest,
   ): CurrentGameState
 }
