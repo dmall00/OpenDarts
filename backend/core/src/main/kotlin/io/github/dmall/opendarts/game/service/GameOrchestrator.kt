@@ -136,6 +136,19 @@ constructor(
     return gameState
   }
 
+  @Transactional
+  fun completeTurn(
+    gameId: String,
+    playerId: String,
+    dartsInTurn: List<DartThrowRequest>,
+  ): CurrentGameState {
+
+    val gameSession = gameSessionRepository.findById(gameId).orElseThrow()
+    val currentPlayer = playerRepository.findById(playerId).orElseThrow()
+    val gameHandler = gameModeRegistry.getGameHandler(gameSession.game.gameMode)
+    return gameHandler.commitTurn(gameSession, currentPlayer, dartsInTurn)
+  }
+
   fun getGameState(gameId: String): CurrentGameState {
     val gameSession = gameSessionRepository.findById(gameId).orElseThrow()
     val gameHandler = gameModeRegistry.getGameHandler(gameSession.game.gameMode)

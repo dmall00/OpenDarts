@@ -16,6 +16,17 @@ import org.springframework.web.bind.annotation.*
 class GamePlayController
 @Autowired
 constructor(private val gameOrchestrator: GameOrchestrator, private val gameMapper: GameMapper) {
+
+  @PostMapping("/{gameId}/{playerId}/turn/complete")
+  fun completeTurn(
+    @PathVariable gameId: String,
+    @PathVariable playerId: String,
+    @Valid @RequestBody dartsInTurn: List<DartThrowRequest>,
+  ): ResponseEntity<CurrentGameStateTO> {
+    val currentGameState = gameOrchestrator.completeTurn(gameId, playerId, dartsInTurn)
+    return ResponseEntity.ok(gameMapper.toCurrentGameStateTO(currentGameState))
+  }
+
   @PostMapping("/{gameId}/{playerId}/dart")
   fun submitDartThrow(
     @PathVariable playerId: String,
@@ -54,3 +65,4 @@ constructor(private val gameOrchestrator: GameOrchestrator, private val gameMapp
     return ResponseEntity.ok(gameMapper.toCurrentGameStateTO(gameState))
   }
 }
+

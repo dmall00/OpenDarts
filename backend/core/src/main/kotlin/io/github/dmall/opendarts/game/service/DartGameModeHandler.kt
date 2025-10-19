@@ -21,6 +21,18 @@ interface DartGameModeHandler {
     dartThrowRequest: DartThrowRequest,
   ): CurrentGameState
 
+    /**
+     * Commits the turn for the current player in the given game session
+     * @param gameSession The current game session
+     * @param currentPlayer The player whose turn is being committed
+     * @param turnDarts The list of dart throws made in the turn
+     */
+    fun commitTurn(
+    gameSession: GameSession,
+    currentPlayer: Player,
+    turnDarts: List<DartThrowRequest>
+    ) : CurrentGameState
+
   /**
    * Retrieves the current game state for the given game session
    *

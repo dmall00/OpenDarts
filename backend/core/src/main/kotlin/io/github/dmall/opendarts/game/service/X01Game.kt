@@ -205,7 +205,17 @@ class X01Game @Autowired constructor(val gameSessionRepository: GameSessionRepos
     )
   }
 
-  private fun removeDartById(currentTurn: Turn, dartId: Long) {
+    override fun commitTurn(
+        gameSession: GameSession,
+        currentPlayer: Player,
+        turnDarts: List<DartThrowRequest>
+    ): CurrentGameState {
+        TODO("Not yet implemented")
+        // TODO implement commitTurn logic if needed
+        // TODO in app add a complete / commit turn button to trigger this and remove single dart throw processing in app
+    }
+
+    private fun removeDartById(currentTurn: Turn, dartId: Long) {
     val dartToRemove = currentTurn.darts.find { it.id == dartId }
     if (dartToRemove != null) {
       currentTurn.darts.remove(dartToRemove)
