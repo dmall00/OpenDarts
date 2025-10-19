@@ -3,6 +3,7 @@ import {Text, View} from 'react-native';
 import Card from '@/src/components/ui/Card';
 import Typography from '@/src/components/ui/Typography';
 import SelectableOption from '@/src/components/ui/SelectableOption';
+import PlayerInput from './PlayerInput';
 
 interface GamePickerProps {
     onGameConfigChange?: (config: GameConfig) => void;
@@ -14,17 +15,36 @@ export interface GameConfig {
     players: string[];
 }
 
+interface Player {
+    name: string;
+}
+
 export default function GamePicker({onGameConfigChange}: GamePickerProps) {
     const [selectedScore, setSelectedScore] = useState<301 | 501>(301);
     const [selectedMode] = useState<'X01'>('X01');
-    const [selectedPlayers] = useState<string[]>(["test"]);
+    const [players, setPlayers] = useState<Player[]>([
+        {name: 'test'}
+    ]);
+
+    // Convert Player objects to string array for the GameConfig
+    const playerNames = players.map(player => player.name);
 
     const handleScoreChange = (score: 301 | 501) => {
         setSelectedScore(score);
         const config: GameConfig = {
             gameMode: selectedMode,
             score,
-            players: selectedPlayers,
+            players: playerNames,
+        };
+        onGameConfigChange?.(config);
+    };
+
+    const handlePlayersChange = (updatedPlayers: Player[]) => {
+        setPlayers(updatedPlayers);
+        const config: GameConfig = {
+            gameMode: selectedMode,
+            score: selectedScore,
+            players: updatedPlayers.map(player => player.name),
         };
         onGameConfigChange?.(config);
     };
@@ -72,10 +92,9 @@ export default function GamePicker({onGameConfigChange}: GamePickerProps) {
             {/* Players Section */}
             <View className="mb-lg">
                 <Typography variant="label" className="mb-sm">Players</Typography>
-                <SelectableOption
-                    label="👤 Single Player"
-                    isSelected={true}
-                    isDisabled={true}
+                <PlayerInput
+                    players={players}
+                    onPlayersChange={handlePlayersChange}
                 />
             </View>
 
@@ -86,7 +105,8 @@ export default function GamePicker({onGameConfigChange}: GamePickerProps) {
                     <Typography variant="label" className="text-emerald-700 text-sm">Game Summary</Typography>
                 </View>
                 <Typography variant="body" className="text-slate-800 font-semibold">
-                    {selectedMode.toUpperCase()} • {selectedScore} points • Single Player
+                    {selectedMode.toUpperCase()} • {selectedScore} points
+                    • {players.length} {players.length === 1 ? 'Player' : 'Players'}
                 </Typography>
             </View>
         </Card>

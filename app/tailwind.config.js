@@ -8,7 +8,7 @@ module.exports = {
     theme: {
         extend: {
             colors: {
-                enpmerald: {
+                emerald: {
                     50: '#ecfdf5',
                     100: '#d1fae5',
                     500: '#10b981',

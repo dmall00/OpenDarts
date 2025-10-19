@@ -27,9 +27,9 @@ export const buttonStyles = {
             textSelected: "text-white"
         },
         triple: {
-            base: "bg-enpmerald-50 border border-enpmerald-100 active:bg-enpmerald-100 active:border-enpmerald-200",
-            selected: "bg-enpmerald-500 border-enpmerald-500 active:bg-enpmerald-600",
-            text: "text-enpmerald-600",
+            base: "bg-emerald-50 border border-emerald-100 active:bg-emerald-100 active:border-emerald-200",
+            selected: "bg-emerald-500 border-emerald-500 active:bg-emerald-600",
+            text: "text-emerald-600",
             textSelected: "text-white"
         },
         back: {
