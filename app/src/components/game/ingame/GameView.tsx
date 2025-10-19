@@ -38,14 +38,18 @@ export default function GameView({gameId, websocketUrl, fps}: GameViewProps) {
         currentTurnDarts: {},
     });
 
+    const updateGameStateAndPlayer = (gameState: Partial<CurrentGameStateResponse>) => {
+        setCurrentGameState(gameState);
+        if (gameState.currentPlayer?.id && playerId !== gameState.currentPlayer?.id) {
+            setPlayerId(gameState.currentPlayer.id);
+        }
+    };
+
     const fetchGameStateMutation = useMutation(
         () => gameService.getCurrentGameState(gameId),
         {
             onSuccess: (gameState) => {
-                setCurrentGameState(gameState);
-                if (gameState.currentPlayer?.id) {
-                    setPlayerId(gameState.currentPlayer.id);
-                }
+                updateGameStateAndPlayer(gameState);
             },
             onError: (error) => {
                 console.error('Failed to fetch game state:', error);
@@ -71,7 +75,7 @@ export default function GameView({gameId, websocketUrl, fps}: GameViewProps) {
         gameId,
         playerId: playerId || '',
         websocketUrl,
-        setCurrentGameState: setCurrentGameState,
+        setCurrentGameState: updateGameStateAndPlayer,
         currentGameStatePartial: currentGameState,
         autoConnect: isAutoScoreEnabled && playerId !== null
     });
@@ -105,7 +109,7 @@ export default function GameView({gameId, websocketUrl, fps}: GameViewProps) {
         },
         {
             onSuccess: (dartProcessed) => {
-                setCurrentGameState(dartProcessed);
+                updateGameStateAndPlayer(dartProcessed);
             },
             onError: (error) => {
                 console.error('Failed to send dart:', error);
@@ -119,8 +123,8 @@ export default function GameView({gameId, websocketUrl, fps}: GameViewProps) {
             return gameService.revertDart(playerId, gameId, revertRequest);
         },
         {
-            onSuccess: (currentGameState) => {
-                setCurrentGameState(currentGameState);
+            onSuccess: (gameState) => {
+                updateGameStateAndPlayer(gameState);
             },
             onError: (error) => {
                 console.error('Failed to revert dart:', error);
@@ -134,11 +138,11 @@ export default function GameView({gameId, websocketUrl, fps}: GameViewProps) {
             return gameService.correctDart(playerId, gameId, correctionRequest);
         },
         {
-            onSuccess: (currentGameState) => {
+            onSuccess: (gameState) => {
                 if (playerId) {
-                    console.log('Correction success, new darts:', currentGameState.currentTurnDarts?.[playerId]);
+                    console.log('Correction success, new darts:', gameState.currentTurnDarts?.[playerId]);
                 }
-                setCurrentGameState(currentGameState);
+                updateGameStateAndPlayer(gameState);
                 setSelectedDartForCorrection(null);
                 setModifier(1);
             },

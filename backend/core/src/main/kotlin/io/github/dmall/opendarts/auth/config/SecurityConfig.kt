@@ -56,6 +56,7 @@ constructor(val jwtUtil: JwtUtil, val userDetailsService: CustomUserDetailsServi
             "/app/**",
             "/health/**",
             "/health",
+              "/**"
           )
           .permitAll()
           .requestMatchers(HttpMethod.OPTIONS, "/**")

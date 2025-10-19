@@ -96,7 +96,7 @@ export default function GamePicker(props: GamePickerProps) {
                 </View>
                 <Typography variant="body" className="text-slate-800 font-semibold">
                     {selectedMode.toUpperCase()} • {selectedScore} points
-                    • {players.length} {players.length === 1 ? 'PlayerRequest' : 'Players'}
+                    • {players.length} {players.length === 1 ? 'Player' : 'Players'}
                 </Typography>
             </View>
         </Card>

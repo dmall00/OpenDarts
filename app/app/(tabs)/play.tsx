@@ -1,4 +1,5 @@
 import {useState} from 'react';
+import {View} from 'react-native';
 import {router} from "expo-router";
 import {CreateGameRequest, GameSessionResponse} from '@/src/types/api';
 import {useMutation} from '@/src/hooks/useMutation';
@@ -43,19 +44,18 @@ export default function Play() {
     };
 
     return (
-        <PageLayout 
-            title="Play"
-            bottomContent={
+        <PageLayout title="Play">
+            <GamePicker
+                onGameConfigChange={setGameConfig}
+            />
+            
+            <View className="mt-lg">
                 <StartGameButton
                     onPress={handleStartGame}
                     loading={createGameMutation.loading}
                     error={createGameMutation.error}
                 />
-            }
-        >
-            <GamePicker
-                onGameConfigChange={setGameConfig}
-            />
+            </View>
         </PageLayout>
     );
 }
