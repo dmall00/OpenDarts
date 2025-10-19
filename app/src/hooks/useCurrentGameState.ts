@@ -1,6 +1,6 @@
 import {useEffect, useRef, useState} from 'react';
 import {useGameMessages} from './useGameMessages';
-import {CalibrationState, CurrentGameState} from '../types/api';
+import {CalibrationResponse, CurrentGameStateResponse} from '../types/api';
 import {getCameraConfig, getWebSocketConfig} from "@/src/config/config";
 import {AutoScoreMessage} from '@/src/utils/binaryProtocol';
 
@@ -9,8 +9,8 @@ interface UseCurrentGameStateProps {
     playerId: string;
     websocketUrl?: string;
     fps?: number;
-    currentGameStatePartial: Partial<CurrentGameState>;
-    setCurrentGameState: (currentGameState: Partial<CurrentGameState>) => void;
+    currentGameStatePartial: Partial<CurrentGameStateResponse>;
+    setCurrentGameState: (currentGameState: Partial<CurrentGameStateResponse>) => void;
     autoConnect?: boolean;
 }
 
@@ -32,7 +32,7 @@ export const useCurrentGameState = ({
     if (websocketUrl) {
         wsUrl = websocketUrl;
     } else {
-        wsUrl = `${getWebSocketConfig().DEFAULT_BASE_URL}/ws/app/${playerId}/${gameId}`;
+        wsUrl = `${getWebSocketConfig().DEFAULT_BASE_URL}/ws/app/${gameId}`;
     }
 
     const gameMessages = useGameMessages({
@@ -45,21 +45,21 @@ export const useCurrentGameState = ({
     });
 
     useEffect(() => {
-        return gameMessages.onMessage<CurrentGameState>('dartProcessedResult', (data) => {
+        return gameMessages.onMessage<CurrentGameStateResponse>('dartProcessedResult', (data) => {
             console.log('Dart processed:', data);
             setCurrentGameState(data);
         });
     }, [gameMessages]);
 
     useEffect(() => {
-        return gameMessages.onMessage<CurrentGameState>('turnSwitch', (data) => {
+        return gameMessages.onMessage<CurrentGameStateResponse>('turnSwitch', (data) => {
             console.log('Turn switch received');
             setCurrentGameState(data);
         });
     }, [gameMessages]);
 
     useEffect(() => {
-        return gameMessages.onMessage<CalibrationState>('calibration', (data) => {
+        return gameMessages.onMessage<CalibrationResponse>('calibration', (data) => {
             console.log('Calibration:', data);
             setCalibrated(data.calibrated);
         })
@@ -86,6 +86,7 @@ export const useCurrentGameState = ({
         if (data instanceof ArrayBuffer) {
             const autoScoreMessage: AutoScoreMessage = {
                 timestamp: Date.now(),
+                playerId: playerId
             };
             return gameMessages.sendBinary(data, autoScoreMessage);
         }

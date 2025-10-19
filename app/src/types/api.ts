@@ -1,51 +1,27 @@
-export interface ApiResponse<T> {
-    success: boolean;
-    data: T;
-    message?: string;
-    error?: string;
+export interface PlayerRequest {
+    name: string;
 }
 
-
-export interface LoginRequest {
-    email: string;
-    password: string;
-}
-
-export interface LoginResponse {
-    token: string;
-    refreshToken: string;
-    user: User;
-}
-
-export interface User {
-    id: string;
-    email: string;
-    username: string;
-    createdAt: string;
-    updatedAt: string;
-}
-
-export interface Player {
+export interface PlayerResponse {
     id: string;
     name: string;
 }
 
-export interface GameSession {
+export interface GameSessionResponse {
     gameId: string;
-    playerId: string;
 }
 
 export interface CreateGameRequest {
     gameMode: 'X01';
     score: number;
-    players: string[];
+    players: PlayerRequest[];
 }
 
-export interface CalibrationState {
+export interface CalibrationResponse {
     calibrated: boolean;
 }
 
-export interface DartThrow {
+export interface DartThrowRequest {
     score: number;
     multiplier: number;
     autoScore?: boolean;
@@ -70,16 +46,16 @@ export interface DartThrowResponse {
     autoScore: boolean;
 }
 
-export interface CurrentGameState {
+export interface CurrentGameStateResponse {
     currentTurnDarts: { [playerId: string]: DartThrowResponse[] };
     currentRemainingScores: { [playerId: string]: number };
-    players: { [playerId: string]: Player };
-    currentPlayer: Player;
+    players: { [playerId: string]: PlayerResponse };
+    currentPlayer: PlayerResponse;
     legWon: boolean;
     setWon: boolean;
     gameWon: boolean;
-    winner?: Player;
-    nextPlayer?: Player;
+    winner?: PlayerResponse;
+    nextPlayer?: PlayerResponse;
     message?: string;
     bust: boolean;
 }

@@ -12,10 +12,10 @@ enum class EventType(val type: String) {
 }
 
 abstract class GameEvent(
-  source: Any,
-  val sessionId: String,
-  val playerId: String,
-  val type: EventType,
+    source: Any,
+    val gameSessionId: String,
+    val playerId: String,
+    val type: EventType,
 ) : ApplicationEvent(source)
 
 class DartThrowDetectedEvent(

@@ -9,12 +9,12 @@ interface Player {
     name: string;
 }
 
-interface PlayerInputProps {
+interface PlayerInputPickerProps {
     players: Player[];
     onPlayersChange: (players: Player[]) => void;
 }
 
-const PlayerInput: React.FC<PlayerInputProps> = ({players, onPlayersChange}) => {
+const PlayerInputPicker: React.FC<PlayerInputPickerProps> = ({players, onPlayersChange}) => {
     const [newPlayerName, setNewPlayerName] = useState('');
 
     const addPlayer = () => {
@@ -182,4 +182,4 @@ const PlayerInput: React.FC<PlayerInputProps> = ({players, onPlayersChange}) => 
     );
 };
 
-export default PlayerInput;
+export default PlayerInputPicker;

@@ -10,26 +10,52 @@ import {useCameraUI} from "@/src/hooks/useCameraUI";
 import ZoomCameraView from "@/src/components/game/autoscore/ZoomCameraView";
 import DartInput from "@/src/components/game/ingame/input/DartInput";
 import {useMutation} from "@/src/hooks/useMutation";
-import {CurrentGameState, DartCorrectionRequest, DartRevertRequest, DartThrow, DartThrowResponse} from "@/src/types/api";
+import Typography from "@/src/components/ui/Typography";
+import {
+    CurrentGameStateResponse,
+    DartCorrectionRequest,
+    DartRevertRequest,
+    DartThrowRequest,
+    DartThrowResponse
+} from "@/src/types/api";
 import {gameService} from "@/src/services/game/gameService";
 
 interface GameViewProps {
     gameId: string;
-    playerId: string;
     websocketUrl?: string;
     fps?: number;
 }
 
-export default function GameView({gameId, playerId, websocketUrl, fps}: GameViewProps) {
+export default function GameView({gameId, websocketUrl, fps}: GameViewProps) {
     const isAutoScoreEnabled = useGameStore((state) => state.isAutoScoreEnabled);
     const {isCameraExpanded, handleToggleCamera} = useCameraUI();
     const [modifier, setModifier] = useState<1 | 2 | 3>(1);
     const [selectedDartForCorrection, setSelectedDartForCorrection] = useState<DartThrowResponse | null>(null);
+    const [playerId, setPlayerId] = useState<string | null>(null);
 
-    const [currentGameState, setCurrentGameState] = useState<Partial<CurrentGameState>>({
+    const [currentGameState, setCurrentGameState] = useState<Partial<CurrentGameStateResponse>>({
         currentRemainingScores: {},
         currentTurnDarts: {},
     });
+
+    const fetchGameStateMutation = useMutation(
+        () => gameService.getCurrentGameState(gameId),
+        {
+            onSuccess: (gameState) => {
+                setCurrentGameState(gameState);
+                if (gameState.currentPlayer?.id) {
+                    setPlayerId(gameState.currentPlayer.id);
+                }
+            },
+            onError: (error) => {
+                console.error('Failed to fetch game state:', error);
+            }
+        }
+    );
+
+    useEffect(() => {
+        fetchGameStateMutation.mutate(undefined);
+    }, [gameId]);
 
     const {
         isConnected,
@@ -43,11 +69,11 @@ export default function GameView({gameId, playerId, websocketUrl, fps}: GameView
         calibrated
     } = useCurrentGameState({
         gameId,
-        playerId,
+        playerId: playerId || '',
         websocketUrl,
         setCurrentGameState: setCurrentGameState,
         currentGameStatePartial: currentGameState,
-        autoConnect: isAutoScoreEnabled
+        autoConnect: isAutoScoreEnabled && playerId !== null
     });
 
     useGameCapture({
@@ -73,7 +99,10 @@ export default function GameView({gameId, playerId, websocketUrl, fps}: GameView
     };
 
     const throwDartMutation = useMutation(
-        (dartThrow: DartThrow) => gameService.trackDart(playerId, gameId, dartThrow),
+        (dartThrow: DartThrowRequest) => {
+            if (!playerId) throw new Error('Player ID not set');
+            return gameService.trackDart(playerId, gameId, dartThrow);
+        },
         {
             onSuccess: (dartProcessed) => {
                 setCurrentGameState(dartProcessed);
@@ -85,7 +114,10 @@ export default function GameView({gameId, playerId, websocketUrl, fps}: GameView
     );
 
     const revertDartMutation = useMutation(
-        (revertRequest: DartRevertRequest) => gameService.revertDart(playerId, gameId, revertRequest),
+        (revertRequest: DartRevertRequest) => {
+            if (!playerId) throw new Error('Player ID not set');
+            return gameService.revertDart(playerId, gameId, revertRequest);
+        },
         {
             onSuccess: (currentGameState) => {
                 setCurrentGameState(currentGameState);
@@ -97,10 +129,15 @@ export default function GameView({gameId, playerId, websocketUrl, fps}: GameView
     );
 
     const correctDartMutation = useMutation(
-        (correctionRequest: DartCorrectionRequest) => gameService.correctDart(playerId, gameId, correctionRequest),
+        (correctionRequest: DartCorrectionRequest) => {
+            if (!playerId) throw new Error('Player ID not set');
+            return gameService.correctDart(playerId, gameId, correctionRequest);
+        },
         {
             onSuccess: (currentGameState) => {
-                console.log('Correction success, new darts:', currentGameState.currentTurnDarts?.[playerId]);
+                if (playerId) {
+                    console.log('Correction success, new darts:', currentGameState.currentTurnDarts?.[playerId]);
+                }
                 setCurrentGameState(currentGameState);
                 setSelectedDartForCorrection(null);
                 setModifier(1);
@@ -113,22 +150,6 @@ export default function GameView({gameId, playerId, websocketUrl, fps}: GameView
         }
     );
 
-    const fetchGameStateMutation = useMutation(
-        () => gameService.getCurrentGameState(gameId),
-        {
-            onSuccess: (currentGameState) => {
-                setCurrentGameState(currentGameState);
-            },
-            onError: (error) => {
-                console.error('Failed to fetch game state:', error);
-            }
-        }
-    );
-
-    useEffect(() => {
-        fetchGameStateMutation.mutate(undefined);
-    }, [gameId]);
-
     const handleNumberPress = async (value: number) => {
         if (selectedDartForCorrection) {
             console.log('Correcting dart:', selectedDartForCorrection.id, 'to score:', value, 'multiplier:', modifier);
@@ -140,7 +161,7 @@ export default function GameView({gameId, playerId, websocketUrl, fps}: GameView
             await correctDartMutation.mutate(correctionRequest);
         } else {
             console.log(`Number pressed: ${value} with modifier: ${modifier}`);
-            const dartThrow: DartThrow = {
+            const dartThrow: DartThrowRequest = {
                 score: value, multiplier: modifier
             }
             await throwDartMutation.mutate(dartThrow);
@@ -164,6 +185,7 @@ export default function GameView({gameId, playerId, websocketUrl, fps}: GameView
             setModifier(1);
         } else {
             console.log("Back button pressed");
+            if (!playerId) return;
             let currentPlayerDarts = currentGameState.currentTurnDarts?.[playerId];
             if (currentPlayerDarts && currentPlayerDarts.length > 0) {
                 let id = currentPlayerDarts[currentPlayerDarts.length - 1].id;
@@ -202,6 +224,14 @@ export default function GameView({gameId, playerId, websocketUrl, fps}: GameView
             />
 
             <View className="flex-1">
+                {currentGameState.currentPlayer && (
+                    <View className="px-lg py-md bg-emerald-50 border-b border-emerald-200">
+                        <Typography variant="body" className="text-center text-slate-700">
+                            Current Player: <Typography variant="body" className="font-semibold text-emerald-700">{currentGameState.currentPlayer.name}</Typography>
+                        </Typography>
+                    </View>
+                )}
+
                 <ScrollView
                     className="flex-1"
                     contentContainerClassName="pb-5 pt-5"
@@ -209,7 +239,7 @@ export default function GameView({gameId, playerId, websocketUrl, fps}: GameView
                 >
                     <X01ScoreView 
                         currentGameStatePartial={currentGameState} 
-                        playerId={playerId}
+                        playerId={playerId || undefined}
                         onDartPress={handleDartPress}
                         selectedDartId={selectedDartForCorrection?.id ?? null}
                     />

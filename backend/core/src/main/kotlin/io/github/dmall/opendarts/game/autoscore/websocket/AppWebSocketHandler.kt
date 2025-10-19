@@ -24,11 +24,8 @@ class AppWebSocketHandler(private val autoscoreImageTransmitter: AutoscoreImageT
 
   private val objectMapper: ObjectMapper = jacksonObjectMapper()
 
-  private fun Pair<String, String>.joinWith(delimiter: String = "-"): String =
-    "${first}${delimiter}$second"
-
   override fun afterConnectionEstablished(session: WebSocketSession) {
-    val sessionId = extractIdsFromSession(session).joinWith()
+    val sessionId = extractGameSessionIdFromURI(session)
     logger.info { "App connection established with session ID: $sessionId" }
     sessions[sessionId] = session
     logger.info { "Active sessions count: ${sessions.size}" }
@@ -40,16 +37,19 @@ class AppWebSocketHandler(private val autoscoreImageTransmitter: AutoscoreImageT
     logger.debug { "Received binary message, size: ${String.format("%.2f", sizeInMB)} MB" }
 
     try {
-      val (playerId, gameSessionId) = extractIdsFromSession(session)
+      val gameSessionId = extractGameSessionIdFromURI(session)
       val messageBytes = message.payload.array()
+      var playerId: String
 
-      val imageBytes: ByteArray =
-        if (BinaryProtocolParser.hasMetadata(messageBytes)) {
-          val parsed = BinaryProtocolParser.parseBinaryMessage(messageBytes)
-          parsed.imageData
-        } else {
-          messageBytes
-        }
+      var imageBytes: ByteArray
+
+      if (BinaryProtocolParser.hasMetadata(messageBytes)) {
+        val parsed = BinaryProtocolParser.parseBinaryMessage(messageBytes)
+        imageBytes = parsed.imageData
+        playerId = parsed.autoScoreMessage.playerId
+      } else {
+        throw IllegalStateException("No metadata with player id found in binary message")
+      }
 
       autoscoreImageTransmitter.sendPipelineDetectionRequest(imageBytes, gameSessionId, playerId)
     } catch (e: Exception) {
@@ -57,22 +57,21 @@ class AppWebSocketHandler(private val autoscoreImageTransmitter: AutoscoreImageT
     }
   }
 
-  private fun extractIdsFromSession(session: WebSocketSession): Pair<String, String> {
+  private fun extractGameSessionIdFromURI(session: WebSocketSession): String {
     val uri = session.uri.toString()
     val path = uri.substringAfterLast("ws/", "")
     val segments = path.split("/").filter { it.isNotEmpty() }
     val gameSessionId = segments.last()
-    val playerId = segments[segments.size - 2]
-    return playerId to gameSessionId
+    return gameSessionId
   }
 
   override fun afterConnectionClosed(session: WebSocketSession, status: CloseStatus) {
     logger.info { "App connection closed $status" }
-    sessions.remove(extractIdsFromSession(session).joinWith())
+    sessions.remove(extractGameSessionIdFromURI(session))
   }
 
   fun sendWebSocketMessage(eventObject: Any, id: String, type: EventType) {
-    val session = sessions[id] ?: throw IllegalStateException("No session found for id")
+    val session = sessions[id] ?: throw IllegalStateException("No session found for id $id")
     if (session.isOpen) {
       try {
         val jsonNode = objectMapper.valueToTree<ObjectNode>(eventObject)

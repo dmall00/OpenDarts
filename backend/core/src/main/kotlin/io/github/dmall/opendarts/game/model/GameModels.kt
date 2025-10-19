@@ -25,7 +25,9 @@ data class DartResponse(
   val scoreString: String,
 )
 
-data class PlayerTO(val id: String, val name: String)
+data class PlayerRequest(val name: String)
+
+data class PlayerResponse(val id: String, val name: String)
 
 data class CurrentGameState(
   val currentTurnDarts: Map<Player, List<Dart>>,
@@ -50,14 +52,14 @@ data class AppCalibrationResponse(val calibrated: Boolean)
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 data class CurrentGameStateTO(
-  val currentTurnDarts: Map<String, List<DartResponse>>,
-  val currentRemainingScores: Map<String, Int>,
-  val currentPlayer: PlayerTO,
-  val legWon: Boolean,
-  val setWon: Boolean,
-  val gameWon: Boolean,
-  val winner: PlayerTO? = null,
-  val nextPlayer: PlayerTO? = null,
-  val message: String? = null,
-  val bust: Boolean = false,
+    val currentTurnDarts: Map<String, List<DartResponse>>,
+    val currentRemainingScores: Map<String, Int>,
+    val currentPlayer: PlayerResponse,
+    val legWon: Boolean,
+    val setWon: Boolean,
+    val gameWon: Boolean,
+    val winner: PlayerResponse? = null,
+    val nextPlayer: PlayerResponse? = null,
+    val message: String? = null,
+    val bust: Boolean = false,
 )

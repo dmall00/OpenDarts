@@ -1,22 +1,22 @@
 import {useState} from 'react';
 import {router} from "expo-router";
-import {CreateGameRequest, GameSession} from '@/src/types/api';
+import {CreateGameRequest, GameSessionResponse} from '@/src/types/api';
 import {useMutation} from '@/src/hooks/useMutation';
 import {gameService} from "@/src/services/game/gameService";
-import GamePicker, {GameConfig} from "@/src/components/game/creation/GamePicker";
+import GamePicker from "@/src/components/game/creation/GamePicker";
 import {StartGameButton} from "@/src/components/game/creation/StartGameButton";
 import PageLayout from '@/src/components/ui/PageLayout';
 
 export default function Play() {
 
-    const [gameConfig, setGameConfig] = useState<GameConfig>({
+    const [gameConfig, setGameConfig] = useState<CreateGameRequest>({
         gameMode: 'X01',
         score: 301,
-        players: ["test"],
+        players: [{name: 'David'}], // Default player
     });
 
-    const openGameView = (game: GameSession) => {
-        router.push(`/game/${game.playerId}/${game.gameId}`);
+    const openGameView = (game: GameSessionResponse) => {
+        router.push(`/game/${game.gameId}`);
     };
 
 
@@ -43,15 +43,18 @@ export default function Play() {
     };
 
     return (
-        <PageLayout title="Play">
+        <PageLayout 
+            title="Play"
+            bottomContent={
+                <StartGameButton
+                    onPress={handleStartGame}
+                    loading={createGameMutation.loading}
+                    error={createGameMutation.error}
+                />
+            }
+        >
             <GamePicker
                 onGameConfigChange={setGameConfig}
-            />
-
-            <StartGameButton
-                onPress={handleStartGame}
-                loading={createGameMutation.loading}
-                error={createGameMutation.error}
             />
         </PageLayout>
     );

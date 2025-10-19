@@ -42,7 +42,7 @@ constructor(
     if (dartThrowRequest.autoScore) {
       appWebSocketHandler.sendWebSocketMessage(
         gameMapper.toCurrentGameStateTO(gameState),
-        "$playerId-$gameSessionId",
+        gameSessionId,
         EventType.DART_THROW_DETECTED,
       )
     }
@@ -145,10 +145,10 @@ constructor(
   @EventListener
   @Transactional
   fun handleTurnSwitchDetectedEvent(event: TurnSwitchDetectedEvent) {
-    val gameState = getGameState(event.sessionId)
+    val gameState = getGameState(event.gameSessionId)
     appWebSocketHandler.sendWebSocketMessage(
       gameMapper.toCurrentGameStateTO(gameState),
-      "${event.playerId}-${event.sessionId}",
+      event.gameSessionId,
       event.type,
     )
   }
@@ -157,7 +157,7 @@ constructor(
   fun handleCalibrationEvent(event: CalibrationEvent) {
     appWebSocketHandler.sendWebSocketMessage(
       AppCalibrationResponse(event.calibrated),
-      "${event.playerId}-${event.sessionId}",
+      event.gameSessionId,
       event.type,
     )
   }

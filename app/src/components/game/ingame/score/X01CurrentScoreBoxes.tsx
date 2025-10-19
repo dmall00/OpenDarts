@@ -1,12 +1,12 @@
 import {View} from "react-native";
 import ScoreBox from "@/src/components/game/ingame/score/ScoreBox";
-import {CurrentGameState, DartThrowResponse} from "@/src/types/api";
+import {CurrentGameStateResponse, DartThrowResponse} from "@/src/types/api";
 import ScoreDisplay from "@/src/components/ui/ScoreDisplay";
 import Container from "@/src/components/ui/Container";
 
 interface X01CurrentScoreBoxesProps {
     dartThrows?: DartThrowResponse[];
-    currentGameStatePartial?: Partial<CurrentGameState>;
+    currentGameStatePartial?: Partial<CurrentGameStateResponse>;
     onDartPress?: (dart: DartThrowResponse) => void;
     selectedDartId?: number | null;
 }

@@ -4,6 +4,7 @@ import io.github.dmall.opendarts.game.model.*
 import io.github.dmall.opendarts.game.repository.GameRepository
 import io.github.dmall.opendarts.game.repository.GameSessionRepository
 import io.github.dmall.opendarts.game.repository.PlayerRepository
+import io.github.oshai.kotlinlogging.KotlinLogging
 import jakarta.persistence.EntityManager
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -21,11 +22,19 @@ constructor(
   val entityManager: EntityManager,
 ) {
 
-  fun createGame(gameConfig: GameConfigTo): GameSessionResponse {
+  private val logger = KotlinLogging.logger {}
+
+  fun createGame(gameConfig: GameConfigRequest): GameSessionResponse {
     val players =
       gameConfig.players.map { player ->
-        playerRepository.findByName(player)
-          ?: throw IllegalStateException("Player $player not found")
+        val existingPlayer = playerRepository.findByName(player.name)
+        if (existingPlayer != null) {
+          logger.info { "Adding existing player $player to game" }
+          existingPlayer
+        } else {
+          logger.info { "Creating new player $player and adding to game" }
+          playerRepository.save(Player().apply { this.name = player.name })
+        }
       }
 
     val x01Config =
@@ -55,7 +64,6 @@ constructor(
     val savedGameSession = gameSessionRepository.save(gameSession)
     val gameHandler = gameModeRegistry.getGameHandler(gameConfig.gameMode)
     gameHandler.initializeGame(savedGameSession)
-    // do this properly later
-    return GameSessionResponse(savedGameSession.id!!, players.first().id!!)
+    return GameSessionResponse(savedGameSession.id!!)
   }
 }

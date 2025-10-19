@@ -34,8 +34,8 @@ class GameMapper {
       }
     }
 
-  fun playerToPlayerTO(player: Player?): PlayerTO? =
-    player?.let { PlayerTO(id = it.id!!, name = it.name) }
+  fun playerToPlayerTO(player: Player?): PlayerResponse? =
+    player?.let { PlayerResponse(id = it.id!!, name = it.name) }
 
   fun mapCurrentTurnDartsToPlayerTO(
     currentTurnDarts: Map<Player, List<Dart>>

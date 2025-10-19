@@ -6,7 +6,7 @@ import io.github.dmall.opendarts.game.autoscore.model.AutoScoreMessage
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
-data class BinaryMessageWithMetadata(val metadata: AutoScoreMessage, val imageData: ByteArray)
+data class BinaryMessageWithMetadata(val autoScoreMessage: AutoScoreMessage, val imageData: ByteArray)
 
 object BinaryProtocolParser {
   private val objectMapper: ObjectMapper = jacksonObjectMapper()

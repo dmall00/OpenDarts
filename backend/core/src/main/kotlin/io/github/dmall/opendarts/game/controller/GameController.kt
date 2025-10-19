@@ -1,6 +1,6 @@
 package io.github.dmall.opendarts.game.controller
 
-import io.github.dmall.opendarts.game.model.GameConfigTo
+import io.github.dmall.opendarts.game.model.GameConfigRequest
 import io.github.dmall.opendarts.game.model.GameSessionResponse
 import io.github.dmall.opendarts.game.service.GameCreationService
 import org.springframework.beans.factory.annotation.Autowired
@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController
 class GameController @Autowired constructor(private val gameCreationService: GameCreationService) {
 
   @PostMapping
-  fun createGame(@RequestBody gameConfig: GameConfigTo): ResponseEntity<GameSessionResponse> {
+  fun createGame(@RequestBody gameConfig: GameConfigRequest): ResponseEntity<GameSessionResponse> {
     val response = gameCreationService.createGame(gameConfig)
     return ResponseEntity.ok(response)
   }

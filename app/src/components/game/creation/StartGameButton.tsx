@@ -1,5 +1,4 @@
 import React from 'react';
-import {Text} from 'react-native';
 import Button from '@/src/components/ui/Button';
 import Typography from '@/src/components/ui/Typography';
 
@@ -9,7 +8,9 @@ interface StartGameButtonProps {
     error: string | null;
 }
 
-export function StartGameButton({onPress, loading, error}: StartGameButtonProps) {
+export function StartGameButton(props: StartGameButtonProps) {
+    const {onPress, loading, error} = props;
+
     return (
         <>
             <Button

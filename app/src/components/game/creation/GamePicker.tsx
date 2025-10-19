@@ -3,48 +3,38 @@ import {Text, View} from 'react-native';
 import Card from '@/src/components/ui/Card';
 import Typography from '@/src/components/ui/Typography';
 import SelectableOption from '@/src/components/ui/SelectableOption';
-import PlayerInput from './PlayerInput';
+import PlayerInputPicker from './PlayerInputPicker';
+import {CreateGameRequest, PlayerRequest} from "@/src/types/api";
 
 interface GamePickerProps {
-    onGameConfigChange?: (config: GameConfig) => void;
+    onGameConfigChange?: (config: CreateGameRequest) => void;
 }
 
-export interface GameConfig {
-    gameMode: 'X01';
-    score: 301 | 501;
-    players: string[];
-}
+export default function GamePicker(props: GamePickerProps) {
 
-interface Player {
-    name: string;
-}
-
-export default function GamePicker({onGameConfigChange}: GamePickerProps) {
+    const {onGameConfigChange} = props;
     const [selectedScore, setSelectedScore] = useState<301 | 501>(301);
     const [selectedMode] = useState<'X01'>('X01');
-    const [players, setPlayers] = useState<Player[]>([
-        {name: 'test'}
+    const [players, setPlayers] = useState<PlayerRequest[]>([
+        {name: 'David'} // default player
     ]);
-
-    // Convert Player objects to string array for the GameConfig
-    const playerNames = players.map(player => player.name);
 
     const handleScoreChange = (score: 301 | 501) => {
         setSelectedScore(score);
-        const config: GameConfig = {
+        const config: CreateGameRequest = {
             gameMode: selectedMode,
             score,
-            players: playerNames,
+            players: players,
         };
         onGameConfigChange?.(config);
     };
 
-    const handlePlayersChange = (updatedPlayers: Player[]) => {
+    const handlePlayersChange = (updatedPlayers: PlayerRequest[]) => {
         setPlayers(updatedPlayers);
-        const config: GameConfig = {
+        const config: CreateGameRequest = {
             gameMode: selectedMode,
             score: selectedScore,
-            players: updatedPlayers.map(player => player.name),
+            players: updatedPlayers,
         };
         onGameConfigChange?.(config);
     };
@@ -92,7 +82,7 @@ export default function GamePicker({onGameConfigChange}: GamePickerProps) {
             {/* Players Section */}
             <View className="mb-lg">
                 <Typography variant="label" className="mb-sm">Players</Typography>
-                <PlayerInput
+                <PlayerInputPicker
                     players={players}
                     onPlayersChange={handlePlayersChange}
                 />
@@ -106,7 +96,7 @@ export default function GamePicker({onGameConfigChange}: GamePickerProps) {
                 </View>
                 <Typography variant="body" className="text-slate-800 font-semibold">
                     {selectedMode.toUpperCase()} • {selectedScore} points
-                    • {players.length} {players.length === 1 ? 'Player' : 'Players'}
+                    • {players.length} {players.length === 1 ? 'PlayerRequest' : 'Players'}
                 </Typography>
             </View>
         </Card>

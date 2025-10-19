@@ -70,7 +70,7 @@ constructor(
   /** Event listener to sync back from manual scoring */
   @EventListener
   fun consumeManualDartTrackedEvent(manualDartAdjustment: ManualDartAdjustment) {
-    val id = composeId(manualDartAdjustment.playerId, manualDartAdjustment.sessionId)
+    val id = composeId(manualDartAdjustment.playerId, manualDartAdjustment.gameSessionId)
     val detectionState = detectionStates.getOrPut(id) { DetectionState() }
 
     when (manualDartAdjustment.adjustmentType) {
@@ -238,7 +238,7 @@ constructor(
       }
 
       if (revertedDarts.any { revertedDart -> isSameDart(imageDart, revertedDart) }) {
-        logger.info {
+        logger.debug {
           "Skipping dart at $pos with score ${multiplier}x$score - matches reverted/corrected dart"
         }
         continue

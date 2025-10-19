@@ -1,5 +1,6 @@
 export interface AutoScoreMessage {
     timestamp: number;
+    playerId: string;
 }
 
 export const createBinaryMessageWithAdditionalData = (

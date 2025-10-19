@@ -1,6 +1,7 @@
 import {useEffect} from 'react';
 import {Stack} from 'expo-router';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
+import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {useSettingsStore} from '@/src/stores/settingsStore';
 import '../global.css';
 
@@ -19,14 +20,16 @@ export default function RootLayout() {
     }, []);
 
     return (
-        <SafeAreaProvider>
-            <Stack screenOptions={{
-                headerShown: false,
-            }}>
-                <Stack.Screen name="(tabs)" options={{headerShown: false}}/>
-                <Stack.Screen name="game/[playerId]/[gameId]" options={{headerShown: false}}/>
-                <Stack.Screen name="+not-found"/>
-            </Stack>
-        </SafeAreaProvider>
+        <GestureHandlerRootView style={{flex: 1}}>
+            <SafeAreaProvider>
+                <Stack screenOptions={{
+                    headerShown: false,
+                }}>
+                    <Stack.Screen name="(tabs)" options={{headerShown: false}}/>
+                    <Stack.Screen name="game/[gameId]" options={{headerShown: false}}/>
+                    <Stack.Screen name="+not-found"/>
+                </Stack>
+            </SafeAreaProvider>
+        </GestureHandlerRootView>
     );
 }
