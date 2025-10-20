@@ -210,9 +210,120 @@ class X01Game @Autowired constructor(val gameSessionRepository: GameSessionRepos
         currentPlayer: Player,
         turnDarts: List<DartThrowRequest>
     ): CurrentGameState {
-        TODO("Not yet implemented")
-        // TODO implement commitTurn logic if needed
-        // TODO in app add a complete / commit turn button to trigger this and remove single dart throw processing in app
+        val config = getConfig(gameSession)
+        val currentLeg = getCurrentLeg(gameSession)
+        val currentTurn = getCurrentTurn(currentLeg, currentPlayer)
+        
+        currentTurn.darts.clear()
+        
+        val dartsToProcess = turnDarts.toMutableList()
+        while (dartsToProcess.size < 3) {
+            dartsToProcess.add(DartThrowRequest(multiplier = 0, score = 0, autoScore = false))
+        }
+        
+        var currentScore = getCurrentScore(config, currentPlayer, currentLeg)
+        var isBust = false
+        var isLegWon = false
+        
+        for (dartThrowRequest in dartsToProcess) {
+            val throwScore = dartThrowRequest.score * dartThrowRequest.multiplier
+            val newScore = currentScore - throwScore
+            
+            if (isBust(newScore, config, dartThrowRequest)) {
+                logger.info { "Bust detected on dart (${dartThrowRequest.score} x ${dartThrowRequest.multiplier})" }
+                isBust = true
+                break
+            }
+            
+            handleDartThrow(gameSession, dartThrowRequest, currentTurn)
+            currentScore = newScore
+            
+            if (isFinishLeg(config, newScore, dartThrowRequest)) {
+                logger.info { "Leg finished" }
+                isLegWon = true
+                break
+            }
+        }
+        
+        if (isBust) {
+            fillMissDarts(currentTurn)
+            val nextPlayer = getNextPlayer(gameSession, currentPlayer)
+            
+            val nextTurnOrder = currentLeg.turns.maxOfOrNull { it.turnOrderIndex } ?: -1
+            val nextTurn = Turn().apply {
+                this.player = nextPlayer
+                this.leg = currentLeg
+                this.turnOrderIndex = nextTurnOrder + 1
+            }
+            currentLeg.turns.add(nextTurn)
+            gameSessionRepository.saveAndFlush(gameSession)
+            
+            return CurrentGameState(
+                currentRemainingScores = getCurrentRemainingScores(currentLeg),
+                bust = true,
+                nextPlayer = nextPlayer,
+                currentTurnDarts = mapOf(
+                    currentPlayer to currentTurn.darts.toList(),
+                    nextPlayer to emptyList()
+                ),
+                message = "Bust",
+                currentPlayer = nextPlayer,
+            )
+        }
+        
+        if (isLegWon) {
+            val (isSetWon, isGameWon) = handleLegWin(gameSession, currentPlayer, currentLeg)
+            
+            var nextPlayer: Player? = null
+            if (!isGameWon) {
+                if (isSetWon) {
+                    logger.info { "Set is won" }
+                    createNewSet(gameSession)
+                } else {
+                    logger.info { "Leg is won" }
+                    createNewLeg(gameSession, gameSession.dartSets.last())
+                }
+                nextPlayer = getStartingPlayerForNewLeg(gameSession, config)
+            }
+            
+            return CurrentGameState(
+                legWon = true,
+                setWon = isSetWon,
+                gameWon = isGameWon,
+                winner = if (isGameWon) currentPlayer else null,
+                nextPlayer = nextPlayer,
+                message = when {
+                    isGameWon -> "Game won!"
+                    isSetWon -> "Set won!"
+                    else -> "Leg won!"
+                },
+                currentTurnDarts = getCurrentTurnDarts(currentPlayer, currentTurn, nextPlayer),
+                currentRemainingScores = getCurrentRemainingScores(currentLeg),
+                currentPlayer = nextPlayer ?: currentPlayer,
+            )
+        }
+        
+        fillMissDarts(currentTurn)
+        val nextPlayer = getNextPlayer(gameSession, currentPlayer)
+        
+        val nextTurnOrder = currentLeg.turns.maxOfOrNull { it.turnOrderIndex } ?: -1
+        val nextTurn = Turn().apply {
+            this.player = nextPlayer
+            this.leg = currentLeg
+            this.turnOrderIndex = nextTurnOrder + 1
+        }
+        currentLeg.turns.add(nextTurn)
+        gameSessionRepository.saveAndFlush(gameSession)
+        
+        return CurrentGameState(
+            currentRemainingScores = getCurrentRemainingScores(currentLeg),
+            nextPlayer = nextPlayer,
+            currentPlayer = nextPlayer,
+            currentTurnDarts = mapOf(
+                currentPlayer to currentTurn.darts.toList(),
+                nextPlayer to emptyList()
+            ),
+        )
     }
 
     private fun removeDartById(currentTurn: Turn, dartId: Long) {
