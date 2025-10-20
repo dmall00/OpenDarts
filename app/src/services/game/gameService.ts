@@ -36,6 +36,13 @@ export class GameService {
         return apiService.put<CurrentGameStateResponse>(url, correction)
     }
 
+    async completeTurn(playerId: string, gameId: string, darts: DartThrowRequest[]): Promise<CurrentGameStateResponse> {
+        const url = API_ENDPOINTS.GAMES.COMPLETE_TURN
+            .replace('gameId', gameId)
+            .replace('playerId', playerId);
+        return apiService.post<CurrentGameStateResponse>(url, darts)
+    }
+
     async getCurrentGameState(gameId: string): Promise<CurrentGameStateResponse> {
         const url = API_ENDPOINTS.GAMES.GET_STATE
             .replace('gameId', gameId);

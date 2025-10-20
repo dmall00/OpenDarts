@@ -36,6 +36,7 @@ export const API_ENDPOINTS = {
         THROW: '/game/gameId/playerId/dart',
         REVERT: '/game/gameId/playerId/dart/dartId',
         CORRECT: '/game/gameId/playerId/dart/correct',
+        COMPLETE_TURN: '/game/gameId/playerId/turn/complete',
         GET_STATE: '/game/gameId/state'
     },
 };

@@ -19,6 +19,7 @@ import {
     DartThrowResponse
 } from "@/src/types/api";
 import {gameService} from "@/src/services/game/gameService";
+import {manualScoringService, PendingDart} from "@/src/services/game/manualScoringService";
 
 interface GameViewProps {
     gameId: string;
@@ -31,25 +32,26 @@ export default function GameView({gameId, websocketUrl, fps}: GameViewProps) {
     const {isCameraExpanded, handleToggleCamera} = useCameraUI();
     const [modifier, setModifier] = useState<1 | 2 | 3>(1);
     const [selectedDartForCorrection, setSelectedDartForCorrection] = useState<DartThrowResponse | null>(null);
+    const [selectedPendingDartIndex, setSelectedPendingDartIndex] = useState<number | null>(null);
     const [playerId, setPlayerId] = useState<string | null>(null);
+    const [manualScoringState, setManualScoringState] = useState(manualScoringService.getState());
 
     const [currentGameState, setCurrentGameState] = useState<Partial<CurrentGameStateResponse>>({
         currentRemainingScores: {},
         currentTurnDarts: {},
     });
 
-    const updateGameStateAndPlayer = (gameState: Partial<CurrentGameStateResponse>) => {
-        setCurrentGameState(gameState);
-        if (gameState.currentPlayer?.id && playerId !== gameState.currentPlayer?.id) {
-            setPlayerId(gameState.currentPlayer.id);
-        }
-    };
-
     const fetchGameStateMutation = useMutation(
         () => gameService.getCurrentGameState(gameId),
         {
             onSuccess: (gameState) => {
-                updateGameStateAndPlayer(gameState);
+                setCurrentGameState(gameState);
+                if (gameState.currentPlayer?.id) {
+                    setPlayerId(gameState.currentPlayer.id);
+                    const currentScore = gameState.currentRemainingScores?.[gameState.currentPlayer.id] ?? 0;
+                    manualScoringService.syncWithBackendState(gameState, gameState.currentPlayer.id);
+                    setManualScoringState(manualScoringService.getState());
+                }
             },
             onError: (error) => {
                 console.error('Failed to fetch game state:', error);
@@ -75,7 +77,7 @@ export default function GameView({gameId, websocketUrl, fps}: GameViewProps) {
         gameId,
         playerId: playerId || '',
         websocketUrl,
-        setCurrentGameState: updateGameStateAndPlayer,
+        setCurrentGameState: setCurrentGameState,
         currentGameStatePartial: currentGameState,
         autoConnect: isAutoScoreEnabled && playerId !== null
     });
@@ -109,7 +111,11 @@ export default function GameView({gameId, websocketUrl, fps}: GameViewProps) {
         },
         {
             onSuccess: (dartProcessed) => {
-                updateGameStateAndPlayer(dartProcessed);
+                setCurrentGameState(dartProcessed);
+                if (playerId) {
+                    manualScoringService.syncWithBackendState(dartProcessed, playerId);
+                    setManualScoringState(manualScoringService.getState());
+                }
             },
             onError: (error) => {
                 console.error('Failed to send dart:', error);
@@ -123,8 +129,8 @@ export default function GameView({gameId, websocketUrl, fps}: GameViewProps) {
             return gameService.revertDart(playerId, gameId, revertRequest);
         },
         {
-            onSuccess: (gameState) => {
-                updateGameStateAndPlayer(gameState);
+            onSuccess: (currentGameState) => {
+                setCurrentGameState(currentGameState);
             },
             onError: (error) => {
                 console.error('Failed to revert dart:', error);
@@ -138,11 +144,11 @@ export default function GameView({gameId, websocketUrl, fps}: GameViewProps) {
             return gameService.correctDart(playerId, gameId, correctionRequest);
         },
         {
-            onSuccess: (gameState) => {
+            onSuccess: (currentGameState) => {
                 if (playerId) {
-                    console.log('Correction success, new darts:', gameState.currentTurnDarts?.[playerId]);
+                    console.log('Correction success, new darts:', currentGameState.currentTurnDarts?.[playerId]);
                 }
-                updateGameStateAndPlayer(gameState);
+                setCurrentGameState(currentGameState);
                 setSelectedDartForCorrection(null);
                 setModifier(1);
             },
@@ -154,8 +160,29 @@ export default function GameView({gameId, websocketUrl, fps}: GameViewProps) {
         }
     );
 
+    const completeTurnMutation = useMutation(
+        (darts: DartThrowRequest[]) => {
+            if (!playerId) throw new Error('Player ID not set');
+            return gameService.completeTurn(playerId, gameId, darts);
+        },
+        {
+            onSuccess: (currentGameState) => {
+                setCurrentGameState(currentGameState);
+                manualScoringService.clear();
+                if (currentGameState.currentPlayer?.id) {
+                    setPlayerId(currentGameState.currentPlayer.id);
+                    manualScoringService.syncWithBackendState(currentGameState, currentGameState.currentPlayer.id);
+                }
+                setManualScoringState(manualScoringService.getState());
+            },
+            onError: (error) => {
+                console.error('Failed to complete turn:', error);
+            }
+        }
+    );
+
     const handleNumberPress = async (value: number) => {
-        if (selectedDartForCorrection) {
+        if (selectedDartForCorrection && isAutoScoreEnabled) {
             console.log('Correcting dart:', selectedDartForCorrection.id, 'to score:', value, 'multiplier:', modifier);
             const correctionRequest: DartCorrectionRequest = {
                 dartId: selectedDartForCorrection.id,
@@ -163,12 +190,23 @@ export default function GameView({gameId, websocketUrl, fps}: GameViewProps) {
                 multiplier: modifier
             };
             await correctDartMutation.mutate(correctionRequest);
-        } else {
-            console.log(`Number pressed: ${value} with modifier: ${modifier}`);
+        } else if (selectedPendingDartIndex !== null && !isAutoScoreEnabled) {
+            console.log('Correcting pending dart at index:', selectedPendingDartIndex, 'to score:', value, 'multiplier:', modifier);
+            const newState = manualScoringService.correctDart(selectedPendingDartIndex, value, modifier);
+            setManualScoringState(newState);
+            setSelectedPendingDartIndex(null);
+            setModifier(1);
+        } else if (isAutoScoreEnabled) {
+            console.log(`Number pressed (auto): ${value} with modifier: ${modifier}`);
             const dartThrow: DartThrowRequest = {
                 score: value, multiplier: modifier
             }
             await throwDartMutation.mutate(dartThrow);
+            setModifier(1);
+        } else {
+            console.log(`Number pressed (manual): ${value} with modifier: ${modifier}`);
+            const newState = manualScoringService.addDart(value, modifier);
+            setManualScoringState(newState);
             setModifier(1);
         }
     };
@@ -184,11 +222,14 @@ export default function GameView({gameId, websocketUrl, fps}: GameViewProps) {
     };
 
     const handleBackPress = async () => {
-        if (selectedDartForCorrection) {
+        if (selectedDartForCorrection && isAutoScoreEnabled) {
             setSelectedDartForCorrection(null);
             setModifier(1);
-        } else {
-            console.log("Back button pressed");
+        } else if (selectedPendingDartIndex !== null && !isAutoScoreEnabled) {
+            setSelectedPendingDartIndex(null);
+            setModifier(1);
+        } else if (isAutoScoreEnabled) {
+            console.log("Back button pressed (auto)");
             if (!playerId) return;
             let currentPlayerDarts = currentGameState.currentTurnDarts?.[playerId];
             if (currentPlayerDarts && currentPlayerDarts.length > 0) {
@@ -199,10 +240,16 @@ export default function GameView({gameId, websocketUrl, fps}: GameViewProps) {
                 console.log("Revert request", revertRequest);
                 await revertDartMutation.mutate(revertRequest)
             }
+        } else {
+            console.log("Back button pressed (manual)");
+            const newState = manualScoringService.revertLastDart();
+            setManualScoringState(newState);
         }
     };
 
     const handleDartPress = (dart: DartThrowResponse) => {
+        if (!isAutoScoreEnabled) return;
+        
         console.log('Dart pressed:', dart.id, 'selectedDartId:', selectedDartForCorrection?.id);
         if (selectedDartForCorrection?.id === dart.id) {
             console.log('Deselecting dart');
@@ -212,6 +259,45 @@ export default function GameView({gameId, websocketUrl, fps}: GameViewProps) {
             console.log('Selecting dart for correction');
             setSelectedDartForCorrection(dart);
             setModifier(dart.multiplier as 1 | 2 | 3);
+        }
+    };
+
+    const handlePendingDartPress = (index: number, dart: PendingDart) => {
+        if (isAutoScoreEnabled) return;
+        
+        console.log('Pending dart pressed at index:', index);
+        if (selectedPendingDartIndex === index) {
+            console.log('Deselecting pending dart');
+            setSelectedPendingDartIndex(null);
+            setModifier(1);
+        } else {
+            console.log('Selecting pending dart for correction');
+            setSelectedPendingDartIndex(index);
+            setModifier(dart.multiplier as 1 | 2 | 3);
+        }
+    };
+
+    const handleEnterPress = async () => {
+        console.log("Enter button pressed - completing turn");
+        if (!playerId) return;
+        
+        if (isAutoScoreEnabled) {
+            const currentPlayerDarts = currentGameState.currentTurnDarts?.[playerId];
+            if (currentPlayerDarts && currentPlayerDarts.length > 0) {
+                const dartsToSubmit: DartThrowRequest[] = currentPlayerDarts.map(dart => ({
+                    score: dart.score,
+                    multiplier: dart.multiplier,
+                    autoScore: dart.autoScore
+                }));
+                console.log("Completing turn with darts (auto):", dartsToSubmit);
+                await completeTurnMutation.mutate(dartsToSubmit);
+            }
+        } else {
+            const dartsToSubmit = manualScoringService.getPendingDartsForSubmission();
+            if (dartsToSubmit.length > 0) {
+                console.log("Completing turn with darts (manual):", dartsToSubmit);
+                await completeTurnMutation.mutate(dartsToSubmit);
+            }
         }
     };
 
@@ -246,6 +332,11 @@ export default function GameView({gameId, websocketUrl, fps}: GameViewProps) {
                         playerId={playerId || undefined}
                         onDartPress={handleDartPress}
                         selectedDartId={selectedDartForCorrection?.id ?? null}
+                        manualPendingDarts={manualScoringState.pendingDarts}
+                        manualCurrentScore={manualScoringState.currentScore}
+                        onPendingDartPress={handlePendingDartPress}
+                        selectedPendingDartIndex={selectedPendingDartIndex}
+                        isManualScoring={!isAutoScoreEnabled}
                     />
                 </ScrollView>
 
@@ -255,6 +346,7 @@ export default function GameView({gameId, websocketUrl, fps}: GameViewProps) {
                         onDoublePress={handleDoublePress}
                         onTriplePress={handleTriplePress}
                         onBackPress={handleBackPress}
+                        onEnterPress={handleEnterPress}
                         modifier={modifier}
                     />
                 </View>

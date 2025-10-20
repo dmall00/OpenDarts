@@ -8,6 +8,7 @@ interface DartInputProps {
     onDoublePress: () => void;
     onTriplePress: () => void;
     onBackPress: () => void;
+    onEnterPress: () => void;
     modifier?: 1 | 2 | 3;
 }
 
@@ -17,6 +18,7 @@ const DartInputRow = ({
     onDoublePress,
     onTriplePress,
     onBackPress,
+    onEnterPress,
     modifier
 }: {
     row: (number | string)[];
@@ -24,6 +26,7 @@ const DartInputRow = ({
     onDoublePress: () => void;
     onTriplePress: () => void;
     onBackPress: () => void;
+    onEnterPress: () => void;
     modifier: 1 | 2 | 3;
 }) => {
     const renderButton = (item: number | string, index: number) => {
@@ -74,6 +77,16 @@ const DartInputRow = ({
                         />
                     </View>
                 );
+            case "ENTER":
+                return (
+                    <View key={index} className={buttonWrapperClass}>
+                        <InputButton
+                            value="✓"
+                            onPress={onEnterPress}
+                            variant="submit"
+                        />
+                    </View>
+                );
             default:
                 return null;
         }
@@ -91,13 +104,14 @@ export default function DartInput({
     onDoublePress,
     onTriplePress,
     onBackPress,
-                                      modifier = 1
+    onEnterPress,
+    modifier = 1
 }: DartInputProps) {
     const rows = [
         [1, 2, 3, 4, 5, 6, 7],
         [8, 9, 10, 11, 12, 13, 14],
         [15, 16, 17, 18, 19, 20, 25],
-        [0, "DOUBLE", "TRIPLE", "BACK"]
+        [0, "DOUBLE", "TRIPLE", "BACK", "ENTER"]
     ];
 
     return (
@@ -111,6 +125,7 @@ export default function DartInput({
                         onDoublePress={onDoublePress}
                         onTriplePress={onTriplePress}
                         onBackPress={onBackPress}
+                        onEnterPress={onEnterPress}
                         modifier={modifier}
                     />
                 ))}
