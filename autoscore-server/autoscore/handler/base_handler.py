@@ -26,7 +26,7 @@ class BaseHandler(Generic[REQ, RES], ABC):  # noqa: UP046
         raise NotImplementedError(msg)
 
     @abstractmethod
-    async def handle(self, websocket: ServerConnection, request: REQ) -> None:
+    async def handle(self, websocket: ServerConnection, request: REQ, trace_id: str | None = None) -> None:
         """Handle a specific message type."""
         msg = "Handle method must be implemented by subclasses."
         raise NotImplementedError(msg)

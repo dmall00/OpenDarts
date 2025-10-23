@@ -2,7 +2,7 @@ import {useEffect, useRef, useState} from 'react';
 import {useGameMessages} from './useGameMessages';
 import {CalibrationResponse, CurrentGameStateResponse} from '../types/api';
 import {getCameraConfig, getWebSocketConfig} from "@/src/config/config";
-import {AutoScoreMessage} from '@/src/utils/binaryProtocol';
+import {AutoScoreMessage, generateTraceId} from '@/src/utils/binaryProtocol';
 
 interface UseCurrentGameStateProps {
     gameId: string;
@@ -84,10 +84,19 @@ export const useCurrentGameState = ({
         }
         
         if (data instanceof ArrayBuffer) {
+            const traceId = generateTraceId();
             const autoScoreMessage: AutoScoreMessage = {
                 timestamp: Date.now(),
-                playerId: playerId
+                playerId: playerId,
+                traceId: traceId
             };
+
+            console.log('Sending image frame to websocket server', {
+                timestamp: new Date().toISOString(),
+                imageSize: data.byteLength,
+                traceId: traceId
+            });
+            
             return gameMessages.sendBinary(data, autoScoreMessage);
         }
         return gameMessages.sendBinary(data);

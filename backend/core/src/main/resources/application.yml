@@ -26,6 +26,8 @@ spring:
 logging:
   level:
     root: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%mdc] [%thread] %-5level %logger{36} - %msg%n"
 
 jwt:
   secret: ${JWT_SECRET:181bffe5afd4b7d3cbeb58345477e004b6325064e06b77610339809634ce7352}

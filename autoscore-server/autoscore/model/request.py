@@ -23,6 +23,7 @@ class BaseRequest(ABC, BaseModel):
     request_type: RequestType
     session_id: str
     player_id: str | None = None
+    trace_id: str | None = None
 
 
 class PingRequest(BaseRequest):

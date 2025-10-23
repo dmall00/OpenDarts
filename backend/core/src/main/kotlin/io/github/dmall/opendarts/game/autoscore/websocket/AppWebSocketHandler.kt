@@ -6,6 +6,7 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.github.dmall.opendarts.game.autoscore.events.EventType
 import io.github.dmall.opendarts.game.autoscore.service.AutoscoreImageTransmitter
 import io.github.oshai.kotlinlogging.KotlinLogging
+import org.slf4j.MDC
 import org.springframework.stereotype.Component
 import org.springframework.web.socket.BinaryMessage
 import org.springframework.web.socket.CloseStatus
@@ -40,6 +41,7 @@ class AppWebSocketHandler(private val autoscoreImageTransmitter: AutoscoreImageT
       val gameSessionId = extractGameSessionIdFromURI(session)
       val messageBytes = message.payload.array()
       var playerId: String
+      var traceId: String
 
       var imageBytes: ByteArray
 
@@ -47,13 +49,17 @@ class AppWebSocketHandler(private val autoscoreImageTransmitter: AutoscoreImageT
         val parsed = BinaryProtocolParser.parseBinaryMessage(messageBytes)
         imageBytes = parsed.imageData
         playerId = parsed.autoScoreMessage.playerId
+        traceId = parsed.autoScoreMessage.traceId
+        MDC.put("traceId", traceId)
       } else {
         throw IllegalStateException("No metadata with player id found in binary message")
       }
 
-      autoscoreImageTransmitter.sendPipelineDetectionRequest(imageBytes, gameSessionId, playerId)
+      autoscoreImageTransmitter.sendPipelineDetectionRequest(imageBytes, gameSessionId, playerId, traceId)
     } catch (e: Exception) {
       logger.error(e) { "Failed to process binary message from app" }
+    } finally {
+      MDC.clear()
     }
   }
 

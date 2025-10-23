@@ -5,6 +5,7 @@ import io.github.dmall.opendarts.game.autoscore.model.PipelineDetectionResponse
 import io.github.dmall.opendarts.game.autoscore.service.AutoScoreCalibrationService
 import io.github.dmall.opendarts.game.autoscore.service.AutoScoreStabilizer
 import io.github.oshai.kotlinlogging.KotlinLogging
+import org.slf4j.MDC
 import org.springframework.web.socket.CloseStatus
 import org.springframework.web.socket.TextMessage
 import org.springframework.web.socket.WebSocketSession
@@ -24,9 +25,15 @@ class AutoscoreWebSocketReceiver(
   }
 
   public override fun handleTextMessage(session: WebSocketSession, message: TextMessage) {
-    val detection = objectMapper.readValue(message.payload, PipelineDetectionResponse::class.java)
-    if (calibrationService.isBoardCalibrated(detection)) {
-      autoScoreStabilizer.processDartDetectionResult(detection)
+    try {
+      val detection = objectMapper.readValue(message.payload, PipelineDetectionResponse::class.java)
+      detection.traceId?.let { MDC.put("traceId", it) }
+      
+      if (calibrationService.isBoardCalibrated(detection)) {
+        autoScoreStabilizer.processDartDetectionResult(detection)
+      }
+    } finally {
+      MDC.clear()
     }
   }
 

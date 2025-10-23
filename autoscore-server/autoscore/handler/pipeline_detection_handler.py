@@ -26,9 +26,11 @@ class PipelineDetectionHandler(BaseHandler[PipelineDetectionRequest, PipelineDet
         """Return the request type handled by this handler."""
         return RequestType.FULL
 
-    async def handle(self, websocket: ServerConnection, request: PipelineDetectionRequest) -> None:
+    async def handle(self, websocket: ServerConnection, request: PipelineDetectionRequest, trace_id: str | None = None) -> None:
         """Handle pipeline detection requests."""
         try:
+            self.logger.info("Processing pipeline detection request")
+
             detection_result = self.__dart_detection_service.detect_and_score(image=DartImage(raw_image=base64_to_numpy(request.image)))
 
             if self.__settings and self.__settings.save_images:
@@ -43,6 +45,7 @@ class PipelineDetectionHandler(BaseHandler[PipelineDetectionRequest, PipelineDet
                     status=Status.SUCCESS,
                     detection_result=detection_result,
                     player_id=request.player_id,
+                    trace_id=trace_id,
                 ),
             )
 

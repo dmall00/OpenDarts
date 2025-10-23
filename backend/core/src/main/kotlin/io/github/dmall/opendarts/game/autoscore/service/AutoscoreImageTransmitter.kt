@@ -15,13 +15,13 @@ class AutoscoreImageTransmitter(
 ) {
   private val logger = KotlinLogging.logger {}
 
-  fun sendPipelineDetectionRequest(imageBytes: ByteArray, gameSessionId: String, playerId: String) {
+  fun sendPipelineDetectionRequest(imageBytes: ByteArray, gameSessionId: String, playerId: String, traceId: String) {
     try {
       val base64Image = Base64.getEncoder().encodeToString(imageBytes)
-      val request = PipelineDetectionRequest(gameSessionId, playerId, base64Image)
+      val request = PipelineDetectionRequest(gameSessionId, playerId, base64Image, traceId)
       val jsonString = objectMapper.writeValueAsString(request)
       val jsonBytes = jsonString.toByteArray(Charsets.UTF_8)
-      autoScoreWebSocketClient.autoscoreImage(jsonBytes)
+      autoScoreWebSocketClient.autoscoreImage(jsonBytes, traceId)
 
       logger.debug {
         "Sent PipelineDetectionRequest with gameId: $gameSessionId and $playerId " +

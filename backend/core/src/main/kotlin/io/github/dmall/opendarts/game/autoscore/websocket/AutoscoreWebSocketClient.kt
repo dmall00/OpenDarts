@@ -73,14 +73,14 @@ class AutoscoreWebSocketClient(
     pythonSession.set(null)
   }
 
-  fun autoscoreImage(jsonData: ByteArray) {
+  fun autoscoreImage(jsonData: ByteArray, traceId: String) {
     val session = pythonSession.get()
     if (session != null && session.isOpen) {
       try {
         val jsonString = String(jsonData, Charsets.UTF_8)
         val message = TextMessage(jsonString)
         session.sendMessage(message)
-        logger.debug { "Sent JSON message to Python server, size: ${jsonData.size} bytes" }
+        logger.debug { "Sent JSON message to Python server, size: ${jsonData.size} bytes, traceId: $traceId" }
       } catch (e: Exception) {
         logger.error(e) { "Failed to send JSON message to autoscore server: ${e.message}" }
       }

@@ -7,15 +7,8 @@ import click
 import websockets
 
 from autoscore.config.settings import __load_settings
+from autoscore.util.logging_config import setup_logging
 from autoscore.websocket.dart_websocket_server import DartWebSocketServer
-
-
-def setup_logging(log_level: str) -> None:
-    """Configure logging with the specified level."""
-    logging.basicConfig(
-        level=getattr(logging, log_level.upper()),
-        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-    )
 
 
 async def async_main(host: str, port: int) -> None:

@@ -13,6 +13,7 @@ sealed class AutoScoreResponse(
   open val sessionId: String,
   open val playerId: String,
   open val message: String?,
+  open val traceId: String?,
 )
 
 data class PipelineDetectionResponse(
@@ -21,5 +22,6 @@ data class PipelineDetectionResponse(
   override val sessionId: String,
   override val playerId: String,
   override val message: String?,
+  override val traceId: String?,
   val detectionResult: DetectionResult,
-) : AutoScoreResponse(requestType, status, sessionId, playerId, message)
+) : AutoScoreResponse(requestType, status, sessionId, playerId, message, traceId)

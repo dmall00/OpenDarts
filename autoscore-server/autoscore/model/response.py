@@ -35,6 +35,7 @@ class BaseResponse(ABC, BaseModel):
     status: Status
     message: str | None = None
     player_id: str | None = None
+    trace_id: str | None = None
 
 
 class ErrorResponse(BaseResponse):
