@@ -108,19 +108,7 @@ class X01Game @Autowired constructor(val gameSessionRepository: GameSessionRepos
     currentTurn: Turn,
     nextPlayer: Player?,
   ): Map<Player, List<Dart>> {
-    val gameSession = currentTurn.leg.dartSet.gameSession
-    val refreshedGameSession =
-      gameSessionRepository.findById(gameSession.id!!).orElseThrow {
-        NotFoundException("Game session not found")
-      }
-
-    val refreshedLeg = getCurrentLeg(refreshedGameSession)
-    val refreshedTurn =
-      refreshedLeg.turns.find {
-        it.player.id == currentPlayer.id && it.turnOrderIndex == currentTurn.turnOrderIndex
-      } ?: currentTurn
-
-    val map = mutableMapOf(currentPlayer to refreshedTurn.darts.toList())
+    val map = mutableMapOf(currentPlayer to currentTurn.darts.toList())
     if (currentPlayer.id != nextPlayer?.id) {
       nextPlayer?.let { map[it] = emptyList() }
     }
@@ -390,7 +378,7 @@ class X01Game @Autowired constructor(val gameSessionRepository: GameSessionRepos
       currentTurn.darts.add(dart)
     }
     logger.info { "Currently ${currentTurn.darts.count()} darts in turn" }
-    gameSessionRepository.saveAndFlush(gameSession)
+    gameSessionRepository.save(gameSession)
   }
 
   private fun shouldSwitchPlayer(currentTurn: Turn): Boolean = currentTurn.darts.count() >= 3

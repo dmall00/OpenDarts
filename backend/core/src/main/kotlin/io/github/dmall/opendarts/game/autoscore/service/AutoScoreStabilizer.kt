@@ -51,6 +51,7 @@ constructor(
     val id = composeId(detection.playerId, detection.sessionId)
     val detectionState = detectionStates.getOrPut(id) { DetectionState() }
     detectionState.frameIndex++
+    
     when {
       detection.detectionResult.resultCode.isYoloError() -> handleYoloError(detectionState)
       detection.detectionResult.resultCode.isMissingCalibration() ->
