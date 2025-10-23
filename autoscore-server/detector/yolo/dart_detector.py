@@ -10,6 +10,7 @@ from detector.model.configuration import ImmutableConfig, ProcessingConfig
 from detector.model.detection_result_code import ResultCode
 from detector.model.exception import DartDetectionError
 from detector.model.image_models import DartImage
+from detector.yolo.gpu_utils import setup_model_device
 
 
 class YoloDartImageProcessor:
@@ -21,6 +22,7 @@ class YoloDartImageProcessor:
         self.__config = config
         self.logger.info("Loading YOLO model from: %s", ImmutableConfig.dart_scorer_model_path)
         self._model = YOLO(ImmutableConfig.dart_scorer_model_path)
+        setup_model_device(self._model, config.use_gpu)
 
     def detect(self, image: DartImage) -> Results:
         """Run YOLO inference on image."""

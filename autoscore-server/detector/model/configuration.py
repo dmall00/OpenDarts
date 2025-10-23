@@ -69,6 +69,10 @@ class ProcessingConfig(BaseModel):
         default=CalibrationPointDetectionMode.GEOMETRIC,
         description="Mode for calibration point detection",
     )
+    use_gpu: bool = Field(
+        default=False,
+        description="Enable GPU acceleration for YOLO models",
+    )
 
     @classmethod
     def from_json(cls, json_path: Path) -> "ProcessingConfig":

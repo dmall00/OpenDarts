@@ -12,6 +12,7 @@ from detector.model.configuration import ImmutableConfig, ProcessingConfig
 from detector.model.detection_result_code import ResultCode
 from detector.model.exception import DartDetectionError
 from detector.model.image_models import CropInformation, DartImage
+from detector.yolo.gpu_utils import setup_model_device
 
 
 class YoloDartBoardImageCropper:
@@ -23,6 +24,7 @@ class YoloDartBoardImageCropper:
         self.logger.info("Loading YOLO model from: %s", ImmutableConfig.dartboard_model_path)
         self._model = YOLO(ImmutableConfig.dartboard_model_path)
         self.__config = config or ProcessingConfig()
+        setup_model_device(self._model, self.__config.use_gpu)
 
     def crop_image(self, dart_image: DartImage) -> Tuple[DartImage, CropInformation]:
         """Crop the image to focus on the detected dartboard."""

@@ -55,6 +55,10 @@ class ServerSettings(BaseSettings):
         default=CalibrationPointDetectionMode.GEOMETRIC,
         description="Mode for calibration point detection",
     )
+    use_gpu: bool = Field(
+        default=False,
+        description="Enable GPU acceleration for YOLO models",
+    )
 
     def __init__(self, **kwargs) -> None:  # noqa: ANN003
         super().__init__(**kwargs)
@@ -77,6 +81,7 @@ class ServerSettings(BaseSettings):
             enable_cropping_model=self.enable_cropping_model,
             crop_padding_ratio=self.crop_padding_ratio,
             calibration_detection_mode=self.calibration_detection_mode,
+            use_gpu=self.use_gpu,
         )
 
 
