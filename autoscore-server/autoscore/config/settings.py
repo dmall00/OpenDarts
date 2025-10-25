@@ -26,7 +26,7 @@ class ServerSettings(BaseSettings):
     max_message_size: int = Field(default=20 * 1024 * 1024, description="Maximum WebSocket message size in bytes")
 
     save_images: bool = Field(default=True, description="Enable image saving for debugging")
-    image_save_directory: Path = Field(default_factory=lambda: Path("./saved_images"), description="Directory to save processed images")
+    image_save_directory: Path = Field(default_factory=lambda: Path("../saved_images"), description="Directory to save processed images")
 
     calibration_confidence_threshold: float = Field(
         default=0.0,

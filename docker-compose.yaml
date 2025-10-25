@@ -62,7 +62,7 @@ services:
     networks:
       - opendarts-network
     volumes:
-      - ./autoscore-images:/images
+      - ./autoscore-server/autoscore-images:/images
 
 networks:
   opendarts-network:

@@ -21,14 +21,14 @@ def base64_to_numpy(base64_data: bytes | bytearray | str) -> np.ndarray:
     return cv2.cvtColor(rgb_array, cv2.COLOR_RGB2BGR)
 
 
-def save_base64_as_png(base64_data: bytes | bytearray | str, output_dir: Path | None = None) -> str | None:
+def save_base64_as_png(base64_data: bytes | bytearray | str, output_dir: Path | None = None, trace_id: str | None = None) -> str | None:
     """Save base64 image data as a PNG file with timestamp if output_dir is provided."""
     if output_dir is None:
         return None
 
     output_dir.mkdir(parents=True, exist_ok=True)
     timestamp = datetime.now().strftime("%m-%d_%H-%M-%S-%f")[:-3]  # noqa: DTZ005
-    filename = f"image_{timestamp}.png"
+    filename = f"{trace_id or timestamp}.png"
     filepath = output_dir / filename
     image_bytes = base64.b64decode(base64_data) if isinstance(base64_data, str) else bytes(base64_data)
     image_buffer = BytesIO(image_bytes)
@@ -38,3 +38,4 @@ def save_base64_as_png(base64_data: bytes | bytearray | str, output_dir: Path | 
 
     pil_image.save(filepath, "PNG")
     return str(filepath)
+
