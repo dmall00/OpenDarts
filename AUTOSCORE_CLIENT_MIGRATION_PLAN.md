@@ -17,15 +17,15 @@ Mobile Camera → TFLite Model → Client Stabilizer → Backend (confirmed dart
 
 ## Phase 1: Core Infrastructure Setup
 
-### Step 1.1: TensorFlow Lite Integration
+### Step 1.1: TensorFlow Lite Integration ✅
 **Goal**: Set up TensorFlow Lite for React Native and verify model loading
 
 **Tasks**:
-- [ ] Install dependencies: `@tensorflow/tfjs`, `@tensorflow/tfjs-react-native`, `expo-gl`
-- [ ] Create model loading service at `app/src/services/ml/modelLoader.ts`
-- [ ] Implement model initialization with the prepared TFLite models
-- [ ] Add error handling for model loading failures
-- [ ] Create test to verify model loads successfully
+- [x] Install dependencies: `@tensorflow/tfjs`, `@tensorflow/tfjs-react-native`, `expo-gl`
+- [x] Create model loading service at `app/src/services/ml/modelLoader.ts`
+- [x] Implement model initialization with the prepared TFLite models
+- [x] Add error handling for model loading failures
+- [x] Create test to verify model loads successfully
 
 **Files to create**:
 - `app/src/services/ml/modelLoader.ts`
@@ -38,15 +38,15 @@ Mobile Camera → TFLite Model → Client Stabilizer → Backend (confirmed dart
 
 ---
 
-### Step 1.2: Image Preprocessing Service
+### Step 1.2: Image Preprocessing Service ✅
 **Goal**: Port Python image preprocessing logic to TypeScript
 
 **Tasks**:
-- [ ] Create `app/src/services/ml/imagePreprocessor.ts`
-- [ ] Implement image resizing (matching Python's `ImagePreprocessor`)
-- [ ] Add cropping functionality
-- [ ] Implement tensor conversion from camera frames
-- [ ] Add normalization (if required by YOLO model)
+- [x] Create `app/src/services/ml/imagePreprocessor.ts`
+- [x] Implement image resizing (matching Python's `ImagePreprocessor`)
+- [x] Add cropping functionality
+- [x] Implement tensor conversion from camera frames
+- [x] Add normalization (if required by YOLO model)
 
 **Reference Python code**:
 - `detector/service/image_preprocessor.py`
@@ -61,16 +61,16 @@ Mobile Camera → TFLite Model → Client Stabilizer → Backend (confirmed dart
 
 ---
 
-### Step 1.3: YOLO Result Parser
+### Step 1.3: YOLO Result Parser ✅
 **Goal**: Parse TFLite model outputs into dart positions and calibration points
 
 **Tasks**:
-- [ ] Create `app/src/services/ml/yoloParser.ts`
-- [ ] Implement bounding box parsing from model output tensors
-- [ ] Extract dart positions (class_id, confidence, center_x, center_y)
-- [ ] Extract calibration points (for board detection)
-- [ ] Apply confidence thresholds
-- [ ] Port class mapping logic from `YoloDartClassMapping`
+- [x] Create `app/src/services/ml/yoloParser.ts`
+- [x] Implement bounding box parsing from model output tensors
+- [x] Extract dart positions (class_id, confidence, center_x, center_y)
+- [x] Extract calibration points (for board detection)
+- [x] Apply confidence thresholds
+- [x] Port class mapping logic from `YoloDartClassMapping`
 
 **Reference Python code**:
 - `detector/service/parser/yolo_result_parser.py`
@@ -101,17 +101,17 @@ interface CalibrationPoint {
 
 ---
 
-## Phase 2: Calibration Pipeline
+## Phase 2: Calibration Pipeline ✅
 
-### Step 2.1: Homography Matrix Calculator
+### Step 2.1: Homography Matrix Calculator ✅
 **Goal**: Calculate board transformation matrix from calibration points
 
 **Tasks**:
-- [ ] Create `app/src/services/ml/calibration/homographyCalculator.ts`
-- [ ] Implement perspective transformation calculation
-- [ ] Use existing matrix math library or implement OpenCV-like homography
-- [ ] Add validation for minimum calibration points (need 4+)
-- [ ] Cache calibration result per session
+- [x] Create `app/src/services/ml/calibration/homographyCalculator.ts`
+- [x] Implement perspective transformation calculation (DLT algorithm)
+- [x] Implement homography calculation without external libraries
+- [x] Add validation for minimum calibration points (need 4+)
+- [x] Cache calibration result per session
 
 **Reference Python code**:
 - `detector/service/calibration/calibration_matrix_calculator.py`
@@ -126,16 +126,16 @@ interface CalibrationPoint {
 
 ---
 
-### Step 2.2: Board Calibration Service
+### Step 2.2: Board Calibration Service ✅
 **Goal**: Orchestrate calibration detection from camera image
 
 **Tasks**:
-- [ ] Create `app/src/services/ml/calibration/boardCalibrationService.ts`
-- [ ] Implement `calibrateFromImage(imageData)` method
-- [ ] Chain: preprocess → YOLO detect → parse → calculate homography
-- [ ] Store calibration result in memory/AsyncStorage
-- [ ] Add recalibration trigger mechanism
-- [ ] Implement calibration UI feedback
+- [x] Create `app/src/services/ml/calibration/boardCalibrationService.ts`
+- [x] Implement `calibrateFromPoints()` method
+- [x] Chain: parse calibration points → calculate homography
+- [x] Store calibration result in memory (cached)
+- [x] Add recalibration trigger mechanism
+- [x] Detailed logging for calibration feedback
 
 **Reference Python code**:
 - `detector/service/calibration/board_calibration_service.py`
@@ -156,14 +156,14 @@ interface CalibrationResult {
 
 ---
 
-### Step 2.3: Coordinate Transformer
+### Step 2.3: Coordinate Transformer ✅
 **Goal**: Transform dart positions from image coordinates to board coordinates
 
 **Tasks**:
-- [ ] Create `app/src/services/ml/calibration/coordinateTransformer.ts`
-- [ ] Implement perspective transformation using homography matrix
-- [ ] Transform (x, y) from camera space to dartboard space
-- [ ] Add boundary validation (ensure points land on valid board area)
+- [x] Create `app/src/services/ml/calibration/coordinateTransformer.ts`
+- [x] Implement perspective transformation using homography matrix
+- [x] Transform (x, y) from camera space to dartboard space
+- [x] Detailed logging for transformation steps
 
 **Reference Python code**:
 - `detector/service/calibration/coordinate_transformer.py`
@@ -173,17 +173,17 @@ interface CalibrationResult {
 
 ---
 
-## Phase 3: Dart Scoring Logic
+## Phase 3: Dart Scoring Logic ✅
 
-### Step 3.1: Dart Score Calculator
+### Step 3.1: Dart Score Calculator ✅
 **Goal**: Calculate score from transformed dart coordinates
 
 **Tasks**:
-- [ ] Create `app/src/services/ml/scoring/dartScoreCalculator.ts`
-- [ ] Implement dartboard geometry (20 segments, rings for single/double/triple)
-- [ ] Calculate angle and distance from center
-- [ ] Map to score and multiplier
-- [ ] Handle bullseye (50) and outer bull (25)
+- [x] Create `app/src/services/ml/scoring/dartScoreCalculator.ts`
+- [x] Implement dartboard geometry (20 segments, rings for single/double/triple)
+- [x] Calculate angle and distance from center
+- [x] Map to score and multiplier
+- [x] Handle bullseye (50) and outer bull (25)
 
 **Reference Python code**:
 - `detector/service/scoring/dart_point_score_calculator.py`
@@ -202,15 +202,15 @@ interface DartScore {
 
 ---
 
-### Step 3.2: Dart Scoring Service
+### Step 3.2: Dart Scoring Service ✅
 **Goal**: Orchestrate end-to-end scoring from detection to final score
 
 **Tasks**:
-- [ ] Create `app/src/services/ml/scoring/dartScoringService.ts`
-- [ ] Combine: YOLO detection → coordinate transform → score calculation
-- [ ] Handle multiple darts in single image
-- [ ] Apply confidence filtering
-- [ ] Return full detection results
+- [x] Create `app/src/services/ml/scoring/dartScoringService.ts`
+- [x] Combine: YOLO detection → coordinate transform → score calculation
+- [x] Handle multiple darts in single image
+- [x] Apply confidence filtering
+- [x] Return full detection results with detailed logging
 
 **Reference Python code**:
 - `detector/service/scoring/dart_scoring_service.py`

@@ -1,6 +1,7 @@
 import {Camera, CameraDevice} from 'react-native-vision-camera';
 import {isWeb} from "@/src/utils/platform";
 import {AutoScoreMessage} from '@/src/utils/binaryProtocol';
+import {dartDetectionPipeline} from '@/src/services/ml';
 
 let ImageResizer: any = null;
 if (!isWeb()) {
@@ -207,6 +208,42 @@ export class CameraService {
                     console.warn('No frame captured from stream');
                 }
                 return false;
+            }
+
+            try {
+                const mlResult = await dartDetectionPipeline.processFrame(blob);
+
+                if (mlResult.error) {
+                    console.warn('ML pipeline error:', mlResult.error);
+                } else if (mlResult.detections.length > 0) {
+                    console.log(`\n🎯 ML Detection Results (${mlResult.processingTime.toFixed(2)}ms):`);
+                    mlResult.detections.forEach((detection, i) => {
+                        if (detection.dartScore) {
+                            console.log(
+                                `  Dart ${i + 1}: ${detection.dartScore.computedScore} points ` +
+                                `(${detection.dartScore.multiplier}x ${detection.dartScore.singleValue}) ` +
+                                `confidence: ${detection.originalPosition.confidence.toFixed(3)}`
+                            );
+                        } else {
+                            console.log(
+                                `  Dart ${i + 1}: Detected at (${detection.originalPosition.x.toFixed(3)}, ` +
+                                `${detection.originalPosition.y.toFixed(3)}) ` +
+                                `confidence: ${detection.originalPosition.confidence.toFixed(3)} ` +
+                                `(no score - calibration needed)`
+                            );
+                        }
+                    });
+                }
+
+                if (mlResult.calibrationResult) {
+                    if (mlResult.calibrationResult.success) {
+                        console.log('✅ Board calibrated successfully!');
+                    } else {
+                        console.log('⚠️ Calibration failed:', mlResult.calibrationResult.errorMessage);
+                    }
+                }
+            } catch (mlError) {
+                console.error('ML processing error:', mlError);
             }
 
             return await sendBinaryFunction(blob);

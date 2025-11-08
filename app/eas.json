@@ -5,6 +5,10 @@
       "distribution": "internal",
       "android": {
         "buildType": "apk"
+      },
+      "env": {
+        "ANDROID_HOME": "/opt/android-sdk",
+        "ANDROID_SDK_ROOT": "/opt/android-sdk"
       }
     },
     "preview": {
