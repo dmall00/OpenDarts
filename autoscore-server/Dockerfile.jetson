@@ -1,0 +1,40 @@
+# Dockerfile for NVIDIA Jetson with CUDA support
+# Base image: l4t-pytorch:r36.4.0 includes:
+# - JetPack 6.2 (L4T R36.4.0)
+# - PyTorch 2.7 with CUDA 12.8 support
+# - Python 3.12
+# - Pre-built with cuDNN, CUDA toolkit, and optimized for Jetson hardware
+
+FROM dustynv/l4t-pytorch:r36.4.0
+
+WORKDIR /app
+
+# Copy application code
+COPY autoscore/ ./autoscore/
+COPY detector/ ./detector/
+
+# Install Python dependencies
+# Note: PyTorch is already installed in the base image
+# ultralytics will use the existing PyTorch installation
+RUN pip3 install --no-cache-dir \
+    click>=8.2.1 \
+    numpy>=2.2.6 \
+    opencv-python>=4.11.0.86 \
+    pydanclick>=0.5.1 \
+    pydantic>=2.11.5 \
+    pydantic-settings>=2.10.1 \
+    ultralytics>=8.3.199 \
+    websockets>=15.0.1
+
+# Clean up to reduce image size
+RUN rm -rf /tmp/* /var/tmp/* ~/.cache/pip
+
+# Expose WebSocket port
+EXPOSE 8765
+
+# Set environment variables
+ENV AUTOSCORE_HOST=0.0.0.0
+ENV AUTOSCORE_PORT=8765
+
+# Run the autoscore server
+CMD ["python3", "-m", "autoscore.main"]
