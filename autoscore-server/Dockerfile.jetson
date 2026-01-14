@@ -4,7 +4,6 @@
 # - PyTorch 2.7 with CUDA 12.8 support
 # - Python 3.12
 # - Pre-built with cuDNN, CUDA toolkit, and optimized for Jetson hardware
-# - numpy, opencv (via apt), and other common ML packages
 
 FROM dustynv/l4t-pytorch:r36.4.0
 
@@ -14,20 +13,27 @@ WORKDIR /app
 COPY autoscore/ ./autoscore/
 COPY detector/ ./detector/
 
-# Install Python dependencies
-# Note: PyTorch, numpy, and opencv are already installed in the base image
-# We install only the missing packages with relaxed version constraints
-# to ensure compatibility with ARM64 architecture
+# Upgrade pip and setuptools to meet ultralytics requirements
+RUN pip3 install --no-cache-dir --upgrade \
+    --extra-index-url https://pypi.org/simple \
+    pip setuptools>=70.0.0 wheel
+
+# Install Python dependencies from PyPI (not Jetson repos)
+# The base image already includes PyTorch, numpy, opencv with CUDA support
+# We need to use --extra-index-url to access standard PyPI for packages not in Jetson repos
 RUN pip3 install --no-cache-dir \
-    click \
-    pydanclick \
-    pydantic \
-    pydantic-settings \
-    websockets \
-    ultralytics || \
-    # Fallback: try installing ultralytics without dependencies
-    # since torch/numpy/opencv are already present
-    pip3 install --no-cache-dir --no-deps ultralytics
+    --extra-index-url https://pypi.org/simple \
+    click>=8.2.1 \
+    pydanclick>=0.5.1 \
+    pydantic>=2.11.5 \
+    pydantic-settings>=2.10.1 \
+    websockets>=15.0.1
+
+# Install ultralytics from GitHub (not available in Jetson pip index)
+# This will use the PyTorch already installed in the base image
+RUN pip3 install --no-cache-dir \
+    --extra-index-url https://pypi.org/simple \
+    git+https://github.com/ultralytics/ultralytics.git@v8.3.199
 
 # Clean up to reduce image size
 RUN rm -rf /tmp/* /var/tmp/* ~/.cache/pip
