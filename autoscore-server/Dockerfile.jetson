@@ -4,6 +4,7 @@
 # - PyTorch 2.7 with CUDA 12.8 support
 # - Python 3.12
 # - Pre-built with cuDNN, CUDA toolkit, and optimized for Jetson hardware
+# - numpy, opencv (via apt), and other common ML packages
 
 FROM dustynv/l4t-pytorch:r36.4.0
 
@@ -14,17 +15,19 @@ COPY autoscore/ ./autoscore/
 COPY detector/ ./detector/
 
 # Install Python dependencies
-# Note: PyTorch is already installed in the base image
-# ultralytics will use the existing PyTorch installation
+# Note: PyTorch, numpy, and opencv are already installed in the base image
+# We install only the missing packages with relaxed version constraints
+# to ensure compatibility with ARM64 architecture
 RUN pip3 install --no-cache-dir \
-    click>=8.2.1 \
-    numpy>=2.2.6 \
-    opencv-python>=4.11.0.86 \
-    pydanclick>=0.5.1 \
-    pydantic>=2.11.5 \
-    pydantic-settings>=2.10.1 \
-    ultralytics>=8.3.199 \
-    websockets>=15.0.1
+    click \
+    pydanclick \
+    pydantic \
+    pydantic-settings \
+    websockets \
+    ultralytics || \
+    # Fallback: try installing ultralytics without dependencies
+    # since torch/numpy/opencv are already present
+    pip3 install --no-cache-dir --no-deps ultralytics
 
 # Clean up to reduce image size
 RUN rm -rf /tmp/* /var/tmp/* ~/.cache/pip

@@ -45,7 +45,7 @@ services:
   autoscore-server:
     build:
       context: autoscore-server
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.jetson
     image: opendarts-autoscore:latest
     container_name: opendarts-autoscore
     ports:
